@@ -30,9 +30,12 @@ export function formatDate(ts: number): string {
 }
 
 export function formatHours(ms: number): string {
-  if (ms <= 0) return "0m";
-  const totalMin = Math.round(ms / 60_000);
-  if (totalMin < 60) return `${totalMin}m`;
+  if (ms <= 0) return "0s";
+  const totalSec = Math.floor(ms / 1000);
+  if (totalSec < 60) return `${totalSec}s`;
+  const totalMin = Math.floor(totalSec / 60);
+  const s = totalSec % 60;
+  if (totalMin < 60) return s > 0 ? `${totalMin}m ${s}s` : `${totalMin}m`;
   const h = Math.floor(totalMin / 60);
   const m = totalMin % 60;
   return m > 0 ? `${h}h ${m}m` : `${h}h`;
