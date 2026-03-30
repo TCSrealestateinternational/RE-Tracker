@@ -1,4 +1,4 @@
-import { theme } from "@/styles/theme";
+import { t } from "@/styles/theme";
 import type { Deal, DealStage } from "@/types";
 
 interface DealCardProps {
@@ -12,34 +12,39 @@ export function DealCard({ deal, stages, onMove, onEdit }: DealCardProps) {
   return (
     <div
       style={{
-        background: theme.colors.white,
-        border: `1px solid ${theme.colors.gray200}`,
+        background: t.surface,
+        border: `1px solid ${t.border}`,
         borderRadius: "8px",
-        padding: "0.75rem",
-        marginBottom: "0.5rem",
+        padding: "14px",
+        marginBottom: "8px",
         cursor: "pointer",
+        transition: "background 0.12s",
       }}
       onClick={() => onEdit(deal)}
+      onMouseEnter={(e) => { e.currentTarget.style.background = t.surfaceHover; }}
+      onMouseLeave={(e) => { e.currentTarget.style.background = t.surface; }}
     >
-      <div style={{ fontWeight: 600, fontSize: "0.85rem", color: theme.colors.gray900, marginBottom: "0.25rem" }}>
+      <div style={{ fontWeight: 600, fontSize: "14px", color: t.text, marginBottom: "4px" }}>
         {deal.clientName}
       </div>
-      <div style={{ fontSize: "0.8rem", color: theme.colors.gold, fontWeight: 600, marginBottom: "0.25rem" }}>
+      <div style={{ fontSize: "14px", color: t.gold, fontWeight: 600, marginBottom: "2px" }}>
         ${deal.projectedCommission.toLocaleString()}
       </div>
-      <div style={{ fontSize: "0.75rem", color: theme.colors.gray500, marginBottom: "0.5rem" }}>
-        Close: {deal.expectedCloseDate}
+      <div style={{ ...t.caption, color: t.textTertiary, marginBottom: "10px" }}>
+        Close: {deal.expectedCloseDate || "TBD"}
       </div>
-      <div style={{ display: "flex", gap: "0.25rem", flexWrap: "wrap" }}>
+      <div style={{ display: "flex", gap: "4px", flexWrap: "wrap" }}>
         {stages.filter((s) => s !== deal.stage).map((s) => (
           <button
             key={s}
             onClick={(e) => { e.stopPropagation(); onMove(deal.id, s); }}
             style={{
-              padding: "0.15rem 0.4rem",
-              fontSize: "0.65rem",
-              background: s === "Closed" ? "#dcfce7" : s === "Lost" ? "#fee2e2" : theme.colors.gray100,
-              color: s === "Closed" ? "#166534" : s === "Lost" ? theme.colors.rust : theme.colors.gray700,
+              padding: "3px 8px",
+              fontSize: "11px",
+              fontWeight: 500,
+              fontFamily: t.font,
+              background: s === "Closed" ? t.successLight : s === "Lost" ? t.rustLight : t.bg,
+              color: s === "Closed" ? t.success : s === "Lost" ? t.rust : t.textSecondary,
               border: "none",
               borderRadius: "4px",
               cursor: "pointer",

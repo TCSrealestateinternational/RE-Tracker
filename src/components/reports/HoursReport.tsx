@@ -1,13 +1,12 @@
 import { ACTIVITY_CATEGORIES, type TimeEntry } from "@/types";
 import { getWeekStart, getWeekLabel } from "@/utils/dates";
-import { theme } from "@/styles/theme";
+import { t, card } from "@/styles/theme";
 
 interface HoursReportProps {
   entries: TimeEntry[];
 }
 
 export function HoursReport({ entries }: HoursReportProps) {
-  // Build last 12 weeks
   const weeks: { label: string; start: number }[] = [];
   for (let i = 11; i >= 0; i--) {
     const d = new Date();
@@ -19,37 +18,28 @@ export function HoursReport({ entries }: HoursReportProps) {
   const data = weeks.map((w) => {
     const weekEnd = w.start + 7 * 24 * 60 * 60 * 1000;
     const weekEntries = entries.filter((e) => e.startTime >= w.start && e.startTime < weekEnd);
-    const byCategory: Record<string, number> = {};
-    for (const cat of ACTIVITY_CATEGORIES) {
-      byCategory[cat] = weekEntries
-        .filter((e) => e.category === cat)
-        .reduce((s, e) => s + e.durationMs, 0) / 3_600_000;
-    }
-    const total = Object.values(byCategory).reduce((s, v) => s + v, 0);
-    return { ...w, byCategory, total };
+    const total = weekEntries.reduce((s, e) => s + e.durationMs, 0) / 3_600_000;
+    return { ...w, total };
   });
 
   const maxTotal = Math.max(...data.map((d) => d.total), 1);
 
   return (
-    <div style={{
-      background: theme.colors.white, borderRadius: "12px", padding: "1.5rem",
-      boxShadow: "0 1px 3px rgba(0,0,0,0.06)",
-    }}>
-      <h3 style={{ fontSize: "0.95rem", color: theme.colors.teal, marginBottom: "1rem" }}>
-        Hours by Week (Last 12 Weeks)
+    <div style={card}>
+      <h3 style={{ ...t.sectionHeader, color: t.text, marginBottom: "20px" }}>
+        Hours by Week
       </h3>
-      <div style={{ display: "grid", gap: "0.5rem" }}>
+      <div style={{ display: "grid", gap: "10px" }}>
         {data.map((w) => (
-          <div key={w.start} style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-            <span style={{ width: "50px", fontSize: "0.7rem", color: theme.colors.gray500 }}>{w.label}</span>
-            <div style={{ flex: 1, height: "14px", background: theme.colors.gray100, borderRadius: "4px", overflow: "hidden" }}>
+          <div key={w.start} style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+            <span style={{ width: "50px", ...t.caption, color: t.textTertiary }}>{w.label}</span>
+            <div style={{ flex: 1, height: "4px", background: t.tealLight, borderRadius: "2px", overflow: "hidden" }}>
               <div style={{
                 height: "100%", width: `${(w.total / maxTotal) * 100}%`,
-                background: theme.colors.teal, borderRadius: "4px",
+                background: t.teal, borderRadius: "2px",
               }} />
             </div>
-            <span style={{ width: "40px", fontSize: "0.7rem", color: theme.colors.gray700, textAlign: "right" }}>
+            <span style={{ width: "40px", textAlign: "right", ...t.caption, color: t.textSecondary, fontWeight: 600 }}>
               {w.total.toFixed(1)}h
             </span>
           </div>

@@ -1,5 +1,5 @@
 import { ACTIVITY_CATEGORIES, type TimeEntry } from "@/types";
-import { theme } from "@/styles/theme";
+import { t, card } from "@/styles/theme";
 
 interface GoalProgressProps {
   entries: TimeEntry[];
@@ -23,46 +23,44 @@ export function GoalProgress({ entries, weekStart, goals }: GoalProgressProps) {
 
   if (data.length === 0) {
     return (
-      <div style={{
-        background: theme.colors.white, borderRadius: "12px", padding: "1.5rem",
-        boxShadow: "0 1px 3px rgba(0,0,0,0.06)",
-      }}>
-        <h2 style={{ fontSize: "1rem", marginBottom: "0.5rem", color: theme.colors.teal }}>
+      <div style={card}>
+        <h3 style={{ ...t.sectionHeader, color: t.text, marginBottom: "12px" }}>
           Goal Progress
-        </h2>
-        <p style={{ color: theme.colors.gray500, fontSize: "0.85rem" }}>
-          Set weekly hour goals for categories to track progress here.
+        </h3>
+        <p style={{ ...t.body, color: t.textTertiary }}>
+          Set weekly hour goals to see your progress here. Goals help you stay intentional about where your time goes.
         </p>
       </div>
     );
   }
 
   return (
-    <div style={{
-      background: theme.colors.white, borderRadius: "12px", padding: "1.5rem",
-      boxShadow: "0 1px 3px rgba(0,0,0,0.06)",
-    }}>
-      <h2 style={{ fontSize: "1rem", marginBottom: "1rem", color: theme.colors.teal }}>
+    <div style={card}>
+      <h3 style={{ ...t.sectionHeader, color: t.text, marginBottom: "20px" }}>
         Goal vs Actual
-      </h2>
-      <div style={{ display: "grid", gap: "0.75rem" }}>
+      </h3>
+      <div style={{ display: "grid", gap: "14px" }}>
         {data.map(({ category, actual, goal }) => {
           const pct = Math.min((actual / goal) * 100, 100);
           const met = actual >= goal;
           return (
             <div key={category}>
-              <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.8rem", marginBottom: "0.2rem" }}>
-                <span style={{ color: theme.colors.gray700 }}>{category}</span>
-                <span style={{ color: met ? "#10b981" : theme.colors.rust, fontWeight: 600 }}>
+              <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "4px" }}>
+                <span style={{ ...t.caption, color: t.textSecondary }}>{category}</span>
+                <span style={{
+                  ...t.caption,
+                  fontWeight: 600,
+                  color: met ? t.success : t.textSecondary,
+                }}>
                   {actual.toFixed(1)}h / {goal}h
                 </span>
               </div>
-              <div style={{ height: "10px", background: theme.colors.gray100, borderRadius: "5px", overflow: "hidden" }}>
+              <div style={{ height: "4px", background: t.tealLight, borderRadius: "2px", overflow: "hidden" }}>
                 <div style={{
                   height: "100%",
                   width: `${pct}%`,
-                  background: met ? "#10b981" : theme.colors.gold,
-                  borderRadius: "5px",
+                  background: met ? t.success : t.gold,
+                  borderRadius: "2px",
                   transition: "width 0.3s",
                 }} />
               </div>

@@ -1,4 +1,5 @@
-import { theme } from "@/styles/theme";
+import { ArrowLeft, Edit3, Clock, DollarSign, TrendingUp, CalendarClock } from "lucide-react";
+import { t, card } from "@/styles/theme";
 import type { Client, TimeEntry } from "@/types";
 
 interface ClientDetailProps {
@@ -14,69 +15,67 @@ export function ClientDetail({ client, entries, onEdit, onBack }: ClientDetailPr
   const totalHours = totalMs / 3_600_000;
   const revenuePerHour = totalHours > 0 ? client.commissionEarned / totalHours : 0;
 
+  const stats = [
+    { label: "Hours Logged", value: `${totalHours.toFixed(1)}h`, color: t.teal, icon: Clock },
+    { label: "Commission", value: `$${client.commissionEarned.toLocaleString()}`, color: t.gold, icon: DollarSign },
+    { label: "Revenue/Hour", value: `$${revenuePerHour.toFixed(0)}`, color: t.teal, icon: TrendingUp },
+    { label: "Follow-Up", value: client.followUpDate || "—", color: client.followUpDate ? t.rust : t.textTertiary, icon: CalendarClock },
+  ];
+
   return (
-    <div style={{
-      background: theme.colors.white, borderRadius: "12px", padding: "1.5rem",
-      boxShadow: "0 1px 3px rgba(0,0,0,0.06)",
-    }}>
+    <div style={card}>
       <button onClick={onBack} style={{
-        background: "none", border: "none", color: theme.colors.gold,
-        cursor: "pointer", marginBottom: "1rem", padding: 0, fontWeight: 600, fontSize: "0.85rem",
+        background: "none", border: "none", color: t.textTertiary,
+        cursor: "pointer", padding: 0, fontFamily: t.font,
+        display: "flex", alignItems: "center", gap: "6px",
+        ...t.caption, marginBottom: "20px",
       }}>
-        &larr; Back to Clients
+        <ArrowLeft size={14} strokeWidth={1.5} />
+        Back to Clients
       </button>
 
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "1.5rem" }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "28px" }}>
         <div>
-          <h2 style={{ color: theme.colors.teal, marginBottom: "0.25rem" }}>{client.name}</h2>
-          <p style={{ fontSize: "0.85rem", color: theme.colors.gray500 }}>
+          <h2 style={{ ...t.pageTitle, color: t.text, marginBottom: "4px" }}>{client.name}</h2>
+          <p style={{ ...t.caption, color: t.textTertiary }}>
             {client.status} &middot; {client.stage}
             {client.leadSource && <> &middot; {client.leadSource}</>}
-            &middot; {client.email || "no email"} &middot; {client.phone || "no phone"}
+            {client.email && <> &middot; {client.email}</>}
+            {client.phone && <> &middot; {client.phone}</>}
           </p>
         </div>
         <button onClick={onEdit} style={{
-          padding: "0.5rem 1rem", background: theme.colors.gold, color: theme.colors.white,
-          border: "none", borderRadius: "8px", fontWeight: 600, cursor: "pointer", fontSize: "0.85rem",
+          display: "flex", alignItems: "center", gap: "6px",
+          padding: "8px 16px", background: "transparent", border: `1px solid ${t.border}`,
+          borderRadius: "8px", cursor: "pointer", fontSize: "13px", fontFamily: t.font,
+          color: t.textSecondary,
         }}>
+          <Edit3 size={14} strokeWidth={1.5} />
           Edit
         </button>
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: "1rem", marginBottom: "1.5rem" }}>
-        <div style={{ background: theme.colors.gray50, padding: "1rem", borderRadius: "8px", textAlign: "center" }}>
-          <div style={{ fontSize: "1.5rem", fontWeight: 700, color: theme.colors.teal }}>{totalHours.toFixed(1)}h</div>
-          <div style={{ fontSize: "0.8rem", color: theme.colors.gray500 }}>Hours Logged</div>
-        </div>
-        <div style={{ background: theme.colors.gray50, padding: "1rem", borderRadius: "8px", textAlign: "center" }}>
-          <div style={{ fontSize: "1.5rem", fontWeight: 700, color: theme.colors.gold }}>
-            ${client.commissionEarned.toLocaleString()}
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "12px", marginBottom: "28px" }}>
+        {stats.map(({ label, value, color, icon: Icon }) => (
+          <div key={label} style={{ background: t.bg, padding: "16px", borderRadius: "8px" }}>
+            <Icon size={14} color={t.textTertiary} strokeWidth={1.5} style={{ marginBottom: "8px" }} />
+            <div style={{ ...t.stat, fontSize: "20px", color }}>{value}</div>
+            <div style={{ ...t.label, color: t.textTertiary, marginTop: "4px" }}>{label}</div>
           </div>
-          <div style={{ fontSize: "0.8rem", color: theme.colors.gray500 }}>Commission</div>
-        </div>
-        <div style={{ background: theme.colors.gray50, padding: "1rem", borderRadius: "8px", textAlign: "center" }}>
-          <div style={{ fontSize: "1.5rem", fontWeight: 700, color: theme.colors.rust }}>
-            ${revenuePerHour.toFixed(0)}/hr
-          </div>
-          <div style={{ fontSize: "0.8rem", color: theme.colors.gray500 }}>Revenue/Hour</div>
-        </div>
-        <div style={{ background: theme.colors.gray50, padding: "1rem", borderRadius: "8px", textAlign: "center" }}>
-          <div style={{ fontSize: "1.1rem", fontWeight: 700, color: client.followUpDate ? theme.colors.rust : theme.colors.gray300 }}>
-            {client.followUpDate || "—"}
-          </div>
-          <div style={{ fontSize: "0.8rem", color: theme.colors.gray500 }}>Follow-Up</div>
-        </div>
+        ))}
       </div>
 
       {client.searchCriteria && (
-        <p style={{ fontSize: "0.85rem", color: theme.colors.gray700, marginBottom: "0.5rem" }}>
-          <strong>Search Criteria:</strong> {client.searchCriteria}
-        </p>
+        <div style={{ marginBottom: "12px" }}>
+          <span style={{ ...t.label, color: t.textSecondary, display: "block", marginBottom: "4px" }}>Search Criteria</span>
+          <p style={{ ...t.body, color: t.text }}>{client.searchCriteria}</p>
+        </div>
       )}
       {client.notes && (
-        <p style={{ fontSize: "0.85rem", color: theme.colors.gray700 }}>
-          <strong>Notes:</strong> {client.notes}
-        </p>
+        <div>
+          <span style={{ ...t.label, color: t.textSecondary, display: "block", marginBottom: "4px" }}>Notes</span>
+          <p style={{ ...t.body, color: t.text }}>{client.notes}</p>
+        </div>
       )}
     </div>
   );

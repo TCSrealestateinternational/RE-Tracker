@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { theme } from "@/styles/theme";
+import { Flame, Check } from "lucide-react";
+import { t, card, inputBase, btnPrimary, btnSecondary } from "@/styles/theme";
 import type { DailyCheckIn } from "@/types";
 
 interface DailyCheckInWidgetProps {
@@ -13,87 +14,72 @@ export function DailyCheckInWidget({ todayCheckIn, streak, onSubmit }: DailyChec
 
   if (todayCheckIn) {
     return (
-      <div style={{
-        background: theme.colors.white, borderRadius: "12px", padding: "1.25rem",
-        boxShadow: "0 1px 3px rgba(0,0,0,0.06)",
-      }}>
-        <h3 style={{ fontSize: "0.95rem", color: theme.colors.teal, marginBottom: "0.5rem" }}>
-          Daily Check-In
-        </h3>
-        <div style={{ display: "flex", gap: "1.5rem", alignItems: "center" }}>
-          <div style={{ textAlign: "center" }}>
-            <div style={{ fontSize: "1.5rem", fontWeight: 700, color: todayCheckIn.prospected ? "#10b981" : theme.colors.rust }}>
+      <div style={card}>
+        <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "16px" }}>
+          <Check size={16} color={t.success} strokeWidth={2} />
+          <h3 style={{ ...t.sectionHeader, color: t.text }}>Today's Check-In</h3>
+        </div>
+        <div style={{ display: "flex", gap: "24px" }}>
+          <div>
+            <div style={{ ...t.stat, fontSize: "20px", color: todayCheckIn.prospected ? t.success : t.textTertiary }}>
               {todayCheckIn.prospected ? "Yes" : "No"}
             </div>
-            <div style={{ fontSize: "0.75rem", color: theme.colors.gray500 }}>Prospected</div>
+            <div style={{ ...t.label, color: t.textTertiary, marginTop: "2px" }}>Prospected</div>
           </div>
-          <div style={{ textAlign: "center" }}>
-            <div style={{ fontSize: "1.5rem", fontWeight: 700, color: theme.colors.teal }}>
-              {todayCheckIn.contactsMade}
+          <div>
+            <div style={{ ...t.stat, fontSize: "20px", color: t.teal }}>{todayCheckIn.contactsMade}</div>
+            <div style={{ ...t.label, color: t.textTertiary, marginTop: "2px" }}>Contacts</div>
+          </div>
+          {streak > 0 && (
+            <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+              <Flame size={16} color={t.gold} strokeWidth={1.5} />
+              <div>
+                <div style={{ ...t.stat, fontSize: "20px", color: t.gold }}>{streak}</div>
+                <div style={{ ...t.label, color: t.textTertiary, marginTop: "2px" }}>Day Streak</div>
+              </div>
             </div>
-            <div style={{ fontSize: "0.75rem", color: theme.colors.gray500 }}>Contacts</div>
-          </div>
-          <div style={{ textAlign: "center" }}>
-            <div style={{ fontSize: "1.5rem", fontWeight: 700, color: theme.colors.gold }}>
-              {streak}
-            </div>
-            <div style={{ fontSize: "0.75rem", color: theme.colors.gray500 }}>Day Streak</div>
-          </div>
+          )}
         </div>
       </div>
     );
   }
 
   return (
-    <div style={{
-      background: `linear-gradient(135deg, ${theme.colors.teal}, #155e6e)`,
-      borderRadius: "12px", padding: "1.25rem",
-      boxShadow: "0 1px 3px rgba(0,0,0,0.06)", color: theme.colors.white,
-    }}>
-      <h3 style={{ fontSize: "0.95rem", marginBottom: "0.75rem" }}>
+    <div style={{ ...card, background: t.bg, border: `1px solid ${t.borderMedium}` }}>
+      <h3 style={{ ...t.sectionHeader, color: t.text, marginBottom: "4px" }}>
         Morning Check-In
       </h3>
-      <p style={{ fontSize: "0.85rem", opacity: 0.9, marginBottom: "1rem" }}>
-        Did you prospect today? How many contacts did you make?
+      <p style={{ ...t.body, color: t.textTertiary, marginBottom: "20px" }}>
+        Did you prospect today? Track your contacts to build consistency.
       </p>
-      <div style={{ display: "flex", gap: "0.75rem", alignItems: "flex-end", marginBottom: "0.75rem" }}>
-        <label style={{ flex: 1 }}>
-          <span style={{ display: "block", fontSize: "0.75rem", opacity: 0.8, marginBottom: "0.25rem" }}>Contacts made</span>
+      <div style={{ display: "flex", alignItems: "flex-end", gap: "12px", marginBottom: "16px" }}>
+        <label style={{ width: "140px" }}>
+          <span style={{ ...t.label, color: t.textSecondary, display: "block", marginBottom: "6px" }}>
+            Contacts made
+          </span>
           <input
             type="number"
             min={0}
             value={contacts}
             onChange={(e) => setContacts(+e.target.value)}
-            style={{
-              width: "100%", padding: "0.5rem", borderRadius: "6px", border: "none",
-              fontSize: "0.85rem", boxSizing: "border-box",
-            }}
+            style={inputBase}
           />
         </label>
       </div>
-      <div style={{ display: "flex", gap: "0.5rem" }}>
-        <button
-          onClick={() => onSubmit(true, contacts)}
-          style={{
-            flex: 1, padding: "0.625rem", background: "#10b981", color: "white",
-            border: "none", borderRadius: "8px", fontWeight: 600, cursor: "pointer", fontSize: "0.85rem",
-          }}
-        >
-          Yes, I Prospected
+      <div style={{ display: "flex", gap: "8px" }}>
+        <button onClick={() => onSubmit(true, contacts)} style={btnPrimary}>
+          Yes, I prospected
         </button>
-        <button
-          onClick={() => onSubmit(false, 0)}
-          style={{
-            padding: "0.625rem 1rem", background: "rgba(255,255,255,0.2)", color: "white",
-            border: "1px solid rgba(255,255,255,0.3)", borderRadius: "8px", cursor: "pointer", fontSize: "0.85rem",
-          }}
-        >
-          Not Today
+        <button onClick={() => onSubmit(false, 0)} style={btnSecondary}>
+          Not today
         </button>
       </div>
       {streak > 0 && (
-        <div style={{ marginTop: "0.75rem", fontSize: "0.8rem", opacity: 0.85 }}>
-          Current streak: <strong>{streak} days</strong>
+        <div style={{ display: "flex", alignItems: "center", gap: "6px", marginTop: "14px" }}>
+          <Flame size={14} color={t.gold} strokeWidth={1.5} />
+          <span style={{ ...t.caption, color: t.textTertiary }}>
+            {streak} day streak — keep it going
+          </span>
         </div>
       )}
     </div>

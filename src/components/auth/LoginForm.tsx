@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from "react";
 import { useAuth } from "@/context/AuthContext";
-import { theme } from "@/styles/theme";
+import { t, card, inputBase, btnPrimary } from "@/styles/theme";
 
 export function LoginForm() {
   const { signIn, signUp } = useAuth();
@@ -29,88 +29,81 @@ export function LoginForm() {
       display: "flex",
       alignItems: "center",
       justifyContent: "center",
-      background: theme.colors.gray50,
+      background: t.bg,
+      padding: "24px",
     }}>
       <form onSubmit={handleSubmit} style={{
-        background: theme.colors.white,
-        padding: "2.5rem",
-        borderRadius: "12px",
-        boxShadow: "0 4px 24px rgba(0,0,0,0.08)",
+        ...card,
         width: "100%",
         maxWidth: "400px",
+        padding: "40px",
       }}>
-        <h1 style={{ color: theme.colors.teal, marginBottom: "0.25rem", fontSize: "1.5rem" }}>
-          Agent Time Tracker
-        </h1>
-        <p style={{ color: theme.colors.gray500, marginBottom: "1.5rem", fontSize: "0.9rem" }}>
-          {isSignUp ? "Create your account" : "Sign in to your account"}
-        </p>
+        <div style={{ marginBottom: "32px" }}>
+          <span style={{ ...t.label, color: t.textTertiary, display: "block", marginBottom: "4px" }}>
+            Agent
+          </span>
+          <h1 style={{ ...t.pageTitle, color: t.text, margin: 0 }}>
+            Time Tracker
+          </h1>
+          <p style={{ ...t.body, color: t.textTertiary, marginTop: "8px" }}>
+            {isSignUp
+              ? "Create your account to start tracking"
+              : "Welcome back. Sign in to continue."}
+          </p>
+        </div>
 
         {error && (
           <div style={{
-            background: "#fef2f2",
-            color: theme.colors.rust,
-            padding: "0.75rem",
+            background: t.rustLight,
+            color: t.rust,
+            padding: "12px 16px",
             borderRadius: "8px",
-            marginBottom: "1rem",
-            fontSize: "0.85rem",
+            marginBottom: "20px",
+            ...t.caption,
           }}>
             {error}
           </div>
         )}
 
-        <label style={{ display: "block", marginBottom: "1rem" }}>
-          <span style={{ display: "block", marginBottom: "0.25rem", fontSize: "0.85rem", color: theme.colors.gray700 }}>Email</span>
+        <label style={{ display: "block", marginBottom: "20px" }}>
+          <span style={{ ...t.label, color: t.textSecondary, display: "block", marginBottom: "6px" }}>
+            Email
+          </span>
           <input
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
-            style={{
-              width: "100%",
-              padding: "0.625rem 0.75rem",
-              border: `1px solid ${theme.colors.gray200}`,
-              borderRadius: "8px",
-              fontSize: "0.9rem",
-              boxSizing: "border-box",
-            }}
+            placeholder="you@example.com"
+            style={inputBase}
           />
         </label>
 
-        <label style={{ display: "block", marginBottom: "1.5rem" }}>
-          <span style={{ display: "block", marginBottom: "0.25rem", fontSize: "0.85rem", color: theme.colors.gray700 }}>Password</span>
+        <label style={{ display: "block", marginBottom: "28px" }}>
+          <span style={{ ...t.label, color: t.textSecondary, display: "block", marginBottom: "6px" }}>
+            Password
+          </span>
           <input
             type="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
             minLength={6}
-            style={{
-              width: "100%",
-              padding: "0.625rem 0.75rem",
-              border: `1px solid ${theme.colors.gray200}`,
-              borderRadius: "8px",
-              fontSize: "0.9rem",
-              boxSizing: "border-box",
-            }}
+            placeholder="At least 6 characters"
+            style={inputBase}
           />
         </label>
 
-        <button type="submit" style={{
-          width: "100%",
-          padding: "0.75rem",
-          background: theme.colors.teal,
-          color: theme.colors.white,
-          border: "none",
-          borderRadius: "8px",
-          fontSize: "0.95rem",
-          fontWeight: 600,
-          cursor: "pointer",
-        }}>
+        <button type="submit" style={{ ...btnPrimary, width: "100%" }}>
           {isSignUp ? "Create Account" : "Sign In"}
         </button>
 
-        <p style={{ textAlign: "center", marginTop: "1rem", fontSize: "0.85rem", color: theme.colors.gray500 }}>
+        <p style={{
+          textAlign: "center",
+          marginTop: "20px",
+          ...t.caption,
+          color: t.textTertiary,
+        }}>
           {isSignUp ? "Already have an account?" : "Don't have an account?"}{" "}
           <button
             type="button"
@@ -118,10 +111,12 @@ export function LoginForm() {
             style={{
               background: "none",
               border: "none",
-              color: theme.colors.gold,
+              color: t.teal,
               fontWeight: 600,
               cursor: "pointer",
               padding: 0,
+              fontSize: "inherit",
+              fontFamily: t.font,
             }}
           >
             {isSignUp ? "Sign In" : "Sign Up"}

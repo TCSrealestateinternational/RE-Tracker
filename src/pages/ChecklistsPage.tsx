@@ -2,14 +2,13 @@ import { useChecklists } from "@/hooks/useChecklists";
 import { useDeals } from "@/hooks/useDeals";
 import { useClients } from "@/hooks/useClients";
 import { ChecklistView } from "@/components/checklists/ChecklistView";
-import { theme } from "@/styles/theme";
+import { t, card, btnPrimary } from "@/styles/theme";
 
 export function ChecklistsPage() {
   const { checklists, createChecklist, toggleItem } = useChecklists();
   const { deals } = useDeals();
   const { clients } = useClients();
 
-  // Deals that should have checklists (under contract or beyond)
   const eligibleDeals = deals.filter(
     (d) => d.stage === "Under Contract" || d.stage === "Closed"
   );
@@ -18,32 +17,23 @@ export function ChecklistsPage() {
   );
 
   return (
-    <div>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1rem" }}>
-        <h2 style={{ fontSize: "1.25rem", color: theme.colors.teal }}>Transaction Checklists</h2>
-      </div>
+    <div style={{ display: "grid", gap: t.sectionGap }}>
+      <h1 style={{ ...t.pageTitle, color: t.text }}>Transaction Checklists</h1>
 
       {dealsWithoutChecklist.length > 0 && (
         <div style={{
-          background: "#fffbeb", border: `1px solid ${theme.colors.gold}`,
-          borderRadius: "8px", padding: "0.75rem 1rem", marginBottom: "1rem",
+          ...card, background: t.goldLight,
+          border: `1px solid rgba(188, 128, 77, 0.15)`,
           display: "flex", alignItems: "center", justifyContent: "space-between",
         }}>
-          <span style={{ fontSize: "0.85rem", color: theme.colors.gray700 }}>
-            {dealsWithoutChecklist.length} deal(s) under contract need checklists
+          <span style={{ ...t.body, color: t.textSecondary }}>
+            {dealsWithoutChecklist.length} deal(s) need checklists
           </span>
-          <div style={{ display: "flex", gap: "0.5rem" }}>
+          <div style={{ display: "flex", gap: "8px" }}>
             {dealsWithoutChecklist.map((d) => (
-              <button
-                key={d.id}
-                onClick={() => createChecklist(d.clientId, d.id)}
-                style={{
-                  padding: "0.35rem 0.75rem", background: theme.colors.teal,
-                  color: theme.colors.white, border: "none", borderRadius: "6px",
-                  fontSize: "0.8rem", fontWeight: 600, cursor: "pointer",
-                }}
-              >
-                Create for {d.clientName}
+              <button key={d.id} onClick={() => createChecklist(d.clientId, d.id)}
+                style={{ ...btnPrimary, padding: "8px 16px", fontSize: "13px" }}>
+                {d.clientName}
               </button>
             ))}
           </div>
@@ -51,25 +41,20 @@ export function ChecklistsPage() {
       )}
 
       {checklists.length === 0 ? (
-        <div style={{
-          background: theme.colors.white, borderRadius: "12px", padding: "2rem",
-          boxShadow: "0 1px 3px rgba(0,0,0,0.06)", textAlign: "center",
-        }}>
-          <p style={{ color: theme.colors.gray500, fontSize: "0.85rem" }}>
-            No transaction checklists yet. Move a deal to "Under Contract" in the Pipeline, then create a checklist.
+        <div style={{ ...card, textAlign: "center", padding: "48px 24px" }}>
+          <p style={{ ...t.body, color: t.textTertiary, marginBottom: "4px" }}>
+            No transaction checklists yet.
+          </p>
+          <p style={{ ...t.caption, color: t.textTertiary }}>
+            Move a deal to "Under Contract" in the Pipeline, then create a checklist to track closing milestones.
           </p>
         </div>
       ) : (
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1.25rem" }}>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
           {checklists.map((cl) => {
             const client = clients.find((c) => c.id === cl.clientId);
             return (
-              <ChecklistView
-                key={cl.id}
-                checklist={cl}
-                clientName={client?.name ?? "Unknown Client"}
-                onToggle={toggleItem}
-              />
+              <ChecklistView key={cl.id} checklist={cl} clientName={client?.name ?? "Unknown"} onToggle={toggleItem} />
             );
           })}
         </div>

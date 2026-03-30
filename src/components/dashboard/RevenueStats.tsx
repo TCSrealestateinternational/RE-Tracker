@@ -1,4 +1,5 @@
-import { theme } from "@/styles/theme";
+import { DollarSign, Clock, TrendingUp } from "lucide-react";
+import { t, card } from "@/styles/theme";
 import type { Client, TimeEntry } from "@/types";
 
 interface RevenueStatsProps {
@@ -12,35 +13,23 @@ export function RevenueStats({ clients, entries }: RevenueStatsProps) {
   const totalHours = totalMs / 3_600_000;
   const revenuePerHour = totalHours > 0 ? totalGCI / totalHours : 0;
 
+  const stats = [
+    { label: "Total Hours", value: `${totalHours.toFixed(1)}h`, color: t.teal, icon: Clock },
+    { label: "Total GCI", value: `$${totalGCI.toLocaleString()}`, color: t.gold, icon: DollarSign },
+    { label: "Revenue / Hour", value: `$${revenuePerHour.toFixed(0)}`, color: t.teal, icon: TrendingUp },
+  ];
+
   return (
-    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "1rem" }}>
-      <div style={{
-        background: theme.colors.white, borderRadius: "12px", padding: "1.25rem",
-        boxShadow: "0 1px 3px rgba(0,0,0,0.06)", textAlign: "center",
-      }}>
-        <div style={{ fontSize: "2rem", fontWeight: 700, color: theme.colors.teal }}>
-          {totalHours.toFixed(1)}h
+    <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "16px" }}>
+      {stats.map(({ label, value, color, icon: Icon }) => (
+        <div key={label} style={{ ...card, display: "flex", alignItems: "center", gap: "16px" }}>
+          <Icon size={16} color={color} strokeWidth={1.5} />
+          <div>
+            <div style={{ ...t.stat, color, fontSize: "24px" }}>{value}</div>
+            <div style={{ ...t.label, color: t.textTertiary, marginTop: "2px" }}>{label}</div>
+          </div>
         </div>
-        <div style={{ fontSize: "0.8rem", color: theme.colors.gray500 }}>Total Hours</div>
-      </div>
-      <div style={{
-        background: theme.colors.white, borderRadius: "12px", padding: "1.25rem",
-        boxShadow: "0 1px 3px rgba(0,0,0,0.06)", textAlign: "center",
-      }}>
-        <div style={{ fontSize: "2rem", fontWeight: 700, color: theme.colors.gold }}>
-          ${totalGCI.toLocaleString()}
-        </div>
-        <div style={{ fontSize: "0.8rem", color: theme.colors.gray500 }}>Total GCI</div>
-      </div>
-      <div style={{
-        background: theme.colors.white, borderRadius: "12px", padding: "1.25rem",
-        boxShadow: "0 1px 3px rgba(0,0,0,0.06)", textAlign: "center",
-      }}>
-        <div style={{ fontSize: "2rem", fontWeight: 700, color: theme.colors.rust }}>
-          ${revenuePerHour.toFixed(0)}/hr
-        </div>
-        <div style={{ fontSize: "0.8rem", color: theme.colors.gray500 }}>Revenue / Hour</div>
-      </div>
+      ))}
     </div>
   );
 }

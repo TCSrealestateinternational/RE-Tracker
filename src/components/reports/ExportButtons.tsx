@@ -1,5 +1,6 @@
+import { Download } from "lucide-react";
 import { exportCSV, exportPDF } from "@/utils/export";
-import { theme } from "@/styles/theme";
+import { t } from "@/styles/theme";
 
 interface ExportButtonsProps {
   title: string;
@@ -9,27 +10,30 @@ interface ExportButtonsProps {
 }
 
 export function ExportButtons({ title, headers, rows, filenameBase }: ExportButtonsProps) {
+  const btnStyle = {
+    display: "inline-flex" as const,
+    alignItems: "center" as const,
+    gap: "6px",
+    padding: "7px 14px",
+    fontSize: "13px",
+    fontWeight: 500,
+    fontFamily: t.font,
+    background: "transparent",
+    color: t.textSecondary,
+    border: `1px solid ${t.border}`,
+    borderRadius: "6px",
+    cursor: "pointer" as const,
+  };
+
   return (
-    <div style={{ display: "flex", gap: "0.5rem" }}>
-      <button
-        onClick={() => exportCSV(headers, rows, `${filenameBase}.csv`)}
-        style={{
-          padding: "0.4rem 0.75rem", fontSize: "0.75rem", fontWeight: 600,
-          background: theme.colors.gray100, color: theme.colors.gray700,
-          border: `1px solid ${theme.colors.gray200}`, borderRadius: "6px", cursor: "pointer",
-        }}
-      >
-        Export CSV
+    <div style={{ display: "flex", gap: "6px" }}>
+      <button onClick={() => exportCSV(headers, rows, `${filenameBase}.csv`)} style={btnStyle}>
+        <Download size={14} strokeWidth={1.5} />
+        CSV
       </button>
-      <button
-        onClick={() => exportPDF(title, headers, rows)}
-        style={{
-          padding: "0.4rem 0.75rem", fontSize: "0.75rem", fontWeight: 600,
-          background: theme.colors.gray100, color: theme.colors.gray700,
-          border: `1px solid ${theme.colors.gray200}`, borderRadius: "6px", cursor: "pointer",
-        }}
-      >
-        Export PDF
+      <button onClick={() => exportPDF(title, headers, rows)} style={btnStyle}>
+        <Download size={14} strokeWidth={1.5} />
+        PDF
       </button>
     </div>
   );

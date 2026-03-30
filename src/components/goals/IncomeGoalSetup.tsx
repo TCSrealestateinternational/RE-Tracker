@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from "react";
-import { theme } from "@/styles/theme";
+import { t, card, inputBase, btnPrimary } from "@/styles/theme";
 import type { IncomeGoal } from "@/types";
 
 interface IncomeGoalSetupProps {
@@ -19,51 +19,40 @@ export function IncomeGoalSetup({ goal, onSave }: IncomeGoalSetupProps) {
   const dealsNeeded = avgCommission > 0 ? Math.ceil(annualTarget / avgCommission) : 0;
   const dealsPerMonth = Math.ceil(dealsNeeded / 12);
 
-  const inputStyle = {
-    width: "100%", padding: "0.5rem", borderRadius: "6px",
-    border: `1px solid ${theme.colors.gray200}`, fontSize: "0.85rem", boxSizing: "border-box" as const,
-  };
-
   return (
-    <div style={{
-      background: theme.colors.white, borderRadius: "12px", padding: "1.5rem",
-      boxShadow: "0 1px 3px rgba(0,0,0,0.06)", maxWidth: "480px",
-    }}>
-      <h2 style={{ fontSize: "1rem", marginBottom: "1rem", color: theme.colors.teal }}>Income Goal</h2>
+    <div style={{ ...card, maxWidth: "480px" }}>
+      <h3 style={{ ...t.sectionHeader, color: t.text, marginBottom: "20px" }}>Income Goal</h3>
       <form onSubmit={handleSubmit}>
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.75rem", marginBottom: "1rem" }}>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px", marginBottom: "24px" }}>
           <label>
-            <span style={{ display: "block", fontSize: "0.8rem", color: theme.colors.gray500, marginBottom: "0.25rem" }}>
+            <span style={{ ...t.label, color: t.textSecondary, display: "block", marginBottom: "6px" }}>
               Annual GCI Target ($)
             </span>
-            <input type="number" value={annualTarget} onChange={(e) => setAnnualTarget(+e.target.value)} style={inputStyle} />
+            <input type="number" value={annualTarget} onChange={(e) => setAnnualTarget(+e.target.value)} style={inputBase} />
           </label>
           <label>
-            <span style={{ display: "block", fontSize: "0.8rem", color: theme.colors.gray500, marginBottom: "0.25rem" }}>
+            <span style={{ ...t.label, color: t.textSecondary, display: "block", marginBottom: "6px" }}>
               Avg Commission / Deal ($)
             </span>
-            <input type="number" value={avgCommission} onChange={(e) => setAvgCommission(+e.target.value)} style={inputStyle} />
+            <input type="number" value={avgCommission} onChange={(e) => setAvgCommission(+e.target.value)} style={inputBase} />
           </label>
         </div>
 
         <div style={{
-          background: theme.colors.gray50, borderRadius: "8px", padding: "1rem",
-          display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem", marginBottom: "1rem",
+          background: t.bg, borderRadius: "8px", padding: "20px",
+          display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px", marginBottom: "24px",
         }}>
           <div style={{ textAlign: "center" }}>
-            <div style={{ fontSize: "1.5rem", fontWeight: 700, color: theme.colors.teal }}>{dealsNeeded}</div>
-            <div style={{ fontSize: "0.75rem", color: theme.colors.gray500 }}>Deals / Year</div>
+            <div style={{ ...t.stat, fontSize: "24px", color: t.teal }}>{dealsNeeded}</div>
+            <div style={{ ...t.label, color: t.textTertiary, marginTop: "4px" }}>Deals / Year</div>
           </div>
           <div style={{ textAlign: "center" }}>
-            <div style={{ fontSize: "1.5rem", fontWeight: 700, color: theme.colors.gold }}>{dealsPerMonth}</div>
-            <div style={{ fontSize: "0.75rem", color: theme.colors.gray500 }}>Deals / Month</div>
+            <div style={{ ...t.stat, fontSize: "24px", color: t.gold }}>{dealsPerMonth}</div>
+            <div style={{ ...t.label, color: t.textTertiary, marginTop: "4px" }}>Deals / Month</div>
           </div>
         </div>
 
-        <button type="submit" style={{
-          padding: "0.625rem 1.5rem", background: theme.colors.teal, color: theme.colors.white,
-          border: "none", borderRadius: "8px", fontWeight: 600, cursor: "pointer", fontSize: "0.85rem",
-        }}>
+        <button type="submit" style={btnPrimary}>
           {goal ? "Update Goal" : "Set Goal"}
         </button>
       </form>

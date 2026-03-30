@@ -17,10 +17,7 @@ export function ClientsPage() {
   if (view === "add") {
     return (
       <ClientForm
-        onSubmit={async (data) => {
-          await addClient(data);
-          setView("list");
-        }}
+        onSubmit={async (data) => { await addClient(data); setView("list"); }}
         onCancel={() => setView("list")}
       />
     );

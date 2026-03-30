@@ -1,4 +1,4 @@
-import { theme } from "@/styles/theme";
+import { t, card } from "@/styles/theme";
 import type { Deal } from "@/types";
 
 interface GCIReportProps {
@@ -22,31 +22,27 @@ export function GCIReport({ deals }: GCIReportProps) {
       const cd = new Date(d.expectedCloseDate);
       return cd.getFullYear() === m.year && cd.getMonth() === m.month;
     });
-    const total = monthDeals.reduce((s, d) => s + d.projectedCommission, 0);
-    return { ...m, total };
+    return { ...m, total: monthDeals.reduce((s, d) => s + d.projectedCommission, 0) };
   });
 
   const maxGCI = Math.max(...data.map((d) => d.total), 1);
 
   return (
-    <div style={{
-      background: theme.colors.white, borderRadius: "12px", padding: "1.5rem",
-      boxShadow: "0 1px 3px rgba(0,0,0,0.06)",
-    }}>
-      <h3 style={{ fontSize: "0.95rem", color: theme.colors.teal, marginBottom: "1rem" }}>
-        GCI by Month (Last 12 Months)
+    <div style={card}>
+      <h3 style={{ ...t.sectionHeader, color: t.text, marginBottom: "20px" }}>
+        GCI by Month
       </h3>
-      <div style={{ display: "grid", gap: "0.5rem" }}>
+      <div style={{ display: "grid", gap: "10px" }}>
         {data.map((m) => (
-          <div key={m.label} style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-            <span style={{ width: "50px", fontSize: "0.7rem", color: theme.colors.gray500 }}>{m.label}</span>
-            <div style={{ flex: 1, height: "14px", background: theme.colors.gray100, borderRadius: "4px", overflow: "hidden" }}>
+          <div key={m.label} style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+            <span style={{ width: "50px", ...t.caption, color: t.textTertiary }}>{m.label}</span>
+            <div style={{ flex: 1, height: "4px", background: t.goldLight, borderRadius: "2px", overflow: "hidden" }}>
               <div style={{
                 height: "100%", width: `${(m.total / maxGCI) * 100}%`,
-                background: theme.colors.gold, borderRadius: "4px",
+                background: t.gold, borderRadius: "2px",
               }} />
             </div>
-            <span style={{ width: "60px", fontSize: "0.7rem", color: theme.colors.gray700, textAlign: "right" }}>
+            <span style={{ width: "60px", textAlign: "right", ...t.caption, color: t.textSecondary, fontWeight: 600 }}>
               ${m.total.toLocaleString()}
             </span>
           </div>

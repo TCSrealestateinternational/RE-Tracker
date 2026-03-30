@@ -1,5 +1,6 @@
+import { LogOut } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
-import { theme } from "@/styles/theme";
+import { t } from "@/styles/theme";
 
 export function Header() {
   const { user, signOut } = useAuth();
@@ -9,26 +10,33 @@ export function Header() {
       display: "flex",
       justifyContent: "flex-end",
       alignItems: "center",
-      padding: "0.75rem 1.5rem",
-      borderBottom: `1px solid ${theme.colors.gray200}`,
-      background: theme.colors.white,
+      padding: "16px 32px",
+      background: "transparent",
     }}>
-      <span style={{ fontSize: "0.85rem", color: theme.colors.gray500, marginRight: "1rem" }}>
+      <span style={{ ...t.caption, color: t.textTertiary, marginRight: "16px" }}>
         {user?.email}
       </span>
       <button
         onClick={signOut}
         style={{
-          padding: "0.4rem 1rem",
+          display: "flex",
+          alignItems: "center",
+          gap: "6px",
+          padding: "6px 14px",
           background: "transparent",
-          border: `1px solid ${theme.colors.gray300}`,
+          border: `1px solid ${t.border}`,
           borderRadius: "6px",
-          fontSize: "0.8rem",
+          fontSize: "13px",
           cursor: "pointer",
-          color: theme.colors.gray700,
+          color: t.textTertiary,
+          fontFamily: t.font,
+          transition: "border-color 0.12s",
         }}
+        onMouseEnter={(e) => { e.currentTarget.style.borderColor = t.borderMedium; }}
+        onMouseLeave={(e) => { e.currentTarget.style.borderColor = t.border; }}
       >
-        Sign Out
+        <LogOut size={14} strokeWidth={1.5} />
+        Sign out
       </button>
     </header>
   );

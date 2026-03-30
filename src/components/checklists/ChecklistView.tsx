@@ -1,5 +1,5 @@
 import { CHECKLIST_ITEMS, type TransactionChecklist, type ChecklistItemKey } from "@/types";
-import { theme } from "@/styles/theme";
+import { t, card } from "@/styles/theme";
 
 interface ChecklistViewProps {
   checklist: TransactionChecklist;
@@ -13,52 +13,51 @@ export function ChecklistView({ checklist, clientName, onToggle }: ChecklistView
   const pct = Math.round((completed / total) * 100);
 
   return (
-    <div style={{
-      background: theme.colors.white, borderRadius: "12px", padding: "1.25rem",
-      boxShadow: "0 1px 3px rgba(0,0,0,0.06)",
-    }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.75rem" }}>
-        <h3 style={{ fontSize: "0.95rem", color: theme.colors.teal }}>{clientName}</h3>
+    <div style={card}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "14px" }}>
+        <h3 style={{ ...t.sectionHeader, color: t.text }}>{clientName}</h3>
         <span style={{
-          fontSize: "0.8rem", fontWeight: 600,
-          color: pct === 100 ? "#10b981" : theme.colors.gold,
+          ...t.caption, fontWeight: 600,
+          color: pct === 100 ? t.success : t.textTertiary,
         }}>
-          {pct}% complete
+          {pct}%
         </span>
       </div>
 
       <div style={{
-        height: "6px", background: theme.colors.gray100, borderRadius: "3px",
-        overflow: "hidden", marginBottom: "1rem",
+        height: "3px", background: t.tealLight, borderRadius: "2px",
+        overflow: "hidden", marginBottom: "20px",
       }}>
         <div style={{
           height: "100%", width: `${pct}%`,
-          background: pct === 100 ? "#10b981" : theme.colors.gold,
-          borderRadius: "3px", transition: "width 0.3s",
+          background: pct === 100 ? t.success : t.teal,
+          borderRadius: "2px", transition: "width 0.3s",
         }} />
       </div>
 
-      <div style={{ display: "grid", gap: "0.35rem" }}>
+      <div style={{ display: "grid", gap: "2px" }}>
         {CHECKLIST_ITEMS.map((item) => {
           const checked = checklist.items[item];
           return (
             <label
               key={item}
               style={{
-                display: "flex", alignItems: "center", gap: "0.5rem",
-                padding: "0.4rem 0.5rem", borderRadius: "6px", cursor: "pointer",
-                background: checked ? "#f0fdf4" : "transparent",
+                display: "flex", alignItems: "center", gap: "10px",
+                padding: "8px 10px", borderRadius: "6px", cursor: "pointer",
+                transition: "background 0.1s",
               }}
+              onMouseEnter={(e) => { e.currentTarget.style.background = t.bg; }}
+              onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; }}
             >
               <input
                 type="checkbox"
                 checked={checked}
                 onChange={() => onToggle(checklist.id, checklist, item)}
-                style={{ accentColor: theme.colors.teal, width: "16px", height: "16px" }}
+                style={{ accentColor: t.teal, width: "15px", height: "15px", cursor: "pointer" }}
               />
               <span style={{
-                fontSize: "0.85rem",
-                color: checked ? "#166534" : theme.colors.gray700,
+                ...t.body,
+                color: checked ? t.textTertiary : t.text,
                 textDecoration: checked ? "line-through" : "none",
               }}>
                 {item}

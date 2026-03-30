@@ -7,7 +7,7 @@ import { GCIReport, getGCIReportData } from "@/components/reports/GCIReport";
 import { RevenuePerHourReport } from "@/components/reports/RevenuePerHourReport";
 import { LeadSourceReport, getLeadSourceReportData } from "@/components/reports/LeadSourceReport";
 import { ExportButtons } from "@/components/reports/ExportButtons";
-import { theme } from "@/styles/theme";
+import { t } from "@/styles/theme";
 
 type ReportTab = "hours" | "gci" | "rph" | "leadsource";
 
@@ -18,10 +18,10 @@ export function ReportsPage() {
   const [tab, setTab] = useState<ReportTab>("hours");
 
   const tabs: { key: ReportTab; label: string }[] = [
-    { key: "hours", label: "Hours by Week" },
-    { key: "gci", label: "GCI by Month" },
+    { key: "hours", label: "Hours" },
+    { key: "gci", label: "GCI" },
     { key: "rph", label: "Revenue/Hour" },
-    { key: "leadsource", label: "Lead Source ROI" },
+    { key: "leadsource", label: "Lead Source" },
   ];
 
   function getExportData() {
@@ -36,34 +36,29 @@ export function ReportsPage() {
   const exportData = getExportData();
 
   return (
-    <div>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1rem" }}>
-        <h2 style={{ fontSize: "1.25rem", color: theme.colors.teal }}>Reports</h2>
+    <div style={{ display: "grid", gap: t.sectionGap }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        <h1 style={{ ...t.pageTitle, color: t.text }}>Reports</h1>
         {exportData && (
-          <ExportButtons
-            title={exportData.title}
-            headers={exportData.headers}
-            rows={exportData.rows}
-            filenameBase={exportData.file}
-          />
+          <ExportButtons title={exportData.title} headers={exportData.headers} rows={exportData.rows} filenameBase={exportData.file} />
         )}
       </div>
 
-      {/* Tab bar */}
-      <div style={{ display: "flex", gap: "0.25rem", marginBottom: "1.25rem" }}>
-        {tabs.map((t) => (
+      <div style={{ display: "flex", gap: "4px" }}>
+        {tabs.map((item) => (
           <button
-            key={t.key}
-            onClick={() => setTab(t.key)}
+            key={item.key}
+            onClick={() => setTab(item.key)}
             style={{
-              padding: "0.5rem 1rem", border: "none", borderRadius: "8px",
-              background: tab === t.key ? theme.colors.teal : theme.colors.gray100,
-              color: tab === t.key ? theme.colors.white : theme.colors.gray700,
-              fontWeight: tab === t.key ? 600 : 400,
-              fontSize: "0.85rem", cursor: "pointer",
+              padding: "8px 16px", border: "none", borderRadius: "8px",
+              background: tab === item.key ? t.teal : "transparent",
+              color: tab === item.key ? t.textInverse : t.textSecondary,
+              fontWeight: tab === item.key ? 600 : 400,
+              fontSize: "14px", cursor: "pointer", fontFamily: t.font,
+              transition: "background 0.12s, color 0.12s",
             }}
           >
-            {t.label}
+            {item.label}
           </button>
         ))}
       </div>

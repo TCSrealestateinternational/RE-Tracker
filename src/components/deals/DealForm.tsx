@@ -1,8 +1,7 @@
 import { useState, type FormEvent } from "react";
-import type { Deal, DealStage, LeadSource } from "@/types";
+import type { Deal, DealStage, LeadSource, Client } from "@/types";
 import { DEAL_STAGES, LEAD_SOURCES } from "@/types";
-import { theme } from "@/styles/theme";
-import type { Client } from "@/types";
+import { t, card, inputBase, btnPrimary, btnSecondary } from "@/styles/theme";
 
 interface DealFormProps {
   clients: Client[];
@@ -24,70 +23,47 @@ export function DealForm({ clients, initial, onSubmit, onCancel }: DealFormProps
   function handleSubmit(e: FormEvent) {
     e.preventDefault();
     if (!clientId || !selectedClient) return;
-    onSubmit({
-      clientId,
-      clientName: selectedClient.name,
-      stage,
-      projectedCommission,
-      expectedCloseDate,
-      leadSource,
-      notes,
-    });
+    onSubmit({ clientId, clientName: selectedClient.name, stage, projectedCommission, expectedCloseDate, leadSource, notes });
   }
 
-  const inputStyle = {
-    width: "100%", padding: "0.5rem", borderRadius: "6px",
-    border: `1px solid ${theme.colors.gray200}`, fontSize: "0.85rem", boxSizing: "border-box" as const,
-  };
-  const labelStyle = { display: "block", fontSize: "0.8rem", color: theme.colors.gray500, marginBottom: "0.25rem" };
+  const labelEl = (text: string) => (
+    <span style={{ ...t.label, color: t.textSecondary, display: "block", marginBottom: "6px" }}>{text}</span>
+  );
 
   return (
-    <form onSubmit={handleSubmit} style={{
-      background: theme.colors.white, borderRadius: "12px", padding: "1.5rem",
-      boxShadow: "0 1px 3px rgba(0,0,0,0.06)", maxWidth: "500px",
-    }}>
-      <h2 style={{ fontSize: "1rem", marginBottom: "1rem", color: theme.colors.teal }}>
+    <form onSubmit={handleSubmit} style={{ ...card, maxWidth: "520px" }}>
+      <h2 style={{ ...t.pageTitle, color: t.text, marginBottom: "24px" }}>
         {initial ? "Edit Deal" : "New Deal"}
       </h2>
-      <div style={{ display: "grid", gap: "0.75rem", marginBottom: "0.75rem" }}>
-        <label><span style={labelStyle}>Client *</span>
-          <select value={clientId} onChange={(e) => setClientId(e.target.value)} required style={inputStyle}>
+      <div style={{ display: "grid", gap: "16px", marginBottom: "16px" }}>
+        <label>{labelEl("Client *")}
+          <select value={clientId} onChange={(e) => setClientId(e.target.value)} required style={inputBase}>
             <option value="">Select client...</option>
             {clients.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
           </select></label>
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.75rem" }}>
-          <label><span style={labelStyle}>Stage</span>
-            <select value={stage} onChange={(e) => setStage(e.target.value as DealStage)} style={inputStyle}>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
+          <label>{labelEl("Stage")}
+            <select value={stage} onChange={(e) => setStage(e.target.value as DealStage)} style={inputBase}>
               {DEAL_STAGES.map((s) => <option key={s} value={s}>{s}</option>)}
             </select></label>
-          <label><span style={labelStyle}>Expected Close</span>
-            <input type="date" value={expectedCloseDate} onChange={(e) => setExpectedCloseDate(e.target.value)} style={inputStyle} /></label>
+          <label>{labelEl("Expected Close")}
+            <input type="date" value={expectedCloseDate} onChange={(e) => setExpectedCloseDate(e.target.value)} style={inputBase} /></label>
         </div>
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.75rem" }}>
-          <label><span style={labelStyle}>Projected Commission ($)</span>
-            <input type="number" value={projectedCommission} onChange={(e) => setProjectedCommission(+e.target.value)} style={inputStyle} /></label>
-          <label><span style={labelStyle}>Lead Source</span>
-            <select value={leadSource} onChange={(e) => setLeadSource(e.target.value as LeadSource)} style={inputStyle}>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
+          <label>{labelEl("Projected Commission ($)")}
+            <input type="number" value={projectedCommission} onChange={(e) => setProjectedCommission(+e.target.value)} style={inputBase} /></label>
+          <label>{labelEl("Lead Source")}
+            <select value={leadSource} onChange={(e) => setLeadSource(e.target.value as LeadSource)} style={inputBase}>
               <option value="">None</option>
               {LEAD_SOURCES.map((s) => <option key={s} value={s}>{s}</option>)}
             </select></label>
         </div>
-        <label><span style={labelStyle}>Notes</span>
-          <textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={2} style={{ ...inputStyle, resize: "vertical" }} /></label>
+        <label>{labelEl("Notes")}
+          <textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={2} style={{ ...inputBase, resize: "vertical" }} /></label>
       </div>
-      <div style={{ display: "flex", gap: "0.75rem" }}>
-        <button type="submit" style={{
-          padding: "0.625rem 1.5rem", background: theme.colors.teal, color: theme.colors.white,
-          border: "none", borderRadius: "8px", fontWeight: 600, cursor: "pointer", fontSize: "0.85rem",
-        }}>
-          {initial ? "Save" : "Add Deal"}
-        </button>
-        <button type="button" onClick={onCancel} style={{
-          padding: "0.625rem 1.5rem", background: "transparent", border: `1px solid ${theme.colors.gray300}`,
-          borderRadius: "8px", cursor: "pointer", fontSize: "0.85rem", color: theme.colors.gray700,
-        }}>
-          Cancel
-        </button>
+      <div style={{ display: "flex", gap: "8px", marginTop: "8px" }}>
+        <button type="submit" style={btnPrimary}>{initial ? "Save" : "Add Deal"}</button>
+        <button type="button" onClick={onCancel} style={btnSecondary}>Cancel</button>
       </div>
     </form>
   );
