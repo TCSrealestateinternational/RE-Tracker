@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import {
-  collection, query, where, orderBy, onSnapshot, addDoc, serverTimestamp,
+  collection, query, where, onSnapshot, addDoc, serverTimestamp,
 } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useAuth } from "@/context/AuthContext";
@@ -15,13 +15,21 @@ export function useTimeEntries() {
     if (!user) return;
     const q = query(
       collection(db, "timeEntries"),
-      where("userId", "==", user.uid),
-      orderBy("createdAt", "desc")
+      where("userId", "==", user.uid)
     );
-    const unsub = onSnapshot(q, (snap) => {
-      setEntries(snap.docs.map((d) => ({ id: d.id, ...d.data() }) as TimeEntry));
-      setLoading(false);
-    });
+    const unsub = onSnapshot(
+      q,
+      (snap) => {
+        const docs = snap.docs.map((d) => ({ id: d.id, ...d.data() }) as TimeEntry);
+        docs.sort((a, b) => b.startTime - a.startTime);
+        setEntries(docs);
+        setLoading(false);
+      },
+      (err) => {
+        console.error("Firestore timeEntries listener error:", err);
+        setLoading(false);
+      }
+    );
     return unsub;
   }, [user]);
 

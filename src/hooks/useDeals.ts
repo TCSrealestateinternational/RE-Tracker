@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import {
-  collection, query, where, orderBy, onSnapshot, addDoc, updateDoc, doc, deleteDoc,
+  collection, query, where, onSnapshot, addDoc, updateDoc, doc, deleteDoc,
 } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useAuth } from "@/context/AuthContext";
@@ -15,13 +15,21 @@ export function useDeals() {
     if (!user) return;
     const q = query(
       collection(db, "deals"),
-      where("userId", "==", user.uid),
-      orderBy("createdAt", "desc")
+      where("userId", "==", user.uid)
     );
-    const unsub = onSnapshot(q, (snap) => {
-      setDeals(snap.docs.map((d) => ({ id: d.id, ...d.data() }) as Deal));
-      setLoading(false);
-    });
+    const unsub = onSnapshot(
+      q,
+      (snap) => {
+        const docs = snap.docs.map((d) => ({ id: d.id, ...d.data() }) as Deal);
+        docs.sort((a, b) => b.createdAt - a.createdAt);
+        setDeals(docs);
+        setLoading(false);
+      },
+      (err) => {
+        console.error("Firestore deals listener error:", err);
+        setLoading(false);
+      }
+    );
     return unsub;
   }, [user]);
 

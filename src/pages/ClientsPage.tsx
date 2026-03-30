@@ -9,7 +9,7 @@ import type { Client } from "@/types";
 type View = "list" | "add" | "detail" | "edit";
 
 export function ClientsPage() {
-  const { clients, addClient, updateClient } = useClients();
+  const { clients, error: firestoreError, addClient, updateClient } = useClients();
   const { entries } = useTimeEntries();
   const [view, setView] = useState<View>("list");
   const [selected, setSelected] = useState<Client | null>(null);
@@ -52,10 +52,21 @@ export function ClientsPage() {
   }
 
   return (
-    <ClientList
-      clients={clients}
-      onSelect={(c) => { setSelected(c); setView("detail"); }}
-      onAdd={() => setView("add")}
-    />
+    <>
+      {firestoreError && (
+        <div style={{
+          background: "rgba(157, 68, 42, 0.08)", border: "1px solid #9d442a",
+          borderRadius: "8px", padding: "12px 16px", marginBottom: "16px",
+          fontSize: "14px", color: "#9d442a",
+        }}>
+          Firestore error: {firestoreError}
+        </div>
+      )}
+      <ClientList
+        clients={clients}
+        onSelect={(c) => { setSelected(c); setView("detail"); }}
+        onAdd={() => setView("add")}
+      />
+    </>
   );
 }

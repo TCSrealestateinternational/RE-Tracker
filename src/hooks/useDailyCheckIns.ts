@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import {
-  collection, query, where, onSnapshot, addDoc, orderBy,
+  collection, query, where, onSnapshot, addDoc,
 } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useAuth } from "@/context/AuthContext";
@@ -16,13 +16,21 @@ export function useDailyCheckIns() {
     if (!user) return;
     const q = query(
       collection(db, "dailyCheckIns"),
-      where("userId", "==", user.uid),
-      orderBy("date", "desc")
+      where("userId", "==", user.uid)
     );
-    const unsub = onSnapshot(q, (snap) => {
-      setCheckIns(snap.docs.map((d) => ({ id: d.id, ...d.data() }) as DailyCheckIn));
-      setLoading(false);
-    });
+    const unsub = onSnapshot(
+      q,
+      (snap) => {
+        const docs = snap.docs.map((d) => ({ id: d.id, ...d.data() }) as DailyCheckIn);
+        docs.sort((a, b) => b.date.localeCompare(a.date));
+        setCheckIns(docs);
+        setLoading(false);
+      },
+      (err) => {
+        console.error("Firestore dailyCheckIns listener error:", err);
+        setLoading(false);
+      }
+    );
     return unsub;
   }, [user]);
 
