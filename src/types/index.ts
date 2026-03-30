@@ -247,3 +247,23 @@ export interface IncomeGoal {
   createdAt: number;
   updatedAt: number;
 }
+
+// ── Agent Referrals ──
+export type ReferralStatus = "pending" | "under-contract" | "closed" | "paid" | "lost";
+
+export interface Referral {
+  id: string;
+  userId: string;
+  agentName: string;
+  agentEmail: string;
+  agentPhone: string;
+  clientName: string;          // the person referred
+  referralDate: string;        // YYYY-MM-DD
+  expectedCommission: number;  // what the agent expects to earn
+  referralPercent: number;     // default 25
+  referralFee: number;         // auto-calc: expectedCommission * referralPercent / 100
+  status: ReferralStatus;
+  notes: string;
+  createdAt: number;
+  updatedAt: number;
+}

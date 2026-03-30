@@ -3,7 +3,7 @@ import { ManualEntry } from "@/components/timer/ManualEntry";
 import { useTimeEntries } from "@/hooks/useTimeEntries";
 import { useClients } from "@/hooks/useClients";
 import { t, card } from "@/styles/theme";
-import { formatDate } from "@/utils/dates";
+import { formatDate, formatHours } from "@/utils/dates";
 
 export function TimerPage() {
   const { entries } = useTimeEntries();
@@ -43,14 +43,13 @@ export function TimerPage() {
             <tbody>
               {recent.map((e) => {
                 const client = clients.find((c) => c.id === e.clientId);
-                const hours = (e.durationMs / 3_600_000).toFixed(1);
                 return (
                   <tr key={e.id}>
                     <td style={{ ...t.caption, padding: "10px 12px 10px 0", color: t.textTertiary }}>{formatDate(e.startTime)}</td>
                     <td style={{ ...t.body, padding: "10px 12px 10px 0", color: t.text }}>{e.category}</td>
                     <td style={{ ...t.caption, padding: "10px 12px 10px 0", color: t.textTertiary }}>{client?.name ?? "—"}</td>
                     <td style={{ ...t.caption, padding: "10px 12px 10px 0", color: t.textTertiary }}>{e.leadSource || "—"}</td>
-                    <td style={{ ...t.body, padding: "10px 12px 10px 0", textAlign: "right", fontWeight: 600, color: t.teal }}>{hours}h</td>
+                    <td style={{ ...t.body, padding: "10px 12px 10px 0", textAlign: "right", fontWeight: 600, color: t.teal }}>{formatHours(e.durationMs)}</td>
                     <td style={{
                       ...t.caption, padding: "10px 0", color: t.textTertiary,
                       maxWidth: "180px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",

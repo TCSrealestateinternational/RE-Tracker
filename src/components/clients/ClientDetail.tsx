@@ -1,5 +1,6 @@
 import { ArrowLeft, Edit3, Clock, DollarSign, TrendingUp, CalendarClock, ExternalLink } from "lucide-react";
 import { t, card } from "@/styles/theme";
+import { formatHours } from "@/utils/dates";
 import { BUYER_CHECKLIST_ITEMS, SELLER_CHECKLIST_ITEMS } from "@/types";
 import type { Client, TimeEntry, TransactionChecklist } from "@/types";
 
@@ -33,7 +34,7 @@ export function ClientDetail({ client, entries, checklist, onToggleItem, onEdit,
   const projectedCommission = getProjectedCommission(client);
 
   const stats = [
-    { label: "Hours Logged", value: `${totalHours.toFixed(1)}h`, color: t.teal, icon: Clock },
+    { label: "Time Logged", value: formatHours(totalMs), color: t.teal, icon: Clock },
     { label: "Commission", value: fmtDollars(client.commissionEarned), color: t.gold, icon: DollarSign },
     { label: "Revenue/Hour", value: `$${revenuePerHour.toFixed(0)}`, color: t.teal, icon: TrendingUp },
     { label: "Follow-Up", value: client.followUpDate || "—", color: client.followUpDate ? t.rust : t.textTertiary, icon: CalendarClock },

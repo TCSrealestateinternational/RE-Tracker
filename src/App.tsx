@@ -9,6 +9,7 @@ import { PipelinePage } from "@/pages/PipelinePage";
 import { ChecklistsPage } from "@/pages/ChecklistsPage";
 import { GoalsPage } from "@/pages/GoalsPage";
 import { ReportsPage } from "@/pages/ReportsPage";
+import { ReferralsPage } from "@/pages/ReferralsPage";
 
 export default function App() {
   return (
@@ -21,6 +22,7 @@ export default function App() {
               <Route path="/timer" element={<TimerPage />} />
               <Route path="/clients" element={<ClientsPage />} />
               <Route path="/pipeline" element={<PipelinePage />} />
+              <Route path="/referrals" element={<ReferralsPage />} />
               <Route path="/checklists" element={<ChecklistsPage />} />
               <Route path="/goals" element={<GoalsPage />} />
               <Route path="/reports" element={<ReportsPage />} />

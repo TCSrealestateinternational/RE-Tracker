@@ -1,5 +1,5 @@
 import {
-  LayoutDashboard, Clock, Users, Kanban, ClipboardCheck, Target, BarChart3,
+  LayoutDashboard, Clock, Users, Kanban, Gift, ClipboardCheck, Target, BarChart3,
 } from "lucide-react";
 import { t } from "@/styles/theme";
 
@@ -8,6 +8,7 @@ const NAV_ITEMS = [
   { label: "Timer", path: "/timer", icon: Clock },
   { label: "Clients", path: "/clients", icon: Users },
   { label: "Pipeline", path: "/pipeline", icon: Kanban },
+  { label: "Referrals", path: "/referrals", icon: Gift },
   { label: "Checklists", path: "/checklists", icon: ClipboardCheck },
   { label: "Goals", path: "/goals", icon: Target },
   { label: "Reports", path: "/reports", icon: BarChart3 },
