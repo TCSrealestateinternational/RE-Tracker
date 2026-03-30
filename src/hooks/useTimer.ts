@@ -2,7 +2,7 @@ import { useState, useRef, useCallback } from "react";
 import { collection, addDoc, serverTimestamp } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useAuth } from "@/context/AuthContext";
-import type { ActivityCategory } from "@/types";
+import type { ActivityCategory, LeadSource } from "@/types";
 
 export function useTimer() {
   const { user } = useAuth();
@@ -10,6 +10,7 @@ export function useTimer() {
   const [elapsed, setElapsed] = useState(0);
   const [category, setCategory] = useState<ActivityCategory>("Lead Gen");
   const [clientId, setClientId] = useState<string | null>(null);
+  const [leadSource, setLeadSource] = useState<LeadSource | "">("");
   const [note, setNote] = useState("");
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const startRef = useRef<number>(0);
@@ -33,6 +34,7 @@ export function useTimer() {
       userId: user.uid,
       category,
       clientId,
+      leadSource,
       note,
       startTime: startRef.current,
       endTime,
@@ -44,7 +46,7 @@ export function useTimer() {
     setRunning(false);
     setElapsed(0);
     setNote("");
-  }, [running, user, category, clientId, note]);
+  }, [running, user, category, clientId, leadSource, note]);
 
   const reset = useCallback(() => {
     if (intervalRef.current) clearInterval(intervalRef.current);
@@ -53,16 +55,8 @@ export function useTimer() {
   }, []);
 
   return {
-    running,
-    elapsed,
-    category,
-    clientId,
-    note,
-    setCategory,
-    setClientId,
-    setNote,
-    start,
-    stop,
-    reset,
+    running, elapsed, category, clientId, leadSource, note,
+    setCategory, setClientId, setLeadSource, setNote,
+    start, stop, reset,
   };
 }

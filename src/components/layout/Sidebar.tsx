@@ -4,6 +4,10 @@ const NAV_ITEMS = [
   { label: "Dashboard", path: "/" },
   { label: "Timer", path: "/timer" },
   { label: "Clients", path: "/clients" },
+  { label: "Pipeline", path: "/pipeline" },
+  { label: "Checklists", path: "/checklists" },
+  { label: "Goals", path: "/goals" },
+  { label: "Reports", path: "/reports" },
 ];
 
 interface SidebarProps {
@@ -20,6 +24,8 @@ export function Sidebar({ activePath, onNavigate }: SidebarProps) {
       padding: "1.5rem 0",
       minHeight: "100vh",
       flexShrink: 0,
+      display: "flex",
+      flexDirection: "column",
     }}>
       <h2 style={{
         padding: "0 1.25rem",
@@ -30,7 +36,7 @@ export function Sidebar({ activePath, onNavigate }: SidebarProps) {
       }}>
         Agent Time Tracker
       </h2>
-      <nav>
+      <nav style={{ flex: 1 }}>
         {NAV_ITEMS.map((item) => (
           <button
             key={item.path}
@@ -38,15 +44,17 @@ export function Sidebar({ activePath, onNavigate }: SidebarProps) {
             style={{
               display: "block",
               width: "100%",
-              padding: "0.75rem 1.25rem",
+              padding: "0.7rem 1.25rem",
               background: activePath === item.path ? "rgba(255,255,255,0.1)" : "transparent",
               border: "none",
               color: theme.colors.white,
               textAlign: "left",
-              fontSize: "0.9rem",
+              fontSize: "0.85rem",
               fontWeight: activePath === item.path ? 600 : 400,
               cursor: "pointer",
-              borderLeft: activePath === item.path ? `3px solid ${theme.colors.gold}` : "3px solid transparent",
+              borderLeft: activePath === item.path
+                ? `3px solid ${theme.colors.gold}`
+                : "3px solid transparent",
             }}
           >
             {item.label}

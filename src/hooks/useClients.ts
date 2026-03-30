@@ -1,13 +1,6 @@
 import { useEffect, useState } from "react";
 import {
-  collection,
-  query,
-  where,
-  orderBy,
-  onSnapshot,
-  addDoc,
-  updateDoc,
-  doc,
+  collection, query, where, orderBy, onSnapshot, addDoc, updateDoc, doc,
 } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useAuth } from "@/context/AuthContext";

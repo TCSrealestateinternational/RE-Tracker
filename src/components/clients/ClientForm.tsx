@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from "react";
-import type { Client, ClientStatus, ClientStage } from "@/types";
+import type { Client, ClientStatus, ClientStage, LeadSource } from "@/types";
+import { LEAD_SOURCES } from "@/types";
 import { theme } from "@/styles/theme";
 
 interface ClientFormProps {
@@ -19,6 +20,8 @@ export function ClientForm({ initial, onSubmit, onCancel }: ClientFormProps) {
   const [stage, setStage] = useState<ClientStage>(initial?.stage ?? "prospect");
   const [notes, setNotes] = useState(initial?.notes ?? "");
   const [commissionEarned, setCommissionEarned] = useState(initial?.commissionEarned ?? 0);
+  const [leadSource, setLeadSource] = useState<LeadSource | "">(initial?.leadSource ?? "");
+  const [followUpDate, setFollowUpDate] = useState(initial?.followUpDate ?? "");
 
   function handleSubmit(e: FormEvent) {
     e.preventDefault();
@@ -26,6 +29,7 @@ export function ClientForm({ initial, onSubmit, onCancel }: ClientFormProps) {
       name, email, phone, status,
       priceRange: { min: priceMin, max: priceMax },
       searchCriteria, stage, notes, commissionEarned,
+      leadSource, followUpDate: followUpDate || null,
     });
   }
 
@@ -33,7 +37,6 @@ export function ClientForm({ initial, onSubmit, onCancel }: ClientFormProps) {
     width: "100%", padding: "0.5rem", borderRadius: "6px",
     border: `1px solid ${theme.colors.gray200}`, fontSize: "0.85rem", boxSizing: "border-box" as const,
   };
-
   const labelStyle = { display: "block", fontSize: "0.8rem", color: theme.colors.gray500, marginBottom: "0.25rem" };
 
   return (
@@ -71,6 +74,13 @@ export function ClientForm({ initial, onSubmit, onCancel }: ClientFormProps) {
           </select></label>
         <label><span style={labelStyle}>Commission Earned ($)</span>
           <input type="number" value={commissionEarned} onChange={(e) => setCommissionEarned(+e.target.value)} style={inputStyle} /></label>
+        <label><span style={labelStyle}>Lead Source</span>
+          <select value={leadSource} onChange={(e) => setLeadSource(e.target.value as LeadSource)} style={inputStyle}>
+            <option value="">None</option>
+            {LEAD_SOURCES.map((s) => <option key={s} value={s}>{s}</option>)}
+          </select></label>
+        <label><span style={labelStyle}>Follow-Up Date</span>
+          <input type="date" value={followUpDate} onChange={(e) => setFollowUpDate(e.target.value)} style={inputStyle} /></label>
       </div>
       <label style={{ display: "block", marginBottom: "0.75rem" }}>
         <span style={labelStyle}>Search Criteria</span>

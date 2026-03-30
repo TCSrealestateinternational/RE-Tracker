@@ -1,27 +1,44 @@
 import { useMemo } from "react";
+import { useNavigate } from "react-router-dom";
 import { useTimeEntries } from "@/hooks/useTimeEntries";
 import { useClients } from "@/hooks/useClients";
+import { useDeals } from "@/hooks/useDeals";
+import { useDailyCheckIns } from "@/hooks/useDailyCheckIns";
+import { useIncomeGoals } from "@/hooks/useIncomeGoals";
 import { WeeklyHours } from "@/components/dashboard/WeeklyHours";
 import { GoalProgress } from "@/components/dashboard/GoalProgress";
 import { RevenueStats } from "@/components/dashboard/RevenueStats";
-
-function getWeekStart(): number {
-  const now = new Date();
-  const day = now.getDay();
-  const diff = now.getDate() - day + (day === 0 ? -6 : 1);
-  const mon = new Date(now.getFullYear(), now.getMonth(), diff);
-  mon.setHours(0, 0, 0, 0);
-  return mon.getTime();
-}
+import { FollowUpAlerts } from "@/components/dashboard/FollowUpAlerts";
+import { PipelineSummary } from "@/components/dashboard/PipelineSummary";
+import { IncomeGoalBar } from "@/components/dashboard/IncomeGoalBar";
+import { DailyCheckInWidget } from "@/components/checkin/DailyCheckInWidget";
+import { getWeekStart } from "@/utils/dates";
 
 export function DashboardPage() {
   const { entries } = useTimeEntries();
   const { clients } = useClients();
-  const weekStart = useMemo(getWeekStart, []);
+  const { deals } = useDeals();
+  const { todayCheckIn, getStreak, submitCheckIn } = useDailyCheckIns();
+  const { goal } = useIncomeGoals();
+  const navigate = useNavigate();
+  const weekStart = useMemo(() => getWeekStart(), []);
 
   return (
     <div style={{ display: "grid", gap: "1.25rem" }}>
-      <RevenueStats clients={clients} entries={entries} />
+      {/* Row 1: Stats + Check-in */}
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1.25rem" }}>
+        <RevenueStats clients={clients} entries={entries} />
+        <DailyCheckInWidget todayCheckIn={todayCheckIn} streak={getStreak()} onSubmit={submitCheckIn} />
+      </div>
+
+      {/* Row 2: Income goal + Follow-ups + Pipeline */}
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "1.25rem" }}>
+        <IncomeGoalBar goal={goal} clients={clients} />
+        <FollowUpAlerts clients={clients} onClientClick={navigate} />
+        <PipelineSummary deals={deals} />
+      </div>
+
+      {/* Row 3: Weekly hours + Goal progress */}
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1.25rem" }}>
         <WeeklyHours entries={entries} weekStart={weekStart} />
         <GoalProgress entries={entries} weekStart={weekStart} goals={{}} />

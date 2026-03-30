@@ -30,7 +30,9 @@ export function ClientDetail({ client, entries, onEdit, onBack }: ClientDetailPr
         <div>
           <h2 style={{ color: theme.colors.teal, marginBottom: "0.25rem" }}>{client.name}</h2>
           <p style={{ fontSize: "0.85rem", color: theme.colors.gray500 }}>
-            {client.status} &middot; {client.stage} &middot; {client.email || "no email"} &middot; {client.phone || "no phone"}
+            {client.status} &middot; {client.stage}
+            {client.leadSource && <> &middot; {client.leadSource}</>}
+            &middot; {client.email || "no email"} &middot; {client.phone || "no phone"}
           </p>
         </div>
         <button onClick={onEdit} style={{
@@ -41,7 +43,7 @@ export function ClientDetail({ client, entries, onEdit, onBack }: ClientDetailPr
         </button>
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "1rem", marginBottom: "1.5rem" }}>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: "1rem", marginBottom: "1.5rem" }}>
         <div style={{ background: theme.colors.gray50, padding: "1rem", borderRadius: "8px", textAlign: "center" }}>
           <div style={{ fontSize: "1.5rem", fontWeight: 700, color: theme.colors.teal }}>{totalHours.toFixed(1)}h</div>
           <div style={{ fontSize: "0.8rem", color: theme.colors.gray500 }}>Hours Logged</div>
@@ -57,6 +59,12 @@ export function ClientDetail({ client, entries, onEdit, onBack }: ClientDetailPr
             ${revenuePerHour.toFixed(0)}/hr
           </div>
           <div style={{ fontSize: "0.8rem", color: theme.colors.gray500 }}>Revenue/Hour</div>
+        </div>
+        <div style={{ background: theme.colors.gray50, padding: "1rem", borderRadius: "8px", textAlign: "center" }}>
+          <div style={{ fontSize: "1.1rem", fontWeight: 700, color: client.followUpDate ? theme.colors.rust : theme.colors.gray300 }}>
+            {client.followUpDate || "—"}
+          </div>
+          <div style={{ fontSize: "0.8rem", color: theme.colors.gray500 }}>Follow-Up</div>
         </div>
       </div>
 
