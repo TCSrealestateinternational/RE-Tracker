@@ -1,6 +1,6 @@
 import { useState, type FormEvent, type CSSProperties } from "react";
 import { Plus, X } from "lucide-react";
-import type { Client, ClientStatus, ClientStage, LeadSource, ContactPerson, Offer, OfferStatus } from "@/types";
+import type { Client, ClientStatus, ClientStage, LeadSource, ContactPerson, Offer, OfferStatus, DriveLink } from "@/types";
 import { LEAD_SOURCES } from "@/types";
 import { t, card, inputBase, btnPrimary, btnSecondary } from "@/styles/theme";
 
@@ -69,6 +69,9 @@ export function ClientForm({ initial, onSubmit, onCancel }: ClientFormProps) {
   const [acceptedOfferDate, setAcceptedOfferDate] = useState(initial?.acceptedOfferDate ?? "");
   const [expectedCloseDate, setExpectedCloseDate] = useState(initial?.expectedCloseDate ?? "");
 
+  // Drive links
+  const [driveLinks, setDriveLinks] = useState<DriveLink[]>(initial?.driveLinks ?? []);
+
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
 
@@ -124,6 +127,19 @@ export function ClientForm({ initial, onSubmit, onCancel }: ClientFormProps) {
     setPriceReductions((prev) => prev.filter((_, i) => i !== index));
   }
 
+  // Drive link management
+  function addDriveLink() {
+    setDriveLinks((prev) => [...prev, { label: "", url: "" }]);
+  }
+  function updateDriveLink(index: number, field: keyof DriveLink, value: string) {
+    setDriveLinks((prev) =>
+      prev.map((l, i) => (i === index ? { ...l, [field]: value } : l))
+    );
+  }
+  function removeDriveLink(index: number) {
+    setDriveLinks((prev) => prev.filter((_, i) => i !== index));
+  }
+
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
     setError("");
@@ -151,6 +167,7 @@ export function ClientForm({ initial, onSubmit, onCancel }: ClientFormProps) {
         offers,
         acceptedOfferDate: acceptedOfferDate || null,
         expectedCloseDate: expectedCloseDate || null,
+        driveLinks: driveLinks.filter((l) => l.url.trim()),
       });
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to save client. Please try again.");
@@ -421,13 +438,53 @@ export function ClientForm({ initial, onSubmit, onCancel }: ClientFormProps) {
         <input value={commissionEarned} onChange={handleNumInput(setCommissionEarned)} placeholder="0" style={{ ...inputBase, maxWidth: "200px" }} inputMode="decimal" />
       </label>
 
-      <label style={{ display: "block", marginBottom: "28px" }}>
+      <label style={{ display: "block", marginBottom: "16px" }}>
         {labelEl("Notes")}
         <textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={3} placeholder="Optional"
           style={{ ...inputBase, resize: "vertical" }} />
       </label>
 
-      <div style={{ display: "flex", gap: "8px" }}>
+      {/* ── Google Drive Links ── */}
+      <div style={sectionBox}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "10px" }}>
+          <span style={{ ...t.label, color: t.textSecondary }}>Google Drive Links</span>
+          <button type="button" onClick={addDriveLink} style={{
+            ...btnSecondary, padding: "4px 10px", fontSize: "12px",
+            display: "flex", alignItems: "center", gap: "4px",
+          }}>
+            <Plus size={12} strokeWidth={2} /> Add Link
+          </button>
+        </div>
+        {driveLinks.length === 0 && (
+          <p style={{ ...t.caption, color: t.textTertiary }}>
+            No links yet. Add a Google Drive folder or document link.
+          </p>
+        )}
+        {driveLinks.map((link, i) => (
+          <div key={i} style={{ display: "flex", gap: "8px", alignItems: "center", marginBottom: "6px" }}>
+            <input
+              value={link.label}
+              onChange={(e) => updateDriveLink(i, "label", e.target.value)}
+              placeholder="Label (e.g. Client Folder)"
+              style={{ ...inputBase, flex: "0 0 160px" }}
+            />
+            <input
+              value={link.url}
+              onChange={(e) => updateDriveLink(i, "url", e.target.value)}
+              placeholder="https://drive.google.com/..."
+              style={{ ...inputBase, flex: 1 }}
+            />
+            <button type="button" onClick={() => removeDriveLink(i)} style={{
+              background: "none", border: "none", cursor: "pointer",
+              color: t.textTertiary, padding: "4px", display: "flex", alignItems: "center",
+            }}>
+              <X size={14} strokeWidth={1.5} />
+            </button>
+          </div>
+        ))}
+      </div>
+
+      <div style={{ display: "flex", gap: "8px", marginTop: "12px" }}>
         <button type="submit" disabled={saving} style={{ ...btnPrimary, opacity: saving ? 0.6 : 1 }}>
           {saving ? "Saving…" : initial ? "Save Changes" : "Add Client"}
         </button>

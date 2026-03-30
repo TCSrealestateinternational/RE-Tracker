@@ -1,4 +1,4 @@
-import { ArrowLeft, Edit3, Clock, DollarSign, TrendingUp, CalendarClock } from "lucide-react";
+import { ArrowLeft, Edit3, Clock, DollarSign, TrendingUp, CalendarClock, ExternalLink } from "lucide-react";
 import { t, card } from "@/styles/theme";
 import { BUYER_CHECKLIST_ITEMS, SELLER_CHECKLIST_ITEMS } from "@/types";
 import type { Client, TimeEntry, TransactionChecklist } from "@/types";
@@ -214,9 +214,38 @@ export function ClientDetail({ client, entries, checklist, onToggleItem, onEdit,
         )}
 
         {client.notes && (
-          <div>
+          <div style={{ marginBottom: "16px" }}>
             <span style={{ ...t.label, color: t.textSecondary, display: "block", marginBottom: "4px" }}>Notes</span>
             <p style={{ ...t.body, color: t.text }}>{client.notes}</p>
+          </div>
+        )}
+
+        {/* ── Google Drive Links ── */}
+        {client.driveLinks?.length > 0 && (
+          <div>
+            <span style={{ ...t.label, color: t.textSecondary, display: "block", marginBottom: "8px" }}>Google Drive</span>
+            <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+              {client.driveLinks.map((link, i) => (
+                <a
+                  key={i}
+                  href={link.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{
+                    display: "flex", alignItems: "center", gap: "8px",
+                    padding: "8px 12px", borderRadius: "8px",
+                    background: t.bg, textDecoration: "none",
+                    transition: "background 0.12s",
+                    ...t.body, color: t.teal,
+                  }}
+                  onMouseEnter={(e) => { e.currentTarget.style.background = t.tealLight; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.background = t.bg; }}
+                >
+                  <ExternalLink size={14} strokeWidth={1.5} />
+                  <span style={{ fontWeight: 500 }}>{link.label || link.url}</span>
+                </a>
+              ))}
+            </div>
           </div>
         )}
       </div>

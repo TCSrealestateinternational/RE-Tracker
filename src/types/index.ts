@@ -52,6 +52,11 @@ export interface Offer {
   status: OfferStatus;
 }
 
+export interface DriveLink {
+  label: string;
+  url: string;
+}
+
 export interface Client {
   id: string;
   userId: string;
@@ -65,6 +70,7 @@ export interface Client {
   leadSource: LeadSource | "";
   followUpDate: string | null; // ISO date string YYYY-MM-DD
   commissionEarned: number;
+  driveLinks: DriveLink[];
 
   // Commission projection (both buyer & seller)
   commissionMode: "percentage" | "flat";
