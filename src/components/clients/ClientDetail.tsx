@@ -12,15 +12,29 @@ interface ClientDetailProps {
   onBack: () => void;
 }
 
+function getProjectedCommission(client: Client): number {
+  if (client.commissionMode === "flat") return client.commissionFlat ?? 0;
+  const pct = client.commissionPercent ?? 0;
+  const base = client.status === "buyer"
+    ? (client.priceRange?.max ?? 0)
+    : (client.listPrice ?? 0);
+  return base * (pct / 100);
+}
+
+function fmtDollars(n: number): string {
+  return "$" + n.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 });
+}
+
 export function ClientDetail({ client, entries, checklist, onToggleItem, onEdit, onBack }: ClientDetailProps) {
   const clientEntries = entries.filter((e) => e.clientId === client.id);
   const totalMs = clientEntries.reduce((sum, e) => sum + e.durationMs, 0);
   const totalHours = totalMs / 3_600_000;
   const revenuePerHour = totalHours > 0 ? client.commissionEarned / totalHours : 0;
+  const projectedCommission = getProjectedCommission(client);
 
   const stats = [
     { label: "Hours Logged", value: `${totalHours.toFixed(1)}h`, color: t.teal, icon: Clock },
-    { label: "Commission", value: `$${client.commissionEarned.toLocaleString()}`, color: t.gold, icon: DollarSign },
+    { label: "Commission", value: fmtDollars(client.commissionEarned), color: t.gold, icon: DollarSign },
     { label: "Revenue/Hour", value: `$${revenuePerHour.toFixed(0)}`, color: t.teal, icon: TrendingUp },
     { label: "Follow-Up", value: client.followUpDate || "—", color: client.followUpDate ? t.rust : t.textTertiary, icon: CalendarClock },
   ];
@@ -31,6 +45,18 @@ export function ClientDetail({ client, entries, checklist, onToggleItem, onEdit,
   const completedCount = checklist ? Object.values(checklist.items).filter(Boolean).length : 0;
   const totalItems = checklistItems.length;
   const pct = totalItems > 0 ? Math.round((completedCount / totalItems) * 100) : 0;
+
+  const isBuyer = client.status === "buyer";
+
+  const detailRow = (label: string, value: string | null | undefined) => {
+    if (!value) return null;
+    return (
+      <div style={{ marginBottom: "8px" }}>
+        <span style={{ ...t.label, color: t.textSecondary, display: "block", marginBottom: "2px" }}>{label}</span>
+        <span style={{ ...t.body, color: t.text }}>{value}</span>
+      </div>
+    );
+  };
 
   return (
     <div style={{ display: "grid", gap: t.sectionGap }}>
@@ -86,12 +112,107 @@ export function ClientDetail({ client, entries, checklist, onToggleItem, onEdit,
           ))}
         </div>
 
-        {client.searchCriteria && (
-          <div style={{ marginBottom: "12px" }}>
-            <span style={{ ...t.label, color: t.textSecondary, display: "block", marginBottom: "4px" }}>Search Criteria</span>
-            <p style={{ ...t.body, color: t.text }}>{client.searchCriteria}</p>
+        {/* Projected Commission */}
+        {projectedCommission > 0 && (
+          <div style={{
+            background: t.goldLight, borderRadius: "8px", padding: "12px 16px", marginBottom: "20px",
+            display: "flex", justifyContent: "space-between", alignItems: "center",
+          }}>
+            <span style={{ ...t.label, color: t.gold }}>Projected Commission</span>
+            <span style={{ fontWeight: 700, fontSize: "16px", color: t.gold, fontFamily: t.font }}>
+              {fmtDollars(projectedCommission)}
+              {client.commissionMode === "percentage" && (
+                <span style={{ fontWeight: 400, fontSize: "12px", marginLeft: "6px", opacity: 0.7 }}>
+                  ({client.commissionPercent}%)
+                </span>
+              )}
+            </span>
           </div>
         )}
+
+        {/* ── Buyer-Specific Details ── */}
+        {isBuyer && (
+          <div style={{ marginBottom: "16px" }}>
+            {(client.priceRange?.min > 0 || client.priceRange?.max > 0) && (
+              <div style={{ marginBottom: "8px" }}>
+                <span style={{ ...t.label, color: t.textSecondary, display: "block", marginBottom: "2px" }}>Price Range</span>
+                <span style={{ ...t.body, color: t.text }}>
+                  {fmtDollars(client.priceRange.min)} – {fmtDollars(client.priceRange.max)}
+                </span>
+              </div>
+            )}
+            {detailRow("Date Under Contract", client.dateUnderContract)}
+            {detailRow("Projected Close Date", client.projectedCloseDate)}
+            {client.searchCriteria && detailRow("Search Criteria", client.searchCriteria)}
+          </div>
+        )}
+
+        {/* ── Seller-Specific Details ── */}
+        {!isBuyer && (
+          <div style={{ marginBottom: "16px" }}>
+            {(client.listPrice ?? 0) > 0 && detailRow("List Price", fmtDollars(client.listPrice))}
+
+            {/* Price Reductions */}
+            {client.priceReductions?.length > 0 && (
+              <div style={{ marginBottom: "8px" }}>
+                <span style={{ ...t.label, color: t.textSecondary, display: "block", marginBottom: "4px" }}>Price Reductions</span>
+                {client.priceReductions.map((r, i) => (
+                  <div key={i} style={{ ...t.body, color: t.rust, marginBottom: "2px" }}>
+                    −{fmtDollars(r)}
+                  </div>
+                ))}
+                <div style={{ ...t.caption, color: t.textTertiary, marginTop: "4px" }}>
+                  Effective price: {fmtDollars(client.listPrice - client.priceReductions.reduce((a, b) => a + b, 0))}
+                </div>
+              </div>
+            )}
+
+            {/* Offers Table */}
+            {client.offers?.length > 0 && (
+              <div style={{ marginBottom: "8px" }}>
+                <span style={{ ...t.label, color: t.textSecondary, display: "block", marginBottom: "6px" }}>Offers</span>
+                <div style={{ borderRadius: "8px", overflow: "hidden", border: `1px solid ${t.border}` }}>
+                  <div style={{
+                    display: "grid", gridTemplateColumns: "1fr auto",
+                    padding: "8px 12px", background: t.bg,
+                    ...t.label, color: t.textTertiary,
+                  }}>
+                    <span>Amount</span>
+                    <span>Status</span>
+                  </div>
+                  {client.offers.map((offer, i) => {
+                    const statusColor =
+                      offer.status === "accepted" ? t.success
+                        : offer.status === "rejected" ? t.rust
+                          : t.gold;
+                    return (
+                      <div key={i} style={{
+                        display: "grid", gridTemplateColumns: "1fr auto",
+                        padding: "8px 12px", borderTop: `1px solid ${t.border}`,
+                        ...t.body,
+                      }}>
+                        <span style={{ color: t.text }}>{fmtDollars(offer.amount)}</span>
+                        <span style={{
+                          padding: "2px 8px", borderRadius: "4px", fontSize: "11px", fontWeight: 600,
+                          textTransform: "uppercase",
+                          background: offer.status === "accepted" ? t.successLight
+                            : offer.status === "rejected" ? t.rustLight : t.goldLight,
+                          color: statusColor,
+                        }}>
+                          {offer.status}
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {detailRow("Accepted Offer Date", client.acceptedOfferDate)}
+            {detailRow("Expected Close Date", client.expectedCloseDate)}
+          </div>
+        )}
+
         {client.notes && (
           <div>
             <span style={{ ...t.label, color: t.textSecondary, display: "block", marginBottom: "4px" }}>Notes</span>

@@ -45,6 +45,13 @@ export interface ContactPerson {
   phone: string;
 }
 
+export type OfferStatus = "accepted" | "countered" | "rejected";
+
+export interface Offer {
+  amount: number;
+  status: OfferStatus;
+}
+
 export interface Client {
   id: string;
   userId: string;
@@ -53,13 +60,30 @@ export interface Client {
   phone: string;
   additionalContacts: ContactPerson[];
   status: ClientStatus;
-  priceRange: { min: number; max: number };
-  searchCriteria: string;
   stage: ClientStage;
   notes: string;
-  commissionEarned: number;
   leadSource: LeadSource | "";
   followUpDate: string | null; // ISO date string YYYY-MM-DD
+  commissionEarned: number;
+
+  // Commission projection (both buyer & seller)
+  commissionMode: "percentage" | "flat";
+  commissionPercent: number;
+  commissionFlat: number;
+
+  // Buyer-specific
+  priceRange: { min: number; max: number };
+  searchCriteria: string;
+  dateUnderContract: string | null;
+  projectedCloseDate: string | null;
+
+  // Seller-specific
+  listPrice: number;
+  priceReductions: number[];
+  offers: Offer[];
+  acceptedOfferDate: string | null;
+  expectedCloseDate: string | null;
+
   createdAt: number;
   updatedAt: number;
 }

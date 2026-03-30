@@ -5,16 +5,24 @@ import { useChecklists } from "@/hooks/useChecklists";
 import { ClientList } from "@/components/clients/ClientList";
 import { ClientForm } from "@/components/clients/ClientForm";
 import { ClientDetail } from "@/components/clients/ClientDetail";
-import type { Client } from "@/types";
+import type { Client, ClientStage } from "@/types";
 
 type View = "list" | "add" | "detail" | "edit";
 
 export function ClientsPage() {
-  const { clients, error: firestoreError, addClient, updateClient } = useClients();
+  const { clients, error: firestoreError, addClient, updateClient, deleteClient } = useClients();
   const { entries } = useTimeEntries();
   const { createChecklist, getClientChecklist, toggleItem } = useChecklists();
   const [view, setView] = useState<View>("list");
   const [selected, setSelected] = useState<Client | null>(null);
+
+  async function handleDeleteClients(ids: string[]) {
+    await Promise.all(ids.map((id) => deleteClient(id)));
+  }
+
+  async function handleBulkUpdateStage(ids: string[], stage: ClientStage) {
+    await Promise.all(ids.map((id) => updateClient(id, { stage })));
+  }
 
   if (view === "add") {
     return (
@@ -72,6 +80,8 @@ export function ClientsPage() {
         clients={clients}
         onSelect={(c) => { setSelected(c); setView("detail"); }}
         onAdd={() => setView("add")}
+        onDeleteClients={handleDeleteClients}
+        onBulkUpdateStage={handleBulkUpdateStage}
       />
     </>
   );

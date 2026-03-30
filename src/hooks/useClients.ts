@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import {
-  collection, query, where, onSnapshot, addDoc, updateDoc, doc,
+  collection, query, where, onSnapshot, addDoc, updateDoc, deleteDoc, doc,
 } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useAuth } from "@/context/AuthContext";
@@ -55,5 +55,9 @@ export function useClients() {
     });
   }
 
-  return { clients, loading, error, addClient, updateClient };
+  async function deleteClient(id: string) {
+    await deleteDoc(doc(db, "clients", id));
+  }
+
+  return { clients, loading, error, addClient, updateClient, deleteClient };
 }

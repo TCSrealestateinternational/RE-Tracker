@@ -1,6 +1,6 @@
-import { useState, type FormEvent } from "react";
+import { useState, type FormEvent, type CSSProperties } from "react";
 import { Plus, X } from "lucide-react";
-import type { Client, ClientStatus, ClientStage, LeadSource, ContactPerson } from "@/types";
+import type { Client, ClientStatus, ClientStage, LeadSource, ContactPerson, Offer, OfferStatus } from "@/types";
 import { LEAD_SOURCES } from "@/types";
 import { t, card, inputBase, btnPrimary, btnSecondary } from "@/styles/theme";
 
@@ -12,6 +12,28 @@ interface ClientFormProps {
 
 const emptyContact = (): ContactPerson => ({ name: "", email: "", phone: "" });
 
+/** Strip leading zeros but keep "0", "0.", "0.5" etc valid */
+function sanitizeNumStr(raw: string): string {
+  if (raw === "" || raw === "-") return raw;
+  // Allow decimal entry like "0." or "123."
+  if (/^-?\d+\.$/.test(raw)) return raw;
+  // Remove leading zeros from integer part (but keep "0.x")
+  const cleaned = raw.replace(/^(-?)0+(\d)/, "$1$2");
+  // Only allow valid decimal number chars
+  if (/^-?\d*\.?\d*$/.test(cleaned)) return cleaned;
+  return raw;
+}
+
+function numStrToNum(s: string): number {
+  const n = parseFloat(s);
+  return isNaN(n) ? 0 : n;
+}
+
+function numToStr(n: number | undefined | null): string {
+  if (n == null || n === 0) return "";
+  return String(n);
+}
+
 export function ClientForm({ initial, onSubmit, onCancel }: ClientFormProps) {
   const [name, setName] = useState(initial?.name ?? "");
   const [email, setEmail] = useState(initial?.email ?? "");
@@ -20,16 +42,42 @@ export function ClientForm({ initial, onSubmit, onCancel }: ClientFormProps) {
     initial?.additionalContacts ?? []
   );
   const [status, setStatus] = useState<ClientStatus>(initial?.status ?? "buyer");
-  const [priceMin, setPriceMin] = useState(initial?.priceRange.min ?? 0);
-  const [priceMax, setPriceMax] = useState(initial?.priceRange.max ?? 0);
-  const [searchCriteria, setSearchCriteria] = useState(initial?.searchCriteria ?? "");
   const [stage, setStage] = useState<ClientStage>(initial?.stage ?? "prospect");
-  const [notes, setNotes] = useState(initial?.notes ?? "");
-  const [commissionEarned, setCommissionEarned] = useState(initial?.commissionEarned ?? 0);
   const [leadSource, setLeadSource] = useState<LeadSource | "">(initial?.leadSource ?? "");
   const [followUpDate, setFollowUpDate] = useState(initial?.followUpDate ?? "");
+  const [notes, setNotes] = useState(initial?.notes ?? "");
+  const [commissionEarned, setCommissionEarned] = useState(numToStr(initial?.commissionEarned));
+
+  // Commission toggle
+  const [commissionMode, setCommissionMode] = useState<"percentage" | "flat">(initial?.commissionMode ?? "percentage");
+  const [commissionPercent, setCommissionPercent] = useState(numToStr(initial?.commissionPercent));
+  const [commissionFlat, setCommissionFlat] = useState(numToStr(initial?.commissionFlat));
+
+  // Buyer fields
+  const [priceMin, setPriceMin] = useState(numToStr(initial?.priceRange?.min));
+  const [priceMax, setPriceMax] = useState(numToStr(initial?.priceRange?.max));
+  const [searchCriteria, setSearchCriteria] = useState(initial?.searchCriteria ?? "");
+  const [dateUnderContract, setDateUnderContract] = useState(initial?.dateUnderContract ?? "");
+  const [projectedCloseDate, setProjectedCloseDate] = useState(initial?.projectedCloseDate ?? "");
+
+  // Seller fields
+  const [listPrice, setListPrice] = useState(numToStr(initial?.listPrice));
+  const [priceReductions, setPriceReductions] = useState<string[]>(
+    (initial?.priceReductions ?? []).map(String)
+  );
+  const [offers, setOffers] = useState<Offer[]>(initial?.offers ?? []);
+  const [acceptedOfferDate, setAcceptedOfferDate] = useState(initial?.acceptedOfferDate ?? "");
+  const [expectedCloseDate, setExpectedCloseDate] = useState(initial?.expectedCloseDate ?? "");
+
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
+
+  // Derived: base price for commission calculation
+  const basePrice = status === "buyer" ? numStrToNum(priceMax) : numStrToNum(listPrice);
+  const calculatedCommission =
+    commissionMode === "percentage"
+      ? basePrice * (numStrToNum(commissionPercent) / 100)
+      : numStrToNum(commissionFlat);
 
   function updateContact(index: number, field: keyof ContactPerson, value: string) {
     setAdditionalContacts((prev) =>
@@ -41,20 +89,68 @@ export function ClientForm({ initial, onSubmit, onCancel }: ClientFormProps) {
     setAdditionalContacts((prev) => prev.filter((_, i) => i !== index));
   }
 
+  function handleNumInput(setter: (v: string) => void) {
+    return (e: React.ChangeEvent<HTMLInputElement>) => {
+      const raw = e.target.value;
+      if (raw === "") { setter(""); return; }
+      if (/^-?\d*\.?\d*$/.test(raw)) setter(sanitizeNumStr(raw));
+    };
+  }
+
+  // Offer management
+  function addOffer() {
+    setOffers((prev) => [...prev, { amount: 0, status: "countered" }]);
+  }
+  function updateOffer(index: number, field: keyof Offer, value: number | OfferStatus) {
+    setOffers((prev) =>
+      prev.map((o, i) => (i === index ? { ...o, [field]: value } : o))
+    );
+  }
+  function removeOffer(index: number) {
+    setOffers((prev) => prev.filter((_, i) => i !== index));
+  }
+
+  // Price reduction management
+  function addPriceReduction() {
+    setPriceReductions((prev) => [...prev, ""]);
+  }
+  function updatePriceReduction(index: number, value: string) {
+    if (value !== "" && !/^-?\d*\.?\d*$/.test(value)) return;
+    setPriceReductions((prev) =>
+      prev.map((r, i) => (i === index ? sanitizeNumStr(value) : r))
+    );
+  }
+  function removePriceReduction(index: number) {
+    setPriceReductions((prev) => prev.filter((_, i) => i !== index));
+  }
+
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
     setError("");
     setSaving(true);
     try {
-      // Filter out additional contacts with no name
       const validContacts = additionalContacts.filter((c) => c.name.trim());
       await onSubmit({
         name, email, phone,
         additionalContacts: validContacts,
-        status,
-        priceRange: { min: priceMin, max: priceMax },
-        searchCriteria, stage, notes, commissionEarned,
-        leadSource, followUpDate: followUpDate || null,
+        status, stage, notes,
+        leadSource,
+        followUpDate: followUpDate || null,
+        commissionEarned: numStrToNum(commissionEarned),
+        commissionMode,
+        commissionPercent: numStrToNum(commissionPercent),
+        commissionFlat: numStrToNum(commissionFlat),
+        // Buyer
+        priceRange: { min: numStrToNum(priceMin), max: numStrToNum(priceMax) },
+        searchCriteria,
+        dateUnderContract: dateUnderContract || null,
+        projectedCloseDate: projectedCloseDate || null,
+        // Seller
+        listPrice: numStrToNum(listPrice),
+        priceReductions: priceReductions.map(numStrToNum).filter((n) => n > 0),
+        offers,
+        acceptedOfferDate: acceptedOfferDate || null,
+        expectedCloseDate: expectedCloseDate || null,
       });
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to save client. Please try again.");
@@ -65,6 +161,25 @@ export function ClientForm({ initial, onSubmit, onCancel }: ClientFormProps) {
   const labelEl = (text: string) => (
     <span style={{ ...t.label, color: t.textSecondary, display: "block", marginBottom: "6px" }}>{text}</span>
   );
+
+  const isBuyer = status === "buyer";
+
+  const pillBtn = (active: boolean): CSSProperties => ({
+    padding: "6px 14px",
+    fontSize: "13px",
+    fontWeight: 600,
+    fontFamily: t.font,
+    border: `1px solid ${active ? t.teal : t.borderMedium}`,
+    background: active ? t.teal : "transparent",
+    color: active ? t.textInverse : t.textSecondary,
+    cursor: "pointer",
+    transition: "all 0.15s",
+  });
+
+  const sectionBox: CSSProperties = {
+    background: t.bg, borderRadius: "10px",
+    padding: "16px", marginBottom: "16px",
+  };
 
   return (
     <form onSubmit={handleSubmit} style={card}>
@@ -83,10 +198,7 @@ export function ClientForm({ initial, onSubmit, onCancel }: ClientFormProps) {
       )}
 
       {/* ── Primary Contact ── */}
-      <div style={{
-        background: t.bg, borderRadius: "10px",
-        padding: "16px", marginBottom: "16px",
-      }}>
+      <div style={sectionBox}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px" }}>
           <span style={{ ...t.label, color: t.textSecondary }}>Primary Contact</span>
         </div>
@@ -102,10 +214,7 @@ export function ClientForm({ initial, onSubmit, onCancel }: ClientFormProps) {
 
       {/* ── Additional Contacts ── */}
       {additionalContacts.map((contact, i) => (
-        <div key={i} style={{
-          background: t.bg, borderRadius: "10px",
-          padding: "16px", marginBottom: "16px",
-        }}>
+        <div key={i} style={sectionBox}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px" }}>
             <span style={{ ...t.label, color: t.textSecondary }}>Additional Contact</span>
             <button type="button" onClick={() => removeContact(i)} style={{
@@ -132,10 +241,10 @@ export function ClientForm({ initial, onSubmit, onCancel }: ClientFormProps) {
         marginBottom: "20px", padding: "8px 14px", fontSize: "13px",
       }}>
         <Plus size={14} strokeWidth={2} />
-        Add Spouse / Co-Buyer
+        Add Spouse / Co-{isBuyer ? "Buyer" : "Seller"}
       </button>
 
-      {/* ── Deal Details ── */}
+      {/* ── Shared Fields ── */}
       <div className="grid-2col" style={{ marginBottom: "16px" }}>
         <label>{labelEl("Status")}
           <select value={status} onChange={(e) => setStatus(e.target.value as ClientStatus)} style={inputBase}>
@@ -156,22 +265,162 @@ export function ClientForm({ initial, onSubmit, onCancel }: ClientFormProps) {
           <input type="date" value={followUpDate} onChange={(e) => setFollowUpDate(e.target.value)} style={inputBase} /></label>
       </div>
 
-      <div className="grid-2col" style={{ marginBottom: "16px" }}>
-        <label>{labelEl("Price Min ($)")}
-          <input type="number" value={priceMin} onChange={(e) => setPriceMin(+e.target.value)} style={inputBase} /></label>
-        <label>{labelEl("Price Max ($)")}
-          <input type="number" value={priceMax} onChange={(e) => setPriceMax(+e.target.value)} style={inputBase} /></label>
+      {/* ── Buyer-Only Fields ── */}
+      {isBuyer && (
+        <div style={sectionBox}>
+          <span style={{ ...t.label, color: t.teal, display: "block", marginBottom: "14px" }}>Buyer Details</span>
+          <div className="grid-2col" style={{ marginBottom: "12px" }}>
+            <label>{labelEl("Price Min ($)")}
+              <input value={priceMin} onChange={handleNumInput(setPriceMin)} placeholder="0" style={inputBase} inputMode="decimal" /></label>
+            <label>{labelEl("Price Max ($)")}
+              <input value={priceMax} onChange={handleNumInput(setPriceMax)} placeholder="0" style={inputBase} inputMode="decimal" /></label>
+          </div>
+          <div className="grid-2col" style={{ marginBottom: "12px" }}>
+            <label>{labelEl("Date Under Contract")}
+              <input type="date" value={dateUnderContract} onChange={(e) => setDateUnderContract(e.target.value)} style={inputBase} /></label>
+            <label>{labelEl("Projected Close Date")}
+              <input type="date" value={projectedCloseDate} onChange={(e) => setProjectedCloseDate(e.target.value)} style={inputBase} /></label>
+          </div>
+          <label style={{ display: "block", marginBottom: 0 }}>
+            {labelEl("Search Criteria")}
+            <input value={searchCriteria} onChange={(e) => setSearchCriteria(e.target.value)} placeholder="Optional" style={inputBase} />
+          </label>
+        </div>
+      )}
+
+      {/* ── Seller-Only Fields ── */}
+      {!isBuyer && (
+        <div style={sectionBox}>
+          <span style={{ ...t.label, color: t.gold, display: "block", marginBottom: "14px" }}>Seller Details</span>
+
+          <label style={{ display: "block", marginBottom: "12px" }}>
+            {labelEl("List Price ($)")}
+            <input value={listPrice} onChange={handleNumInput(setListPrice)} placeholder="0" style={inputBase} inputMode="decimal" />
+          </label>
+
+          {/* Price Reductions */}
+          <div style={{ marginBottom: "12px" }}>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "8px" }}>
+              {labelEl("Price Reductions")}
+              <button type="button" onClick={addPriceReduction} style={{
+                ...btnSecondary, padding: "4px 10px", fontSize: "12px",
+                display: "flex", alignItems: "center", gap: "4px",
+              }}>
+                <Plus size={12} strokeWidth={2} /> Add Reduction
+              </button>
+            </div>
+            {priceReductions.map((r, i) => (
+              <div key={i} style={{ display: "flex", gap: "8px", alignItems: "center", marginBottom: "6px" }}>
+                <input
+                  value={r}
+                  onChange={(e) => updatePriceReduction(i, e.target.value)}
+                  placeholder="Reduction amount"
+                  style={{ ...inputBase, flex: 1 }}
+                  inputMode="decimal"
+                />
+                <button type="button" onClick={() => removePriceReduction(i)} style={{
+                  background: "none", border: "none", cursor: "pointer",
+                  color: t.textTertiary, padding: "4px", display: "flex", alignItems: "center",
+                }}>
+                  <X size={14} strokeWidth={1.5} />
+                </button>
+              </div>
+            ))}
+          </div>
+
+          {/* Offers Received */}
+          <div style={{ marginBottom: "12px" }}>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "8px" }}>
+              {labelEl("Offers Received")}
+              <button type="button" onClick={addOffer} style={{
+                ...btnSecondary, padding: "4px 10px", fontSize: "12px",
+                display: "flex", alignItems: "center", gap: "4px",
+              }}>
+                <Plus size={12} strokeWidth={2} /> Add Offer
+              </button>
+            </div>
+            {offers.map((offer, i) => (
+              <div key={i} style={{ display: "flex", gap: "8px", alignItems: "center", marginBottom: "6px" }}>
+                <input
+                  value={offer.amount || ""}
+                  onChange={(e) => {
+                    const v = e.target.value;
+                    if (v === "" || /^-?\d*\.?\d*$/.test(v)) {
+                      updateOffer(i, "amount", v === "" ? 0 : parseFloat(sanitizeNumStr(v)) || 0);
+                    }
+                  }}
+                  placeholder="Amount"
+                  style={{ ...inputBase, flex: 1 }}
+                  inputMode="decimal"
+                />
+                <select
+                  value={offer.status}
+                  onChange={(e) => updateOffer(i, "status", e.target.value as OfferStatus)}
+                  style={{ ...inputBase, flex: 0, width: "140px" }}
+                >
+                  <option value="countered">Countered</option>
+                  <option value="accepted">Accepted</option>
+                  <option value="rejected">Rejected</option>
+                </select>
+                <button type="button" onClick={() => removeOffer(i)} style={{
+                  background: "none", border: "none", cursor: "pointer",
+                  color: t.textTertiary, padding: "4px", display: "flex", alignItems: "center",
+                }}>
+                  <X size={14} strokeWidth={1.5} />
+                </button>
+              </div>
+            ))}
+          </div>
+
+          <div className="grid-2col" style={{ marginBottom: 0 }}>
+            <label>{labelEl("Accepted Offer Date")}
+              <input type="date" value={acceptedOfferDate} onChange={(e) => setAcceptedOfferDate(e.target.value)} style={inputBase} /></label>
+            <label>{labelEl("Expected Close Date")}
+              <input type="date" value={expectedCloseDate} onChange={(e) => setExpectedCloseDate(e.target.value)} style={inputBase} /></label>
+          </div>
+        </div>
+      )}
+
+      {/* ── Projected Commission (both) ── */}
+      <div style={sectionBox}>
+        <span style={{ ...t.label, color: t.textSecondary, display: "block", marginBottom: "10px" }}>Projected Commission</span>
+        <div style={{ display: "flex", gap: "0", marginBottom: "12px" }}>
+          <button type="button" onClick={() => setCommissionMode("percentage")}
+            style={{ ...pillBtn(commissionMode === "percentage"), borderRadius: "8px 0 0 8px" }}>
+            %
+          </button>
+          <button type="button" onClick={() => setCommissionMode("flat")}
+            style={{ ...pillBtn(commissionMode === "flat"), borderRadius: "0 8px 8px 0", borderLeft: "none" }}>
+            $
+          </button>
+        </div>
+        {commissionMode === "percentage" ? (
+          <div>
+            <label style={{ display: "block", marginBottom: "8px" }}>
+              {labelEl("Commission %")}
+              <input value={commissionPercent} onChange={handleNumInput(setCommissionPercent)} placeholder="3" style={{ ...inputBase, maxWidth: "120px" }} inputMode="decimal" />
+            </label>
+            {basePrice > 0 && numStrToNum(commissionPercent) > 0 && (
+              <div style={{ ...t.caption, color: t.teal }}>
+                Calculated: ${calculatedCommission.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                {" "}({commissionPercent}% of ${basePrice.toLocaleString()})
+              </div>
+            )}
+          </div>
+        ) : (
+          <label style={{ display: "block" }}>
+            {labelEl("Commission Amount ($)")}
+            <input value={commissionFlat} onChange={handleNumInput(setCommissionFlat)} placeholder="0" style={{ ...inputBase, maxWidth: "200px" }} inputMode="decimal" />
+          </label>
+        )}
       </div>
 
+      {/* ── Commission Earned ── */}
       <label style={{ display: "block", marginBottom: "16px" }}>
         {labelEl("Commission Earned ($)")}
-        <input type="number" value={commissionEarned} onChange={(e) => setCommissionEarned(+e.target.value)} style={{ ...inputBase, maxWidth: "200px" }} />
+        <input value={commissionEarned} onChange={handleNumInput(setCommissionEarned)} placeholder="0" style={{ ...inputBase, maxWidth: "200px" }} inputMode="decimal" />
       </label>
 
-      <label style={{ display: "block", marginBottom: "16px" }}>
-        {labelEl("Search Criteria")}
-        <input value={searchCriteria} onChange={(e) => setSearchCriteria(e.target.value)} placeholder="Optional" style={inputBase} />
-      </label>
       <label style={{ display: "block", marginBottom: "28px" }}>
         {labelEl("Notes")}
         <textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={3} placeholder="Optional"
