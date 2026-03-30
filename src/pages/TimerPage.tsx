@@ -12,7 +12,7 @@ export function TimerPage() {
 
   return (
     <div style={{ display: "grid", gap: t.sectionGap }}>
-      <h1 style={{ ...t.pageTitle, color: t.text }}>Time Tracker</h1>
+      <h1 style={{ ...t.pageTitle, color: t.text }}>Timer</h1>
 
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px", alignItems: "start" }}>
         <LiveTimer />

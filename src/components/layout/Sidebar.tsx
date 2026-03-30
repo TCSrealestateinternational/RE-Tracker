@@ -45,7 +45,7 @@ export function Sidebar({ activePath, onNavigate }: SidebarProps) {
           color: t.text,
           letterSpacing: "-0.01em",
         }}>
-          Time Tracker
+          RE Tracker
         </span>
       </div>
       <nav style={{ flex: 1 }}>

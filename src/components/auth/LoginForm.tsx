@@ -52,7 +52,7 @@ export function LoginForm() {
             Agent
           </span>
           <h1 style={{ ...t.pageTitle, color: t.text, margin: 0 }}>
-            Time Tracker
+            RE Tracker
           </h1>
           <p style={{ ...t.body, color: t.textTertiary, marginTop: "8px" }}>
             {isSignUp
