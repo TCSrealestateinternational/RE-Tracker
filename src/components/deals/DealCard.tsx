@@ -30,9 +30,14 @@ export function DealCard({ deal, stages, onMove, onEdit }: DealCardProps) {
       <div style={{ fontSize: "14px", color: t.gold, fontWeight: 600, marginBottom: "2px" }}>
         ${deal.projectedCommission.toLocaleString()}
       </div>
-      <div style={{ ...t.caption, color: t.textTertiary, marginBottom: "10px" }}>
+      <div style={{ ...t.caption, color: t.textTertiary, marginBottom: deal.actualCloseDate ? "2px" : "10px" }}>
         Close: {deal.expectedCloseDate || "TBD"}
       </div>
+      {deal.actualCloseDate && (
+        <div style={{ ...t.caption, color: t.success, fontWeight: 500, marginBottom: "10px" }}>
+          Closed: {deal.actualCloseDate}
+        </div>
+      )}
       <div style={{ display: "flex", gap: "4px", flexWrap: "wrap" }}>
         {stages.filter((s) => s !== deal.stage).map((s) => (
           <button

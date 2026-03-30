@@ -36,15 +36,16 @@ export function useClients() {
     return unsub;
   }, [user]);
 
-  async function addClient(data: Omit<Client, "id" | "userId" | "createdAt" | "updatedAt">) {
+  async function addClient(data: Omit<Client, "id" | "userId" | "createdAt" | "updatedAt">): Promise<string> {
     if (!user) throw new Error("Not signed in");
     const now = Date.now();
-    await addDoc(collection(db, "clients"), {
+    const docRef = await addDoc(collection(db, "clients"), {
       ...data,
       userId: user.uid,
       createdAt: now,
       updatedAt: now,
     });
+    return docRef.id;
   }
 
   async function updateClient(id: string, data: Partial<Client>) {

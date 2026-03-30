@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useClients } from "@/hooks/useClients";
 import { useTimeEntries } from "@/hooks/useTimeEntries";
+import { useChecklists } from "@/hooks/useChecklists";
 import { ClientList } from "@/components/clients/ClientList";
 import { ClientForm } from "@/components/clients/ClientForm";
 import { ClientDetail } from "@/components/clients/ClientDetail";
@@ -11,6 +12,7 @@ type View = "list" | "add" | "detail" | "edit";
 export function ClientsPage() {
   const { clients, error: firestoreError, addClient, updateClient } = useClients();
   const { entries } = useTimeEntries();
+  const { createChecklist, getClientChecklist, toggleItem } = useChecklists();
   const [view, setView] = useState<View>("list");
   const [selected, setSelected] = useState<Client | null>(null);
 
@@ -18,7 +20,8 @@ export function ClientsPage() {
     return (
       <ClientForm
         onSubmit={async (data) => {
-          await addClient(data);
+          const newId = await addClient(data);
+          await createChecklist(newId, data.status);
           setView("list");
         }}
         onCancel={() => setView("list")}
@@ -41,10 +44,13 @@ export function ClientsPage() {
   }
 
   if (view === "detail" && selected) {
+    const checklist = getClientChecklist(selected.id);
     return (
       <ClientDetail
         client={selected}
         entries={entries}
+        checklist={checklist}
+        onToggleItem={toggleItem}
         onEdit={() => setView("edit")}
         onBack={() => { setSelected(null); setView("list"); }}
       />

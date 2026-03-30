@@ -30,7 +30,7 @@ export const LEAD_SOURCES = [
 export type LeadSource = (typeof LEAD_SOURCES)[number];
 
 // ── Client ──
-export type ClientStatus = "buyer" | "seller" | "both";
+export type ClientStatus = "buyer" | "seller";
 
 export type ClientStage =
   | "prospect"
@@ -105,33 +105,92 @@ export interface Deal {
   stage: DealStage;
   projectedCommission: number;
   expectedCloseDate: string; // YYYY-MM-DD
+  actualCloseDate: string | null;
   leadSource: LeadSource | "";
   notes: string;
   createdAt: number;
   updatedAt: number;
 }
 
-// ── Transaction Checklist ──
-export const CHECKLIST_ITEMS = [
-  "Inspection Scheduled",
-  "Inspection Complete",
-  "Appraisal Ordered",
-  "Appraisal Complete",
-  "Financing Contingency Cleared",
-  "Title Search Complete",
-  "Walk-Through Complete",
-  "Closing Scheduled",
-  "Closed",
+// ── Transaction Checklists ──
+export const SELLER_CHECKLIST_ITEMS = [
+  "Initial seller consultation",
+  "Property walkthrough and notes",
+  "Comparative market analysis",
+  "Pricing strategy conversation",
+  "Listing agreement signed",
+  "Coordinate professional photography",
+  "Coordinate video or virtual tour",
+  "Staging consultation or recommendations",
+  "Write MLS listing description",
+  "Input listing into MLS",
+  "Install yard sign and lockbox",
+  "Create marketing materials",
+  "Launch social media marketing campaign",
+  "Syndicate to Zillow, Realtor.com, etc.",
+  "Schedule and host showings",
+  "Collect and review showing feedback",
+  "Host open house",
+  "Review and present all offers to seller",
+  "Negotiate offer terms",
+  "Countersign accepted contract",
+  "Notify all parties — lender, title, attorneys",
+  "Coordinate inspection scheduling",
+  "Review inspection report with seller",
+  "Negotiate inspection repairs or credits",
+  "Order appraisal or coordinate access",
+  "Review appraisal with seller",
+  "Monitor financing contingency deadlines",
+  "Coordinate title search",
+  "Review title commitment for issues",
+  "Schedule final walk-through",
+  "Confirm closing date and location with all parties",
+  "Review closing disclosure with seller",
+  "Attend closing",
+  "Confirm proceeds delivered to seller",
+  "Follow up after closing",
 ] as const;
 
-export type ChecklistItemKey = (typeof CHECKLIST_ITEMS)[number];
+export const BUYER_CHECKLIST_ITEMS = [
+  "Initial buyer consultation",
+  "Understand wants, needs, and must-haves",
+  "Confirm pre-approval or connect with lender",
+  "Set up MLS search with buyer criteria",
+  "Send and review listings with buyer",
+  "Schedule and conduct showings",
+  "Research properties before showings",
+  "Provide neighborhood and market insights",
+  "Advise on offer strategy",
+  "Write and submit offer",
+  "Negotiate offer terms and price",
+  "Deliver earnest money to escrow",
+  "Notify lender of accepted contract",
+  "Schedule home inspection",
+  "Attend home inspection",
+  "Review inspection report with buyer",
+  "Negotiate repairs or credits after inspection",
+  "Coordinate appraisal access",
+  "Review appraisal results with buyer",
+  "Monitor financing contingency and deadlines",
+  "Coordinate title search",
+  "Review title commitment with buyer",
+  "Review HOA documents if applicable",
+  "Confirm homeowners insurance is in place",
+  "Survey coordination if required",
+  "Review closing disclosure with buyer",
+  "Schedule and attend final walk-through",
+  "Confirm closing date, time, and location",
+  "Attend closing",
+  "Hand over keys",
+  "Follow up after closing",
+] as const;
 
 export interface TransactionChecklist {
   id: string;
   userId: string;
   clientId: string;
-  dealId: string;
-  items: Record<ChecklistItemKey, boolean>;
+  type: "buyer" | "seller";
+  items: Record<string, boolean>;
   createdAt: number;
   updatedAt: number;
 }

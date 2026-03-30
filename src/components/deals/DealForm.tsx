@@ -16,6 +16,7 @@ export function DealForm({ clients, initial, onSubmit, onCancel }: DealFormProps
   const [projectedCommission, setProjectedCommission] = useState(initial?.projectedCommission ?? 0);
   const [expectedCloseDate, setExpectedCloseDate] = useState(initial?.expectedCloseDate ?? "");
   const [leadSource, setLeadSource] = useState<LeadSource | "">(initial?.leadSource ?? "");
+  const [actualCloseDate, setActualCloseDate] = useState(initial?.actualCloseDate ?? "");
   const [notes, setNotes] = useState(initial?.notes ?? "");
 
   const selectedClient = clients.find((c) => c.id === clientId);
@@ -23,7 +24,7 @@ export function DealForm({ clients, initial, onSubmit, onCancel }: DealFormProps
   function handleSubmit(e: FormEvent) {
     e.preventDefault();
     if (!clientId || !selectedClient) return;
-    onSubmit({ clientId, clientName: selectedClient.name, stage, projectedCommission, expectedCloseDate, leadSource, notes });
+    onSubmit({ clientId, clientName: selectedClient.name, stage, projectedCommission, expectedCloseDate, actualCloseDate: actualCloseDate || null, leadSource, notes });
   }
 
   const labelEl = (text: string) => (
@@ -48,6 +49,10 @@ export function DealForm({ clients, initial, onSubmit, onCancel }: DealFormProps
             </select></label>
           <label>{labelEl("Expected Close")}
             <input type="date" value={expectedCloseDate} onChange={(e) => setExpectedCloseDate(e.target.value)} style={inputBase} /></label>
+        </div>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
+          <label>{labelEl("Actual Close Date")}
+            <input type="date" value={actualCloseDate} onChange={(e) => setActualCloseDate(e.target.value)} style={inputBase} /></label>
         </div>
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
           <label>{labelEl("Projected Commission ($)")}

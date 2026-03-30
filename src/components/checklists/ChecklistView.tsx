@@ -1,21 +1,33 @@
-import { CHECKLIST_ITEMS, type TransactionChecklist, type ChecklistItemKey } from "@/types";
+import { BUYER_CHECKLIST_ITEMS, SELLER_CHECKLIST_ITEMS } from "@/types";
+import type { TransactionChecklist } from "@/types";
 import { t, card } from "@/styles/theme";
 
 interface ChecklistViewProps {
   checklist: TransactionChecklist;
   clientName: string;
-  onToggle: (checklistId: string, checklist: TransactionChecklist, key: ChecklistItemKey) => void;
+  onToggle: (checklistId: string, checklist: TransactionChecklist, key: string) => void;
 }
 
 export function ChecklistView({ checklist, clientName, onToggle }: ChecklistViewProps) {
-  const completed = CHECKLIST_ITEMS.filter((k) => checklist.items[k]).length;
-  const total = CHECKLIST_ITEMS.length;
+  const items = checklist.type === "buyer" ? BUYER_CHECKLIST_ITEMS : SELLER_CHECKLIST_ITEMS;
+  const completed = items.filter((k) => checklist.items[k]).length;
+  const total = items.length;
   const pct = Math.round((completed / total) * 100);
 
   return (
     <div style={card}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "14px" }}>
-        <h3 style={{ ...t.sectionHeader, color: t.text }}>{clientName}</h3>
+        <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+          <h3 style={{ ...t.sectionHeader, color: t.text }}>{clientName}</h3>
+          <span style={{
+            padding: "2px 8px", borderRadius: "4px", fontSize: "11px", fontWeight: 600,
+            background: checklist.type === "buyer" ? t.tealLight : t.goldLight,
+            color: checklist.type === "buyer" ? t.teal : t.gold,
+            textTransform: "uppercase",
+          }}>
+            {checklist.type}
+          </span>
+        </div>
         <span style={{
           ...t.caption, fontWeight: 600,
           color: pct === 100 ? t.success : t.textTertiary,
@@ -36,8 +48,8 @@ export function ChecklistView({ checklist, clientName, onToggle }: ChecklistView
       </div>
 
       <div style={{ display: "grid", gap: "2px" }}>
-        {CHECKLIST_ITEMS.map((item) => {
-          const checked = checklist.items[item];
+        {items.map((item) => {
+          const checked = checklist.items[item] ?? false;
           return (
             <label
               key={item}

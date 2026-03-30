@@ -4,18 +4,14 @@ import {
 } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useAuth } from "@/context/AuthContext";
-import type { TransactionChecklist, ChecklistItemKey } from "@/types";
+import { BUYER_CHECKLIST_ITEMS, SELLER_CHECKLIST_ITEMS } from "@/types";
+import type { TransactionChecklist } from "@/types";
 
-function emptyItems(): Record<ChecklistItemKey, boolean> {
-  const items: Partial<Record<ChecklistItemKey, boolean>> = {};
-  const keys: readonly ChecklistItemKey[] = [
-    "Inspection Scheduled", "Inspection Complete",
-    "Appraisal Ordered", "Appraisal Complete",
-    "Financing Contingency Cleared", "Title Search Complete",
-    "Walk-Through Complete", "Closing Scheduled", "Closed",
-  ];
-  for (const k of keys) items[k] = false;
-  return items as Record<ChecklistItemKey, boolean>;
+function emptyItems(type: "buyer" | "seller"): Record<string, boolean> {
+  const source = type === "buyer" ? BUYER_CHECKLIST_ITEMS : SELLER_CHECKLIST_ITEMS;
+  const items: Record<string, boolean> = {};
+  for (const k of source) items[k] = false;
+  return items;
 }
 
 export function useChecklists() {
@@ -36,20 +32,20 @@ export function useChecklists() {
     return unsub;
   }, [user]);
 
-  async function createChecklist(clientId: string, dealId: string) {
+  async function createChecklist(clientId: string, type: "buyer" | "seller") {
     if (!user) return;
     const now = Date.now();
     await addDoc(collection(db, "checklists"), {
       userId: user.uid,
       clientId,
-      dealId,
-      items: emptyItems(),
+      type,
+      items: emptyItems(type),
       createdAt: now,
       updatedAt: now,
     });
   }
 
-  async function toggleItem(checklistId: string, checklist: TransactionChecklist, key: ChecklistItemKey) {
+  async function toggleItem(checklistId: string, checklist: TransactionChecklist, key: string) {
     const updated = { ...checklist.items, [key]: !checklist.items[key] };
     await updateDoc(doc(db, "checklists", checklistId), {
       items: updated,
@@ -57,5 +53,9 @@ export function useChecklists() {
     });
   }
 
-  return { checklists, loading, createChecklist, toggleItem };
+  function getClientChecklist(clientId: string): TransactionChecklist | undefined {
+    return checklists.find((c) => c.clientId === clientId);
+  }
+
+  return { checklists, loading, createChecklist, toggleItem, getClientChecklist };
 }

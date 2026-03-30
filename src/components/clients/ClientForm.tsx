@@ -139,7 +139,7 @@ export function ClientForm({ initial, onSubmit, onCancel }: ClientFormProps) {
       <div className="grid-2col" style={{ marginBottom: "16px" }}>
         <label>{labelEl("Status")}
           <select value={status} onChange={(e) => setStatus(e.target.value as ClientStatus)} style={inputBase}>
-            <option value="buyer">Buyer</option><option value="seller">Seller</option><option value="both">Both</option>
+            <option value="buyer">Buyer</option><option value="seller">Seller</option>
           </select></label>
         <label>{labelEl("Stage")}
           <select value={stage} onChange={(e) => setStage(e.target.value as ClientStage)} style={inputBase}>

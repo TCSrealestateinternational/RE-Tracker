@@ -12,6 +12,7 @@ import { RevenueStats } from "@/components/dashboard/RevenueStats";
 import { FollowUpAlerts } from "@/components/dashboard/FollowUpAlerts";
 import { PipelineSummary } from "@/components/dashboard/PipelineSummary";
 import { IncomeGoalBar } from "@/components/dashboard/IncomeGoalBar";
+import { CloseDateAlerts } from "@/components/dashboard/CloseDateAlerts";
 import { DailyCheckInWidget } from "@/components/checkin/DailyCheckInWidget";
 import { getWeekStart } from "@/utils/dates";
 import { t, card } from "@/styles/theme";
@@ -19,7 +20,7 @@ import { t, card } from "@/styles/theme";
 export function DashboardPage() {
   const { entries } = useTimeEntries();
   const { clients } = useClients();
-  const { deals } = useDeals();
+  const { deals, moveDeal, updateDeal } = useDeals();
   const { todayCheckIn, getStreak, submitCheckIn } = useDailyCheckIns();
   const { goal } = useIncomeGoals();
   const { canInstall, install, dismiss } = useInstallPrompt();
@@ -61,6 +62,8 @@ export function DashboardPage() {
           </div>
         </div>
       )}
+
+      <CloseDateAlerts deals={deals} onMoveDeal={moveDeal} onUpdateDeal={updateDeal} />
 
       <RevenueStats clients={clients} entries={entries} />
 
