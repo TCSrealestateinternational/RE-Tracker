@@ -103,7 +103,10 @@ export interface Deal {
   clientId: string;
   clientName: string;
   stage: DealStage;
-  projectedCommission: number;
+  purchasePrice: number;
+  commissionPercent: number;
+  projectedCommission: number; // purchasePrice * commissionPercent / 100
+  actualCommission: number | null; // set when deal is closed
   expectedCloseDate: string; // YYYY-MM-DD
   actualCloseDate: string | null;
   leadSource: LeadSource | "";

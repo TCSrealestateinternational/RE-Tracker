@@ -59,7 +59,16 @@ export function KanbanBoard({ deals, onMove, onEdit }: KanbanBoardProps) {
               borderTop: `1px solid ${t.border}`,
               ...t.caption, color: t.textTertiary, textAlign: "center",
             }}>
-              ${total.toLocaleString()}
+              {stage === "Closed" ? (
+                <>
+                  <div style={{ color: t.success, fontWeight: 600 }}>
+                    Actual: ${stageDeals.reduce((s, d) => s + (d.actualCommission ?? d.projectedCommission ?? 0), 0).toLocaleString()}
+                  </div>
+                  <div>Projected: ${total.toLocaleString()}</div>
+                </>
+              ) : (
+                <>Projected: ${total.toLocaleString()}</>
+              )}
             </div>
           </div>
         );

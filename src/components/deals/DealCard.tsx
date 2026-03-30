@@ -9,6 +9,10 @@ interface DealCardProps {
 }
 
 export function DealCard({ deal, stages, onMove, onEdit }: DealCardProps) {
+  const projected = deal.projectedCommission ?? 0;
+  const isClosed = deal.stage === "Closed";
+  const actual = deal.actualCommission;
+
   return (
     <div
       style={{
@@ -27,9 +31,14 @@ export function DealCard({ deal, stages, onMove, onEdit }: DealCardProps) {
       <div style={{ fontWeight: 600, fontSize: "14px", color: t.text, marginBottom: "4px" }}>
         {deal.clientName}
       </div>
-      <div style={{ fontSize: "14px", color: t.gold, fontWeight: 600, marginBottom: "2px" }}>
-        ${deal.projectedCommission.toLocaleString()}
+      <div style={{ fontSize: "13px", color: t.gold, fontWeight: 600, marginBottom: "2px" }}>
+        Projected: ${projected.toLocaleString()}
       </div>
+      {isClosed && actual != null && (
+        <div style={{ fontSize: "13px", color: t.success, fontWeight: 600, marginBottom: "2px" }}>
+          Actual: ${actual.toLocaleString()}
+        </div>
+      )}
       <div style={{ ...t.caption, color: t.textTertiary, marginBottom: deal.actualCloseDate ? "2px" : "10px" }}>
         Close: {deal.expectedCloseDate || "TBD"}
       </div>

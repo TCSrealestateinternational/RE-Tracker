@@ -52,7 +52,10 @@ export function CloseDateAlerts({ deals, onMoveDeal, onUpdateDeal }: CloseDateAl
             <button
               onClick={() => {
                 const today = new Date().toISOString().slice(0, 10);
-                onUpdateDeal(deal.id, { actualCloseDate: today });
+                onUpdateDeal(deal.id, {
+                  actualCloseDate: today,
+                  actualCommission: deal.projectedCommission ?? 0,
+                });
                 onMoveDeal(deal.id, "Closed");
               }}
               style={{ ...btnPrimary, padding: "6px 14px", fontSize: "12px", background: t.success }}
