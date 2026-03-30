@@ -20,7 +20,7 @@ export function RevenueStats({ clients, entries }: RevenueStatsProps) {
   ];
 
   return (
-    <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "16px" }}>
+    <div className="grid-3col">
       {stats.map(({ label, value, color, icon: Icon }) => (
         <div key={label} style={{ ...card, display: "flex", alignItems: "center", gap: "16px" }}>
           <Icon size={16} color={color} strokeWidth={1.5} />

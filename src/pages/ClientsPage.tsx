@@ -17,7 +17,10 @@ export function ClientsPage() {
   if (view === "add") {
     return (
       <ClientForm
-        onSubmit={async (data) => { await addClient(data); setView("list"); }}
+        onSubmit={async (data) => {
+          await addClient(data);
+          setView("list");
+        }}
         onCancel={() => setView("list")}
       />
     );
@@ -26,7 +29,7 @@ export function ClientsPage() {
   if (view === "edit" && selected) {
     return (
       <ClientForm
-        initial={selected}
+        initial={{ ...selected, additionalContacts: selected.additionalContacts ?? [] }}
         onSubmit={async (data) => {
           await updateClient(selected.id, data);
           setSelected({ ...selected, ...data } as Client);

@@ -10,6 +10,7 @@ interface KanbanBoardProps {
 
 export function KanbanBoard({ deals, onMove, onEdit }: KanbanBoardProps) {
   return (
+    <div className="kanban-scroll">
     <div style={{
       display: "grid",
       gridTemplateColumns: `repeat(${DEAL_STAGES.length}, 1fr)`,
@@ -63,6 +64,7 @@ export function KanbanBoard({ deals, onMove, onEdit }: KanbanBoardProps) {
           </div>
         );
       })}
+    </div>
     </div>
   );
 }

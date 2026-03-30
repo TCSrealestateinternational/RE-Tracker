@@ -29,7 +29,7 @@ export function ManualEntry() {
     <div style={card}>
       <h3 style={{ ...t.sectionHeader, color: t.text, marginBottom: "20px" }}>Manual Entry</h3>
       <form onSubmit={handleSubmit}>
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px", marginBottom: "12px" }}>
+        <div className="grid-2col" style={{ marginBottom: "12px" }}>
           <label>
             <span style={{ ...t.label, color: t.textSecondary, display: "block", marginBottom: "6px" }}>Category</span>
             <select value={category} onChange={(e) => setCategory(e.target.value as ActivityCategory)} style={inputBase}>
@@ -44,7 +44,7 @@ export function ManualEntry() {
             </select>
           </label>
         </div>
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: "12px", marginBottom: "12px" }}>
+        <div className="grid-4col" style={{ marginBottom: "12px" }}>
           <label>
             <span style={{ ...t.label, color: t.textSecondary, display: "block", marginBottom: "6px" }}>Date</span>
             <input type="date" value={date} onChange={(e) => setDate(e.target.value)} style={inputBase} />

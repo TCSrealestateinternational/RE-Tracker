@@ -30,12 +30,12 @@ export function DashboardPage() {
 
       <RevenueStats clients={clients} entries={entries} />
 
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
+      <div className="grid-2col">
         <DailyCheckInWidget todayCheckIn={todayCheckIn} streak={getStreak()} onSubmit={submitCheckIn} />
         <IncomeGoalBar goal={goal} clients={clients} />
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "16px" }}>
+      <div className="grid-3col">
         <FollowUpAlerts clients={clients} onClientClick={navigate} />
         <PipelineSummary deals={deals} />
         <GoalProgress entries={entries} weekStart={weekStart} goals={{}} />

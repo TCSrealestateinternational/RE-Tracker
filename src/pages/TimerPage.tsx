@@ -14,7 +14,7 @@ export function TimerPage() {
     <div style={{ display: "grid", gap: t.sectionGap }}>
       <h1 style={{ ...t.pageTitle, color: t.text }}>Timer</h1>
 
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px", alignItems: "start" }}>
+      <div className="grid-2col" style={{ alignItems: "start" }}>
         <LiveTimer />
         <ManualEntry />
       </div>
@@ -26,7 +26,8 @@ export function TimerPage() {
             No time entries yet. Start the timer or add a manual entry to begin tracking your hours.
           </p>
         ) : (
-          <table style={{ width: "100%", borderCollapse: "collapse" }}>
+          <div className="table-scroll">
+          <table style={{ width: "100%", borderCollapse: "collapse", minWidth: "600px" }}>
             <thead>
               <tr>
                 {["Date", "Category", "Client", "Source", "Duration", "Note"].map((h) => (
@@ -61,6 +62,7 @@ export function TimerPage() {
               })}
             </tbody>
           </table>
+          </div>
         )}
       </div>
     </div>

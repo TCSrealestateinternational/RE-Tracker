@@ -29,7 +29,7 @@ export function LiveTimer() {
         </span>
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px", marginBottom: "12px" }}>
+      <div className="grid-2col" style={{ marginBottom: "12px" }}>
         <label>
           <span style={{ ...t.label, color: t.textSecondary, display: "block", marginBottom: "6px" }}>Category</span>
           <select value={timer.category} onChange={(e) => timer.setCategory(e.target.value as typeof timer.category)}
@@ -47,7 +47,7 @@ export function LiveTimer() {
         </label>
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px", marginBottom: "24px" }}>
+      <div className="grid-2col" style={{ marginBottom: "24px" }}>
         <label>
           <span style={{ ...t.label, color: t.textSecondary, display: "block", marginBottom: "6px" }}>Lead Source</span>
           <select value={timer.leadSource} onChange={(e) => timer.setLeadSource(e.target.value as LeadSource)}

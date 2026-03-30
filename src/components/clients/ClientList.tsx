@@ -41,7 +41,14 @@ export function ClientList({ clients, onSelect, onAdd }: ClientListProps) {
             >
               <div>
                 <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                  <span style={{ fontWeight: 600, fontSize: "14px", color: t.text }}>{c.name}</span>
+                  <span style={{ fontWeight: 600, fontSize: "14px", color: t.text }}>
+                    {c.name}
+                    {c.additionalContacts?.length > 0 && (
+                      <span style={{ fontWeight: 400, color: t.textTertiary }}>
+                        {" & "}{c.additionalContacts.map((p) => p.name).join(", ")}
+                      </span>
+                    )}
+                  </span>
                   {followUpDue && (
                     <span style={{ display: "flex", alignItems: "center", gap: "3px" }}>
                       <AlertCircle size={12} color={t.rust} strokeWidth={2} />

@@ -58,3 +58,153 @@ a {
 ::-webkit-scrollbar-thumb:hover {
   background: rgba(0, 0, 0, 0.2);
 }
+
+/* ── Hamburger toggle ── */
+.hamburger {
+  display: none;
+  position: fixed;
+  top: 14px;
+  left: 14px;
+  z-index: 1100;
+  width: 40px;
+  height: 40px;
+  border: none;
+  border-radius: 8px;
+  background: #f8f5f1;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  cursor: pointer;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 4px;
+}
+.hamburger span {
+  display: block;
+  width: 18px;
+  height: 2px;
+  background: #1a1a1a;
+  border-radius: 1px;
+  transition: transform 0.2s, opacity 0.2s;
+}
+
+/* ── Sidebar classes ── */
+.sidebar {
+  width: 228px;
+  flex-shrink: 0;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.25s ease;
+}
+
+.sidebar-backdrop {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.3);
+  z-index: 999;
+}
+
+/* ── Responsive utility classes ── */
+.main-content {
+  padding: 4px 32px 32px;
+}
+.header {
+  padding: 16px 32px;
+}
+
+.grid-2col {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+.grid-3col {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+.grid-4col {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+}
+
+.table-scroll {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.kanban-scroll {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.email-truncate {
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  display: inline-block;
+}
+
+/* ── Tablet: 769px – 1024px ── */
+@media (max-width: 1024px) {
+  .grid-3col {
+    grid-template-columns: 1fr 1fr;
+  }
+  .grid-4col {
+    grid-template-columns: 1fr 1fr;
+  }
+  .main-content {
+    padding: 4px 20px 20px;
+  }
+  .header {
+    padding: 14px 20px;
+  }
+}
+
+/* ── Mobile: ≤768px ── */
+@media (max-width: 768px) {
+  .hamburger {
+    display: flex;
+  }
+
+  .sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100vh;
+    z-index: 1000;
+    transform: translateX(-100%);
+  }
+  .sidebar.sidebar-open {
+    transform: translateX(0);
+  }
+  .sidebar-backdrop.sidebar-backdrop-visible {
+    display: block;
+  }
+
+  .main-content {
+    padding: 4px 14px 20px;
+  }
+  .header {
+    padding: 14px 14px 14px 60px;
+  }
+
+  .grid-2col,
+  .grid-3col,
+  .grid-4col {
+    grid-template-columns: 1fr;
+  }
+
+  .kanban-scroll > div {
+    min-width: max-content;
+  }
+  .kanban-scroll > div > div {
+    min-width: 220px;
+  }
+
+  .email-truncate {
+    max-width: 120px;
+  }
+}

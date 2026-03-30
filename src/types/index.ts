@@ -39,12 +39,19 @@ export type ClientStage =
   | "closed"
   | "archived";
 
+export interface ContactPerson {
+  name: string;
+  email: string;
+  phone: string;
+}
+
 export interface Client {
   id: string;
   userId: string;
   name: string;
   email: string;
   phone: string;
+  additionalContacts: ContactPerson[];
   status: ClientStatus;
   priceRange: { min: number; max: number };
   searchCriteria: string;

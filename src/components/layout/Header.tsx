@@ -6,14 +6,13 @@ export function Header() {
   const { user, signOut } = useAuth();
 
   return (
-    <header style={{
+    <header className="header" style={{
       display: "flex",
       justifyContent: "flex-end",
       alignItems: "center",
-      padding: "16px 32px",
       background: "transparent",
     }}>
-      <span style={{ ...t.caption, color: t.textTertiary, marginRight: "16px" }}>
+      <span className="email-truncate" style={{ ...t.caption, color: t.textTertiary, marginRight: "16px" }}>
         {user?.email}
       </span>
       <button

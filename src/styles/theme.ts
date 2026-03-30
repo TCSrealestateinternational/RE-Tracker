@@ -48,6 +48,8 @@ export const t = {
   },
   caption: { fontSize: "12px", fontWeight: 400, lineHeight: 1.4 },
   stat: { fontSize: "28px", fontWeight: 700, lineHeight: 1.1 },
+  // ── Breakpoints ──
+  breakpoints: { mobile: 768, tablet: 1024 },
 } as const;
 
 // ── Shared styles ──

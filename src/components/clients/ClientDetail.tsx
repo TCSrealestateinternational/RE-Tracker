@@ -43,6 +43,16 @@ export function ClientDetail({ client, entries, onEdit, onBack }: ClientDetailPr
             {client.email && <> &middot; {client.email}</>}
             {client.phone && <> &middot; {client.phone}</>}
           </p>
+          {client.additionalContacts?.length > 0 && (
+            <p style={{ ...t.caption, color: t.textTertiary, marginTop: "4px" }}>
+              Also: {client.additionalContacts.map((c) => {
+                const parts = [c.name];
+                if (c.email) parts.push(c.email);
+                if (c.phone) parts.push(c.phone);
+                return parts.join(" — ");
+              }).join("; ")}
+            </p>
+          )}
         </div>
         <button onClick={onEdit} style={{
           display: "flex", alignItems: "center", gap: "6px",
@@ -55,7 +65,7 @@ export function ClientDetail({ client, entries, onEdit, onBack }: ClientDetailPr
         </button>
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "12px", marginBottom: "28px" }}>
+      <div className="grid-4col" style={{ marginBottom: "28px" }}>
         {stats.map(({ label, value, color, icon: Icon }) => (
           <div key={label} style={{ background: t.bg, padding: "16px", borderRadius: "8px" }}>
             <Icon size={14} color={t.textTertiary} strokeWidth={1.5} style={{ marginBottom: "8px" }} />
