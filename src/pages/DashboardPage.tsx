@@ -65,7 +65,7 @@ export function DashboardPage() {
 
       <CloseDateAlerts deals={deals} onMoveDeal={moveDeal} onUpdateDeal={updateDeal} />
 
-      <RevenueStats clients={clients} entries={entries} />
+      <RevenueStats deals={deals} entries={entries} />
 
       <div className="grid-2col">
         <DailyCheckInWidget todayCheckIn={todayCheckIn} streak={getStreak()} onSubmit={submitCheckIn} />
