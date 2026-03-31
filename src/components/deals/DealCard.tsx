@@ -1,3 +1,4 @@
+import { Trash2 } from "lucide-react";
 import { t } from "@/styles/theme";
 import type { Deal, DealStage } from "@/types";
 
@@ -6,9 +7,10 @@ interface DealCardProps {
   stages: readonly DealStage[];
   onMove: (id: string, stage: DealStage) => void;
   onEdit: (deal: Deal) => void;
+  onDelete?: (id: string) => void;
 }
 
-export function DealCard({ deal, stages, onMove, onEdit }: DealCardProps) {
+export function DealCard({ deal, stages, onMove, onEdit, onDelete }: DealCardProps) {
   const projected = deal.projectedCommission ?? 0;
   const isClosed = deal.stage === "Closed";
   const actual = deal.actualCommission;
@@ -53,7 +55,7 @@ export function DealCard({ deal, stages, onMove, onEdit }: DealCardProps) {
           Closed: {deal.actualCloseDate}
         </div>
       )}
-      <div style={{ display: "flex", gap: "4px", flexWrap: "wrap" }}>
+      <div style={{ display: "flex", gap: "4px", flexWrap: "wrap", alignItems: "center" }}>
         {stages.filter((s) => s !== deal.stage).map((s) => (
           <button
             key={s}
@@ -73,6 +75,22 @@ export function DealCard({ deal, stages, onMove, onEdit }: DealCardProps) {
             {s}
           </button>
         ))}
+        {onDelete && (
+          <button
+            onClick={(e) => { e.stopPropagation(); onDelete(deal.id); }}
+            title="Delete deal"
+            style={{
+              marginLeft: "auto", background: "none", border: "none",
+              cursor: "pointer", color: t.textTertiary, padding: "3px",
+              borderRadius: "4px", display: "inline-flex", alignItems: "center",
+              transition: "color 0.15s",
+            }}
+            onMouseEnter={(ev) => { ev.currentTarget.style.color = t.rust; }}
+            onMouseLeave={(ev) => { ev.currentTarget.style.color = t.textTertiary; }}
+          >
+            <Trash2 size={13} />
+          </button>
+        )}
       </div>
     </div>
   );

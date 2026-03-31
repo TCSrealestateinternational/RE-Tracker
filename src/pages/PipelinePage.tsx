@@ -8,7 +8,7 @@ import { t, btnPrimary } from "@/styles/theme";
 import type { Deal } from "@/types";
 
 export function PipelinePage() {
-  const { deals, addDeal, updateDeal, moveDeal } = useDeals();
+  const { deals, addDeal, updateDeal, moveDeal, removeDeal } = useDeals();
   const { clients } = useClients();
   const [showForm, setShowForm] = useState(false);
   const [editing, setEditing] = useState<Deal | null>(null);
@@ -38,7 +38,7 @@ export function PipelinePage() {
           Add Deal
         </button>
       </div>
-      <KanbanBoard deals={deals} onMove={moveDeal} onEdit={setEditing} />
+      <KanbanBoard deals={deals} onMove={moveDeal} onEdit={setEditing} onDelete={removeDeal} />
     </div>
   );
 }

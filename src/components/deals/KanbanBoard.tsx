@@ -6,9 +6,10 @@ interface KanbanBoardProps {
   deals: Deal[];
   onMove: (id: string, stage: DealStage) => void;
   onEdit: (deal: Deal) => void;
+  onDelete?: (id: string) => void;
 }
 
-export function KanbanBoard({ deals, onMove, onEdit }: KanbanBoardProps) {
+export function KanbanBoard({ deals, onMove, onEdit, onDelete }: KanbanBoardProps) {
   return (
     <div className="kanban-scroll">
     <div style={{
@@ -45,7 +46,7 @@ export function KanbanBoard({ deals, onMove, onEdit }: KanbanBoardProps) {
 
             <div style={{ flex: 1, overflowY: "auto" }}>
               {stageDeals.map((deal) => (
-                <DealCard key={deal.id} deal={deal} stages={DEAL_STAGES} onMove={onMove} onEdit={onEdit} />
+                <DealCard key={deal.id} deal={deal} stages={DEAL_STAGES} onMove={onMove} onEdit={onEdit} onDelete={onDelete} />
               ))}
               {stageDeals.length === 0 && (
                 <p style={{ ...t.caption, color: t.textTertiary, textAlign: "center", padding: "24px 0" }}>
