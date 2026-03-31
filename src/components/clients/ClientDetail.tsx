@@ -134,6 +134,25 @@ export function ClientDetail({ client, entries, checklist, onToggleItem, onEdit,
         {/* ── Buyer-Specific Details ── */}
         {isBuyer && (
           <div style={{ marginBottom: "16px" }}>
+            {(client.lenderName || (client.preApprovalAmount ?? 0) > 0) && (
+              <div style={{
+                background: t.tealLight, borderRadius: "8px", padding: "12px 16px", marginBottom: "12px",
+                display: "flex", justifyContent: "space-between", alignItems: "center",
+              }}>
+                {client.lenderName && (
+                  <div>
+                    <span style={{ ...t.label, color: t.textSecondary, display: "block", marginBottom: "2px" }}>Lender</span>
+                    <span style={{ ...t.body, color: t.text, fontWeight: 500 }}>{client.lenderName}</span>
+                  </div>
+                )}
+                {(client.preApprovalAmount ?? 0) > 0 && (
+                  <div style={{ textAlign: client.lenderName ? "right" : "left" }}>
+                    <span style={{ ...t.label, color: t.textSecondary, display: "block", marginBottom: "2px" }}>Pre-Approval</span>
+                    <span style={{ ...t.body, color: t.teal, fontWeight: 600 }}>{fmtDollars(client.preApprovalAmount)}</span>
+                  </div>
+                )}
+              </div>
+            )}
             {(client.priceRange?.min > 0 || client.priceRange?.max > 0) && (
               <div style={{ marginBottom: "8px" }}>
                 <span style={{ ...t.label, color: t.textSecondary, display: "block", marginBottom: "2px" }}>Price Range</span>

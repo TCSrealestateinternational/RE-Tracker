@@ -78,6 +78,8 @@ export interface Client {
   commissionFlat: number;
 
   // Buyer-specific
+  lenderName: string;
+  preApprovalAmount: number;
   priceRange: { min: number; max: number };
   searchCriteria: string;
   dateUnderContract: string | null;

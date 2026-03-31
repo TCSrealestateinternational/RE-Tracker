@@ -54,6 +54,8 @@ export function ClientForm({ initial, onSubmit, onCancel }: ClientFormProps) {
   const [commissionFlat, setCommissionFlat] = useState(numToStr(initial?.commissionFlat));
 
   // Buyer fields
+  const [lenderName, setLenderName] = useState(initial?.lenderName ?? "");
+  const [preApprovalAmount, setPreApprovalAmount] = useState(numToStr(initial?.preApprovalAmount));
   const [priceMin, setPriceMin] = useState(numToStr(initial?.priceRange?.min));
   const [priceMax, setPriceMax] = useState(numToStr(initial?.priceRange?.max));
   const [searchCriteria, setSearchCriteria] = useState(initial?.searchCriteria ?? "");
@@ -157,6 +159,8 @@ export function ClientForm({ initial, onSubmit, onCancel }: ClientFormProps) {
         commissionPercent: numStrToNum(commissionPercent),
         commissionFlat: numStrToNum(commissionFlat),
         // Buyer
+        lenderName,
+        preApprovalAmount: numStrToNum(preApprovalAmount),
         priceRange: { min: numStrToNum(priceMin), max: numStrToNum(priceMax) },
         searchCriteria,
         dateUnderContract: dateUnderContract || null,
@@ -286,6 +290,12 @@ export function ClientForm({ initial, onSubmit, onCancel }: ClientFormProps) {
       {isBuyer && (
         <div style={sectionBox}>
           <span style={{ ...t.label, color: t.teal, display: "block", marginBottom: "14px" }}>Buyer Details</span>
+          <div className="grid-2col" style={{ marginBottom: "12px" }}>
+            <label>{labelEl("Lender")}
+              <input value={lenderName} onChange={(e) => setLenderName(e.target.value)} placeholder="Lender name or company" style={inputBase} /></label>
+            <label>{labelEl("Pre-Approval Amount ($)")}
+              <input value={preApprovalAmount} onChange={handleNumInput(setPreApprovalAmount)} placeholder="0" style={inputBase} inputMode="decimal" /></label>
+          </div>
           <div className="grid-2col" style={{ marginBottom: "12px" }}>
             <label>{labelEl("Price Min ($)")}
               <input value={priceMin} onChange={handleNumInput(setPriceMin)} placeholder="0" style={inputBase} inputMode="decimal" /></label>
