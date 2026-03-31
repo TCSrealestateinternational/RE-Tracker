@@ -66,7 +66,7 @@ export function DealForm({ clients, initial, onSubmit, onCancel }: DealFormProps
         <label>{labelEl("Client *")}
           <select value={clientId} onChange={(e) => setClientId(e.target.value)} required style={inputBase}>
             <option value="">Select client...</option>
-            {clients.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
+            {clients.map((c) => <option key={c.id} value={c.id}>{c.status === "buyer" ? "🏠" : "📋"} {c.name}</option>)}
           </select></label>
 
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
