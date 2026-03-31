@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { UserPlus, AlertCircle, ChevronDown, ChevronRight, Trash2, RefreshCw } from "lucide-react";
+import { UserPlus, AlertCircle, ChevronDown, ChevronRight, Trash2, RefreshCw, Home, FileStack } from "lucide-react";
 import { t, card, btnPrimary, btnSecondary, inputBase } from "@/styles/theme";
 import { todayStr } from "@/utils/dates";
 import type { Client, ClientStage } from "@/types";
@@ -132,7 +132,9 @@ export function ClientList({ clients, onSelect, onAdd, onDeleteClients, onBulkUp
           <div>
             <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
               <span style={{
-                display: "inline-block",
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "4px",
                 padding: "2px 8px",
                 borderRadius: "4px",
                 fontSize: "11px",
@@ -143,6 +145,7 @@ export function ClientList({ clients, onSelect, onAdd, onDeleteClients, onBulkUp
                 color: c.status === "buyer" ? t.teal : t.gold,
                 flexShrink: 0,
               }}>
+                {c.status === "buyer" ? <Home size={11} strokeWidth={2.5} /> : <FileStack size={11} strokeWidth={2.5} />}
                 {c.status === "buyer" ? "Buyer" : "Seller"}
               </span>
               <span style={{ fontWeight: 600, fontSize: "14px", color: t.text }}>

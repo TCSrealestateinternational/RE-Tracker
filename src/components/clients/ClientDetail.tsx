@@ -1,4 +1,4 @@
-import { ArrowLeft, Edit3, Clock, DollarSign, TrendingUp, CalendarClock, ExternalLink } from "lucide-react";
+import { ArrowLeft, Edit3, Clock, DollarSign, TrendingUp, CalendarClock, ExternalLink, Home, FileStack } from "lucide-react";
 import { t, card } from "@/styles/theme";
 import { formatHours } from "@/utils/dates";
 import { BUYER_CHECKLIST_ITEMS, SELLER_CHECKLIST_ITEMS } from "@/types";
@@ -75,8 +75,18 @@ export function ClientDetail({ client, entries, checklist, onToggleItem, onEdit,
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "28px" }}>
           <div>
             <h2 style={{ ...t.pageTitle, color: t.text, marginBottom: "4px" }}>{client.name}</h2>
-            <p style={{ ...t.caption, color: t.textTertiary }}>
-              {client.status} &middot; {client.stage}
+            <p style={{ ...t.caption, color: t.textTertiary, display: "flex", alignItems: "center", gap: "6px" }}>
+              <span style={{
+                display: "inline-flex", alignItems: "center", gap: "4px",
+                padding: "2px 8px", borderRadius: "4px",
+                fontSize: "11px", fontWeight: 700, letterSpacing: "0.03em", textTransform: "uppercase",
+                background: isBuyer ? "rgba(12, 65, 78, 0.10)" : "rgba(188, 128, 77, 0.12)",
+                color: isBuyer ? t.teal : t.gold,
+              }}>
+                {isBuyer ? <Home size={11} strokeWidth={2.5} /> : <FileStack size={11} strokeWidth={2.5} />}
+                {client.status}
+              </span>
+              {client.stage}
               {client.leadSource && <> &middot; {client.leadSource}</>}
               {client.email && <> &middot; {client.email}</>}
               {client.phone && <> &middot; {client.phone}</>}
@@ -277,11 +287,13 @@ export function ClientDetail({ client, entries, checklist, onToggleItem, onEdit,
             <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
               <h3 style={{ ...t.sectionHeader, color: t.text }}>Transaction Checklist</h3>
               <span style={{
+                display: "inline-flex", alignItems: "center", gap: "4px",
                 padding: "2px 8px", borderRadius: "4px", fontSize: "11px", fontWeight: 600,
                 background: checklist.type === "buyer" ? t.tealLight : t.goldLight,
                 color: checklist.type === "buyer" ? t.teal : t.gold,
                 textTransform: "uppercase",
               }}>
+                {checklist.type === "buyer" ? <Home size={11} strokeWidth={2.5} /> : <FileStack size={11} strokeWidth={2.5} />}
                 {checklist.type}
               </span>
             </div>
