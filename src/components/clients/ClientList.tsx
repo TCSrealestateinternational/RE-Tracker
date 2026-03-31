@@ -131,13 +131,22 @@ export function ClientList({ clients, onSelect, onAdd, onDeleteClients, onBulkUp
         >
           <div>
             <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+              <span style={{
+                display: "inline-block",
+                padding: "2px 8px",
+                borderRadius: "4px",
+                fontSize: "11px",
+                fontWeight: 700,
+                letterSpacing: "0.03em",
+                textTransform: "uppercase",
+                background: c.status === "buyer" ? "rgba(12, 65, 78, 0.10)" : "rgba(188, 128, 77, 0.12)",
+                color: c.status === "buyer" ? t.teal : t.gold,
+                flexShrink: 0,
+              }}>
+                {c.status === "buyer" ? "Buyer" : "Seller"}
+              </span>
               <span style={{ fontWeight: 600, fontSize: "14px", color: t.text }}>
                 {c.name}
-                {c.additionalContacts?.length > 0 && (
-                  <span style={{ fontWeight: 400, color: t.textTertiary }}>
-                    {" & "}{c.additionalContacts.map((p) => p.name).join(", ")}
-                  </span>
-                )}
               </span>
               {followUpDue && (
                 <span style={{ display: "flex", alignItems: "center", gap: "3px" }}>
@@ -146,8 +155,18 @@ export function ClientList({ clients, onSelect, onAdd, onDeleteClients, onBulkUp
                 </span>
               )}
             </div>
+            {c.additionalContacts?.length > 0 && (
+              <div style={{ ...t.caption, color: t.textSecondary, marginTop: "3px", paddingLeft: "0px" }}>
+                {c.additionalContacts.map((p, i) => (
+                  <span key={i} style={{ display: "inline-flex", alignItems: "center", gap: "4px", marginRight: "12px" }}>
+                    <span style={{ fontWeight: 500, color: t.text }}>{p.name}</span>
+                    {p.phone && <span style={{ color: t.textTertiary }}>{p.phone}</span>}
+                  </span>
+                ))}
+              </div>
+            )}
             <div style={{ ...t.caption, color: t.textTertiary, marginTop: "2px" }}>
-              {c.status} &middot; {c.stage}
+              {c.stage}
               {c.leadSource && <> &middot; {c.leadSource}</>}
             </div>
           </div>
