@@ -42,7 +42,7 @@ export function LiveTimer() {
           <select value={timer.clientId ?? ""} onChange={(e) => timer.setClientId(e.target.value || null)}
             disabled={timer.running} style={inputBase}>
             <option value="">None</option>
-            {clients.map((c) => <option key={c.id} value={c.id}>{c.status === "buyer" ? "🏠" : "📋"} {c.name}</option>)}
+            {clients.map((c) => <option key={c.id} value={c.id}>{c.status === "seller" ? "🏠" : "📋"} {c.name}</option>)}
           </select>
         </label>
       </div>

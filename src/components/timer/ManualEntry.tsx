@@ -73,7 +73,7 @@ export function ManualEntry({ initial, onCancel, onSaved }: ManualEntryProps) {
             <span style={{ ...t.label, color: t.textSecondary, display: "block", marginBottom: "6px" }}>Client</span>
             <select value={clientId} onChange={(e) => setClientId(e.target.value)} style={inputBase}>
               <option value="">None</option>
-              {clients.map((c) => <option key={c.id} value={c.id}>{c.status === "buyer" ? "🏠" : "📋"} {c.name}</option>)}
+              {clients.map((c) => <option key={c.id} value={c.id}>{c.status === "seller" ? "🏠" : "📋"} {c.name}</option>)}
             </select>
           </label>
         </div>
