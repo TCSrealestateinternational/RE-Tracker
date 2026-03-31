@@ -63,6 +63,7 @@ export function ClientForm({ initial, onSubmit, onCancel }: ClientFormProps) {
   const [projectedCloseDate, setProjectedCloseDate] = useState(initial?.projectedCloseDate ?? "");
 
   // Seller fields
+  const [propertyAddress, setPropertyAddress] = useState(initial?.propertyAddress ?? "");
   const [listPrice, setListPrice] = useState(numToStr(initial?.listPrice));
   const [priceReductions, setPriceReductions] = useState<string[]>(
     (initial?.priceReductions ?? []).map(String)
@@ -166,6 +167,7 @@ export function ClientForm({ initial, onSubmit, onCancel }: ClientFormProps) {
         dateUnderContract: dateUnderContract || null,
         projectedCloseDate: projectedCloseDate || null,
         // Seller
+        propertyAddress,
         listPrice: numStrToNum(listPrice),
         priceReductions: priceReductions.map(numStrToNum).filter((n) => n > 0),
         offers,
@@ -319,6 +321,11 @@ export function ClientForm({ initial, onSubmit, onCancel }: ClientFormProps) {
       {!isBuyer && (
         <div style={sectionBox}>
           <span style={{ ...t.label, color: t.gold, display: "block", marginBottom: "14px" }}>Seller Details</span>
+
+          <label style={{ display: "block", marginBottom: "12px" }}>
+            {labelEl("Property Address")}
+            <input value={propertyAddress} onChange={(e) => setPropertyAddress(e.target.value)} placeholder="123 Main St, City, KY 40000" style={inputBase} />
+          </label>
 
           <label style={{ display: "block", marginBottom: "12px" }}>
             {labelEl("List Price ($)")}

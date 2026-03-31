@@ -86,6 +86,7 @@ export interface Client {
   projectedCloseDate: string | null;
 
   // Seller-specific
+  propertyAddress: string;
   listPrice: number;
   priceReductions: number[];
   offers: Offer[];

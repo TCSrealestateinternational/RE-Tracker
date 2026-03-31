@@ -180,6 +180,7 @@ export function ClientDetail({ client, entries, checklist, onToggleItem, onEdit,
         {/* ── Seller-Specific Details ── */}
         {!isBuyer && (
           <div style={{ marginBottom: "16px" }}>
+            {client.propertyAddress && detailRow("Property Address", client.propertyAddress)}
             {(client.listPrice ?? 0) > 0 && detailRow("List Price", fmtDollars(client.listPrice))}
 
             {/* Price Reductions */}
