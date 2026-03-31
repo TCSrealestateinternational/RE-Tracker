@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import {
-  collection, query, where, onSnapshot, addDoc, serverTimestamp,
+  collection, query, where, onSnapshot, addDoc, updateDoc, doc, deleteDoc, serverTimestamp,
 } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useAuth } from "@/context/AuthContext";
@@ -51,5 +51,26 @@ export function useTimeEntries() {
     });
   }
 
-  return { entries, loading, addManualEntry };
+  async function updateTimeEntry(
+    id: string,
+    data: {
+      category: ActivityCategory;
+      clientId: string | null;
+      leadSource: LeadSource | "";
+      note: string;
+      startTime: number;
+      endTime: number;
+    }
+  ) {
+    await updateDoc(doc(db, "timeEntries", id), {
+      ...data,
+      durationMs: data.endTime - data.startTime,
+    });
+  }
+
+  async function deleteTimeEntry(id: string) {
+    await deleteDoc(doc(db, "timeEntries", id));
+  }
+
+  return { entries, loading, addManualEntry, updateTimeEntry, deleteTimeEntry };
 }

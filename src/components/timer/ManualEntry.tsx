@@ -1,13 +1,21 @@
-import { useState, type FormEvent } from "react";
-import { Plus } from "lucide-react";
+import { useState, useEffect, type FormEvent } from "react";
+import { Plus, Save, X } from "lucide-react";
 import { useTimeEntries } from "@/hooks/useTimeEntries";
 import { useClients } from "@/hooks/useClients";
-import { ACTIVITY_CATEGORIES, LEAD_SOURCES, type ActivityCategory, type LeadSource } from "@/types";
-import { t, card, inputBase, btnPrimary } from "@/styles/theme";
+import { ACTIVITY_CATEGORIES, LEAD_SOURCES, type ActivityCategory, type LeadSource, type TimeEntry } from "@/types";
+import { t, card, inputBase, btnPrimary, btnSecondary } from "@/styles/theme";
 
-export function ManualEntry() {
-  const { addManualEntry } = useTimeEntries();
+interface ManualEntryProps {
+  initial?: TimeEntry | null;
+  onCancel?: () => void;
+  onSaved?: () => void;
+}
+
+export function ManualEntry({ initial, onCancel, onSaved }: ManualEntryProps) {
+  const { addManualEntry, updateTimeEntry } = useTimeEntries();
   const { clients } = useClients();
+  const isEditing = !!initial;
+
   const [category, setCategory] = useState<ActivityCategory>("Lead Gen");
   const [clientId, setClientId] = useState("");
   const [leadSource, setLeadSource] = useState<LeadSource | "">("");
@@ -16,18 +24,43 @@ export function ManualEntry() {
   const [startTime, setStartTime] = useState("09:00");
   const [endTime, setEndTime] = useState("10:00");
 
+  useEffect(() => {
+    if (initial) {
+      setCategory(initial.category);
+      setClientId(initial.clientId ?? "");
+      setLeadSource(initial.leadSource);
+      setNote(initial.note);
+      const d = new Date(initial.startTime);
+      setDate(d.toISOString().slice(0, 10));
+      setStartTime(d.toTimeString().slice(0, 5));
+      if (initial.endTime) {
+        setEndTime(new Date(initial.endTime).toTimeString().slice(0, 5));
+      }
+    }
+  }, [initial]);
+
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
     const start = new Date(`${date}T${startTime}`).getTime();
     const end = new Date(`${date}T${endTime}`).getTime();
     if (end <= start) return;
-    await addManualEntry({ category, clientId: clientId || null, leadSource, note, startTime: start, endTime: end });
-    setNote("");
+
+    const payload = { category, clientId: clientId || null, leadSource, note, startTime: start, endTime: end };
+
+    if (isEditing) {
+      await updateTimeEntry(initial.id, payload);
+      onSaved?.();
+    } else {
+      await addManualEntry(payload);
+      setNote("");
+    }
   }
 
   return (
     <div style={card}>
-      <h3 style={{ ...t.sectionHeader, color: t.text, marginBottom: "20px" }}>Manual Entry</h3>
+      <h3 style={{ ...t.sectionHeader, color: t.text, marginBottom: "20px" }}>
+        {isEditing ? "Edit Entry" : "Manual Entry"}
+      </h3>
       <form onSubmit={handleSubmit}>
         <div className="grid-2col" style={{ marginBottom: "12px" }}>
           <label>
@@ -69,10 +102,16 @@ export function ManualEntry() {
           <span style={{ ...t.label, color: t.textSecondary, display: "block", marginBottom: "6px" }}>Note</span>
           <input value={note} onChange={(e) => setNote(e.target.value)} placeholder="Optional note" style={inputBase} />
         </label>
-        <button type="submit" style={{ ...btnPrimary, display: "flex", alignItems: "center", gap: "8px" }}>
-          <Plus size={16} strokeWidth={2} />
-          Add Entry
-        </button>
+        <div style={{ display: "flex", gap: "10px" }}>
+          <button type="submit" style={{ ...btnPrimary, display: "flex", alignItems: "center", gap: "8px" }}>
+            {isEditing ? <><Save size={16} strokeWidth={2} /> Save Changes</> : <><Plus size={16} strokeWidth={2} /> Add Entry</>}
+          </button>
+          {isEditing && onCancel && (
+            <button type="button" onClick={onCancel} style={{ ...btnSecondary, display: "flex", alignItems: "center", gap: "8px" }}>
+              <X size={16} strokeWidth={2} /> Cancel
+            </button>
+          )}
+        </div>
       </form>
     </div>
   );
