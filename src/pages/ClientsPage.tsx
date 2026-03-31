@@ -53,6 +53,9 @@ export function ClientsPage() {
 
   if (view === "detail" && selected) {
     const checklist = getClientChecklist(selected.id);
+    if (!checklist) {
+      createChecklist(selected.id, selected.status);
+    }
     return (
       <ClientDetail
         client={selected}
