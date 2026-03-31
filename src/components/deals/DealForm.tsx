@@ -18,8 +18,14 @@ export function DealForm({ clients, initial, onSubmit, onCancel }: DealFormProps
   const [purchasePriceStr, setPurchasePriceStr] = useState(
     initial?.purchasePrice ? String(initial.purchasePrice) : ""
   );
+  const [commissionMode, setCommissionMode] = useState<"percentage" | "flat">(
+    initial?.commissionPercent === 0 && initial?.projectedCommission > 0 ? "flat" : "percentage"
+  );
   const [commissionPctStr, setCommissionPctStr] = useState(
     initial?.commissionPercent ? String(initial.commissionPercent) : "3"
+  );
+  const [commissionFlatStr, setCommissionFlatStr] = useState(
+    initial?.commissionPercent === 0 && initial?.projectedCommission ? String(initial.projectedCommission) : ""
   );
   const [actualCommissionStr, setActualCommissionStr] = useState(
     initial?.actualCommission != null ? String(initial.actualCommission) : ""
@@ -32,8 +38,11 @@ export function DealForm({ clients, initial, onSubmit, onCancel }: DealFormProps
   const selectedClient = clients.find((c) => c.id === clientId);
 
   const purchasePrice = parseFloat(purchasePriceStr) || 0;
-  const commissionPercent = parseFloat(commissionPctStr) || 0;
-  const projectedCommission = Math.round(purchasePrice * commissionPercent / 100);
+  const commissionPercent = commissionMode === "percentage" ? (parseFloat(commissionPctStr) || 0) : 0;
+  const commissionFlat = parseFloat(commissionFlatStr) || 0;
+  const projectedCommission = commissionMode === "percentage"
+    ? Math.round(purchasePrice * commissionPercent / 100)
+    : commissionFlat;
 
   function handleSubmit(e: FormEvent) {
     e.preventDefault();
@@ -85,56 +94,90 @@ export function DealForm({ clients, initial, onSubmit, onCancel }: DealFormProps
         <div style={{
           background: t.bg, borderRadius: "10px", padding: "16px",
         }}>
-          <span style={{ ...t.label, color: t.textSecondary, display: "block", marginBottom: "12px" }}>
-            Commission Calculator
-          </span>
-
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px", marginBottom: "12px" }}>
-            <label>{labelEl("Purchase Price ($)")}
-              <input
-                type="text"
-                inputMode="decimal"
-                value={purchasePriceStr}
-                onChange={(e) => {
-                  const v = e.target.value;
-                  if (v === "" || /^\d*\.?\d*$/.test(v)) setPurchasePriceStr(v);
-                }}
-                placeholder="250000"
-                style={inputBase}
-              /></label>
-            <div>
-              {labelEl("Commission %")}
-              <input
-                type="text"
-                inputMode="decimal"
-                value={commissionPctStr}
-                onChange={(e) => {
-                  const v = e.target.value;
-                  if (v === "" || /^\d*\.?\d*$/.test(v)) setCommissionPctStr(v);
-                }}
-                placeholder="3"
-                style={inputBase}
-              />
-              <div style={{ display: "flex", gap: "4px", marginTop: "6px", flexWrap: "wrap" }}>
-                {COMMISSION_PRESETS.map((p) => (
-                  <button
-                    key={p}
-                    type="button"
-                    onClick={() => setCommissionPctStr(String(p))}
-                    style={{
-                      padding: "3px 8px", fontSize: "11px", fontWeight: 600, fontFamily: t.font,
-                      background: commissionPctStr === String(p) ? t.teal : t.surface,
-                      color: commissionPctStr === String(p) ? t.textInverse : t.textSecondary,
-                      border: `1px solid ${t.borderMedium}`,
-                      borderRadius: "4px", cursor: "pointer",
-                    }}
-                  >
-                    {p}%
-                  </button>
-                ))}
-              </div>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px" }}>
+            <span style={{ ...t.label, color: t.textSecondary }}>Commission</span>
+            <div style={{ display: "flex", borderRadius: "6px", overflow: "hidden", border: `1px solid ${t.borderMedium}` }}>
+              {(["percentage", "flat"] as const).map((mode) => (
+                <button
+                  key={mode}
+                  type="button"
+                  onClick={() => setCommissionMode(mode)}
+                  style={{
+                    padding: "5px 14px", fontSize: "12px", fontWeight: 600, fontFamily: t.font,
+                    background: commissionMode === mode ? t.teal : t.surface,
+                    color: commissionMode === mode ? t.textInverse : t.textSecondary,
+                    border: "none", cursor: "pointer",
+                  }}
+                >
+                  {mode === "percentage" ? "%" : "Flat $"}
+                </button>
+              ))}
             </div>
           </div>
+
+          {commissionMode === "percentage" ? (
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px", marginBottom: "12px" }}>
+              <label>{labelEl("Purchase Price ($)")}
+                <input
+                  type="text"
+                  inputMode="decimal"
+                  value={purchasePriceStr}
+                  onChange={(e) => {
+                    const v = e.target.value;
+                    if (v === "" || /^\d*\.?\d*$/.test(v)) setPurchasePriceStr(v);
+                  }}
+                  placeholder="250000"
+                  style={inputBase}
+                /></label>
+              <div>
+                {labelEl("Commission %")}
+                <input
+                  type="text"
+                  inputMode="decimal"
+                  value={commissionPctStr}
+                  onChange={(e) => {
+                    const v = e.target.value;
+                    if (v === "" || /^\d*\.?\d*$/.test(v)) setCommissionPctStr(v);
+                  }}
+                  placeholder="3"
+                  style={inputBase}
+                />
+                <div style={{ display: "flex", gap: "4px", marginTop: "6px", flexWrap: "wrap" }}>
+                  {COMMISSION_PRESETS.map((p) => (
+                    <button
+                      key={p}
+                      type="button"
+                      onClick={() => setCommissionPctStr(String(p))}
+                      style={{
+                        padding: "3px 8px", fontSize: "11px", fontWeight: 600, fontFamily: t.font,
+                        background: commissionPctStr === String(p) ? t.teal : t.surface,
+                        color: commissionPctStr === String(p) ? t.textInverse : t.textSecondary,
+                        border: `1px solid ${t.borderMedium}`,
+                        borderRadius: "4px", cursor: "pointer",
+                      }}
+                    >
+                      {p}%
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div style={{ marginBottom: "12px" }}>
+              <label>{labelEl("Commission Amount ($)")}
+                <input
+                  type="text"
+                  inputMode="decimal"
+                  value={commissionFlatStr}
+                  onChange={(e) => {
+                    const v = e.target.value;
+                    if (v === "" || /^\d*\.?\d*$/.test(v)) setCommissionFlatStr(v);
+                  }}
+                  placeholder="8400"
+                  style={inputBase}
+                /></label>
+            </div>
+          )}
 
           <div style={{
             background: t.surface, borderRadius: "8px", padding: "12px 16px",
