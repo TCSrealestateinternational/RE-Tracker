@@ -65,7 +65,11 @@ export function ManualEntry({ initial, onCancel, onSaved }: ManualEntryProps) {
         <div className="grid-2col" style={{ marginBottom: "12px" }}>
           <label>
             <span style={{ ...t.label, color: t.textSecondary, display: "block", marginBottom: "6px" }}>Category</span>
-            <select value={category} onChange={(e) => setCategory(e.target.value as ActivityCategory)} style={inputBase}>
+            <select value={category} onChange={(e) => {
+              const val = e.target.value as ActivityCategory;
+              setCategory(val);
+              if (val !== "Lead Gen") setLeadSource("");
+            }} style={inputBase}>
               {ACTIVITY_CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
             </select>
           </label>
@@ -77,7 +81,7 @@ export function ManualEntry({ initial, onCancel, onSaved }: ManualEntryProps) {
             </select>
           </label>
         </div>
-        <div className="grid-4col" style={{ marginBottom: "12px" }}>
+        <div className={category === "Lead Gen" ? "grid-4col" : "grid-3col"} style={{ marginBottom: "12px" }}>
           <label>
             <span style={{ ...t.label, color: t.textSecondary, display: "block", marginBottom: "6px" }}>Date</span>
             <input type="date" value={date} onChange={(e) => setDate(e.target.value)} style={inputBase} />
@@ -90,13 +94,15 @@ export function ManualEntry({ initial, onCancel, onSaved }: ManualEntryProps) {
             <span style={{ ...t.label, color: t.textSecondary, display: "block", marginBottom: "6px" }}>End</span>
             <input type="time" value={endTime} onChange={(e) => setEndTime(e.target.value)} style={inputBase} />
           </label>
-          <label>
-            <span style={{ ...t.label, color: t.textSecondary, display: "block", marginBottom: "6px" }}>Lead Source</span>
-            <select value={leadSource} onChange={(e) => setLeadSource(e.target.value as LeadSource)} style={inputBase}>
-              <option value="">None</option>
-              {LEAD_SOURCES.map((s) => <option key={s} value={s}>{s}</option>)}
-            </select>
-          </label>
+          {category === "Lead Gen" && (
+            <label>
+              <span style={{ ...t.label, color: t.textSecondary, display: "block", marginBottom: "6px" }}>Lead Source</span>
+              <select value={leadSource} onChange={(e) => setLeadSource(e.target.value as LeadSource)} style={inputBase}>
+                <option value="">None</option>
+                {LEAD_SOURCES.map((s) => <option key={s} value={s}>{s}</option>)}
+              </select>
+            </label>
+          )}
         </div>
         <label style={{ display: "block", marginBottom: "24px" }}>
           <span style={{ ...t.label, color: t.textSecondary, display: "block", marginBottom: "6px" }}>Note</span>

@@ -1,13 +1,11 @@
 // ── Activity Categories ──
 export const ACTIVITY_CATEGORIES = [
   "Lead Gen",
-  "Client Calls",
+  "Client Calls/Texts",
   "Showings",
   "Admin",
   "Marketing",
-  "Education",
-  "Transaction Coordination",
-  "Home Search",
+  "Home Searches",
 ] as const;
 
 export type ActivityCategory = (typeof ACTIVITY_CATEGORIES)[number];

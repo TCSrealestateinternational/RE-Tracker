@@ -32,7 +32,11 @@ export function LiveTimer() {
       <div className="grid-2col" style={{ marginBottom: "12px" }}>
         <label>
           <span style={{ ...t.label, color: t.textSecondary, display: "block", marginBottom: "6px" }}>Category</span>
-          <select value={timer.category} onChange={(e) => timer.setCategory(e.target.value as typeof timer.category)}
+          <select value={timer.category} onChange={(e) => {
+              const val = e.target.value as typeof timer.category;
+              timer.setCategory(val);
+              if (val !== "Lead Gen") timer.setLeadSource("");
+            }}
             disabled={timer.running} style={inputBase}>
             {ACTIVITY_CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
           </select>
@@ -48,14 +52,16 @@ export function LiveTimer() {
       </div>
 
       <div className="grid-2col" style={{ marginBottom: "24px" }}>
-        <label>
-          <span style={{ ...t.label, color: t.textSecondary, display: "block", marginBottom: "6px" }}>Lead Source</span>
-          <select value={timer.leadSource} onChange={(e) => timer.setLeadSource(e.target.value as LeadSource)}
-            disabled={timer.running} style={inputBase}>
-            <option value="">None</option>
-            {LEAD_SOURCES.map((s) => <option key={s} value={s}>{s}</option>)}
-          </select>
-        </label>
+        {timer.category === "Lead Gen" && (
+          <label>
+            <span style={{ ...t.label, color: t.textSecondary, display: "block", marginBottom: "6px" }}>Lead Source</span>
+            <select value={timer.leadSource} onChange={(e) => timer.setLeadSource(e.target.value as LeadSource)}
+              disabled={timer.running} style={inputBase}>
+              <option value="">None</option>
+              {LEAD_SOURCES.map((s) => <option key={s} value={s}>{s}</option>)}
+            </select>
+          </label>
+        )}
         <label>
           <span style={{ ...t.label, color: t.textSecondary, display: "block", marginBottom: "6px" }}>Note</span>
           <input value={timer.note} onChange={(e) => timer.setNote(e.target.value)}
