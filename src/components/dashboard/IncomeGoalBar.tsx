@@ -10,7 +10,7 @@ interface IncomeGoalBarProps {
 export function IncomeGoalBar({ goal, clients }: IncomeGoalBarProps) {
   if (!goal) {
     return (
-      <div style={card}>
+      <div data-tour="income-goal" style={card}>
         <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "12px" }}>
           <Target size={16} color={t.textTertiary} strokeWidth={1.5} />
           <h3 style={{ ...t.sectionHeader, color: t.text }}>Annual Goal</h3>
@@ -29,7 +29,7 @@ export function IncomeGoalBar({ goal, clients }: IncomeGoalBarProps) {
   const onPace = pct >= pctOfYear;
 
   return (
-    <div style={card}>
+    <div data-tour="income-goal" style={card}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "14px" }}>
         <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
           <Target size={16} color={t.textTertiary} strokeWidth={1.5} />

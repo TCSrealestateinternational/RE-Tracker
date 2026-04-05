@@ -40,11 +40,13 @@ export function ReportsPage() {
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
         <h1 style={{ ...t.pageTitle, color: t.text }}>Reports</h1>
         {exportData && (
-          <ExportButtons title={exportData.title} headers={exportData.headers} rows={exportData.rows} filenameBase={exportData.file} />
+          <div data-tour="export-buttons">
+            <ExportButtons title={exportData.title} headers={exportData.headers} rows={exportData.rows} filenameBase={exportData.file} />
+          </div>
         )}
       </div>
 
-      <div style={{ display: "flex", gap: "4px" }}>
+      <div data-tour="report-tabs" style={{ display: "flex", gap: "4px" }}>
         {tabs.map((item) => (
           <button
             key={item.key}

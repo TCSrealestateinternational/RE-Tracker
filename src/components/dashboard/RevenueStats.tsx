@@ -19,7 +19,7 @@ export function RevenueStats({ deals, entries }: RevenueStatsProps) {
   const revenuePerHour = totalHours > 0 ? closedGCI / totalHours : 0;
 
   return (
-    <div className="grid-3col">
+    <div className="grid-3col" data-tour="revenue-stats">
       <div style={{ ...card, display: "flex", alignItems: "center", gap: "16px" }}>
         <Clock size={16} color={t.teal} strokeWidth={1.5} />
         <div>

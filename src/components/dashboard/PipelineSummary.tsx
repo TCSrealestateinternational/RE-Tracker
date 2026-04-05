@@ -19,7 +19,7 @@ export function PipelineSummary({ deals }: PipelineSummaryProps) {
   const totalPipeline = activePipeline.reduce((s, d) => s + d.projectedCommission, 0);
 
   return (
-    <div style={card}>
+    <div data-tour="pipeline-summary" style={card}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
         <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
           <Kanban size={16} color={t.textTertiary} strokeWidth={1.5} />

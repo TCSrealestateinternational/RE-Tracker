@@ -60,7 +60,7 @@ export function Sidebar({ activePath, onNavigate, open, onToggle }: SidebarProps
             RE Tracker
           </span>
         </div>
-        <nav style={{ flex: 1 }}>
+        <nav data-tour="sidebar-nav" style={{ flex: 1 }}>
           {NAV_ITEMS.map((item) => {
             const active = activePath === item.path;
             const Icon = item.icon;

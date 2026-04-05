@@ -26,12 +26,12 @@ export function TimerPage() {
         />
       ) : (
         <div className="grid-2col" style={{ alignItems: "start" }}>
-          <LiveTimer />
-          <ManualEntry />
+          <div data-tour="live-timer"><LiveTimer /></div>
+          <div data-tour="manual-entry"><ManualEntry /></div>
         </div>
       )}
 
-      <div style={card}>
+      <div data-tour="recent-entries" style={card}>
         <h3 style={{ ...t.sectionHeader, color: t.text, marginBottom: "20px" }}>Recent Entries</h3>
         {recent.length === 0 ? (
           <p style={{ ...t.body, color: t.textTertiary }}>

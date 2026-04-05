@@ -14,7 +14,7 @@ export function DailyCheckInWidget({ todayCheckIn, streak, onSubmit }: DailyChec
 
   if (todayCheckIn) {
     return (
-      <div style={card}>
+      <div data-tour="daily-checkin" style={card}>
         <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "16px" }}>
           <Check size={16} color={t.success} strokeWidth={2} />
           <h3 style={{ ...t.sectionHeader, color: t.text }}>Today's Check-In</h3>
@@ -45,7 +45,7 @@ export function DailyCheckInWidget({ todayCheckIn, streak, onSubmit }: DailyChec
   }
 
   return (
-    <div style={{ ...card, background: t.bg, border: `1px solid ${t.borderMedium}` }}>
+    <div data-tour="daily-checkin" style={{ ...card, background: t.bg, border: `1px solid ${t.borderMedium}` }}>
       <h3 style={{ ...t.sectionHeader, color: t.text, marginBottom: "4px" }}>
         Morning Check-In
       </h3>

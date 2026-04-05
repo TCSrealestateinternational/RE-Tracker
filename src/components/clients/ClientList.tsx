@@ -256,7 +256,7 @@ export function ClientList({ clients, onSelect, onClientView, onAdd, onDeleteCli
           }}>
             {bulkMode ? "Done" : "Select"}
           </button>
-          <button onClick={onAdd} style={{ ...btnPrimary, display: "flex", alignItems: "center", gap: "8px" }}>
+          <button data-tour="add-client" onClick={onAdd} style={{ ...btnPrimary, display: "flex", alignItems: "center", gap: "8px" }}>
             <UserPlus size={16} strokeWidth={2} />
             Add Client
           </button>
@@ -337,7 +337,7 @@ export function ClientList({ clients, onSelect, onClientView, onAdd, onDeleteCli
       {renderFolder("archived", "Archived", archivedClients, t.textTertiary)}
 
       {/* Active clients */}
-      <div style={{ display: "grid", gap: "8px" }}>
+      <div data-tour="client-list" style={{ display: "grid", gap: "8px" }}>
         {activeClients.map((c) => renderClientRow(c, true))}
         {clients.length === 0 && (
           <div style={{ ...card, textAlign: "center", padding: "48px 24px" }}>

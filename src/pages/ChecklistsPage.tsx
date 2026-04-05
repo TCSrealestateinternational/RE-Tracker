@@ -22,6 +22,7 @@ export function ChecklistsPage() {
     <div style={{ display: "grid", gap: t.sectionGap }}>
       <h1 style={{ ...t.pageTitle, color: t.text }}>Transaction Checklists</h1>
 
+      <div data-tour="checklist-area">
       {checklists.length === 0 ? (
         <div style={{ ...card, textAlign: "center", padding: "48px 24px" }}>
           <p style={{ ...t.body, color: t.textTertiary, marginBottom: "4px" }}>
@@ -49,6 +50,7 @@ export function ChecklistsPage() {
           })}
         </div>
       )}
+      </div>
     </div>
   );
 }

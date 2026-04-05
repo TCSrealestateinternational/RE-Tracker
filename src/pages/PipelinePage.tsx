@@ -45,12 +45,14 @@ export function PipelinePage() {
     <div style={{ display: "grid", gap: t.sectionGap }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
         <h1 style={{ ...t.pageTitle, color: t.text }}>Deal Pipeline</h1>
-        <button onClick={() => setShowForm(true)} style={{ ...btnPrimary, display: "flex", alignItems: "center", gap: "8px" }}>
+        <button data-tour="add-deal" onClick={() => setShowForm(true)} style={{ ...btnPrimary, display: "flex", alignItems: "center", gap: "8px" }}>
           <Plus size={16} strokeWidth={2} />
           Add Deal
         </button>
       </div>
-      <KanbanBoard deals={deals} onMove={moveDeal} onEdit={setEditing} onDelete={removeDeal} />
+      <div data-tour="kanban-board">
+        <KanbanBoard deals={deals} onMove={moveDeal} onEdit={setEditing} onDelete={removeDeal} />
+      </div>
     </div>
   );
 }

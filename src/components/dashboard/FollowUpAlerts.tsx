@@ -13,7 +13,7 @@ export function FollowUpAlerts({ clients, onClientClick }: FollowUpAlertsProps) 
   const due = clients.filter((c) => c.followUpDate && c.followUpDate <= today);
 
   return (
-    <div style={card}>
+    <div data-tour="follow-ups" style={card}>
       <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "16px" }}>
         <Bell size={16} color={due.length > 0 ? t.rust : t.textTertiary} strokeWidth={1.5} />
         <h3 style={{ ...t.sectionHeader, color: t.text }}>Follow-Ups</h3>
