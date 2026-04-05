@@ -14,8 +14,8 @@ import { ReferralsPage } from "@/pages/ReferralsPage";
 
 function AppRoutes() {
   return (
-    <Layout>
-      <TourProvider>
+    <TourProvider>
+      <Layout>
         <Routes>
           <Route path="/" element={<DashboardPage />} />
           <Route path="/timer" element={<TimerPage />} />
@@ -27,8 +27,8 @@ function AppRoutes() {
           <Route path="/reports" element={<ReportsPage />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
-      </TourProvider>
-    </Layout>
+      </Layout>
+    </TourProvider>
   );
 }
 
