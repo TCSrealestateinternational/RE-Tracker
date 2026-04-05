@@ -85,8 +85,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const unsubscribe = onAuthStateChanged(auth, async (u) => {
       setUser(u);
       if (u) {
-        const p = await resolveProfile(u);
-        setProfile(p);
+        try {
+          const p = await resolveProfile(u);
+          setProfile(p);
+        } catch (err) {
+          // Firestore profile fetch failed (missing index, permissions, etc.)
+          // Fall back to agent role so the app still loads
+          console.warn("Profile resolution failed, defaulting to agent:", err);
+          setProfile({
+            id: u.uid,
+            uid: u.uid,
+            email: u.email || "",
+            displayName: u.displayName || u.email?.split("@")[0] || "",
+            role: "agent",
+            createdAt: Date.now(),
+            updatedAt: Date.now(),
+          });
+        }
       } else {
         setProfile(null);
       }
