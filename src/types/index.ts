@@ -137,12 +137,13 @@ export interface Deal {
   stage: DealStage;
   purchasePrice: number;
   commissionPercent: number;
-  projectedCommission: number; // purchasePrice * commissionPercent / 100
-  actualCommission: number | null; // set when deal is closed
-  expectedCloseDate: string; // YYYY-MM-DD
+  projectedCommission: number;
+  actualCommission: number | null;
+  expectedCloseDate: string;
   actualCloseDate: string | null;
   leadSource: LeadSource | "";
   notes: string;
+  transactionId?: string; // links to shared /transactions/{id}
   createdAt: number;
   updatedAt: number;
 }
@@ -230,6 +231,7 @@ export interface TransactionChecklist {
   clientId: string;
   type: "buyer" | "seller";
   items: Record<string, boolean>;
+  notifications?: Record<string, boolean>; // per-item notify preferences
   createdAt: number;
   updatedAt: number;
 }
@@ -263,114 +265,89 @@ export interface Referral {
   agentName: string;
   agentEmail: string;
   agentPhone: string;
-  clientName: string;          // the person referred
-  referralDate: string;        // YYYY-MM-DD
-  expectedCommission: number;  // what the agent expects to earn
-  referralPercent: number;     // default 25
-  referralFee: number;         // auto-calc: expectedCommission * referralPercent / 100
+  clientName: string;
+  referralDate: string;
+  expectedCommission: number;
+  referralPercent: number;
+  referralFee: number;
   status: ReferralStatus;
   notes: string;
   createdAt: number;
   updatedAt: number;
 }
 
-// ── User Profiles & Roles ──
-export type UserRole = "agent" | "client";
+// ── Subscription System ──
+export type SubscriptionPlan = "hearth_only" | "tracker_only" | "full_platform" | "white_label";
+export type SubscriptionStatus = "active" | "trialing" | "suspended" | "cancelled";
 
-export interface UserProfile {
+export interface SubscriptionFeatures {
+  reTracker: boolean;
+  hearthPortal: boolean;
+  whiteLabel: boolean;
+  maxClients: number;
+}
+
+export interface Subscription {
+  plan: SubscriptionPlan;
+  status: SubscriptionStatus;
+  features: SubscriptionFeatures;
+  trialEndsAt: number | null;
+  billingCycleEnd: number | null;
+  whiteLabel?: {
+    brokerageSlug: string;
+    customDomain?: string;
+  };
+}
+
+export const PLAN_DEFAULTS: Record<SubscriptionPlan, SubscriptionFeatures> = {
+  hearth_only: { reTracker: false, hearthPortal: true, whiteLabel: false, maxClients: 25 },
+  tracker_only: { reTracker: true, hearthPortal: false, whiteLabel: false, maxClients: 50 },
+  full_platform: { reTracker: true, hearthPortal: true, whiteLabel: false, maxClients: 100 },
+  white_label: { reTracker: true, hearthPortal: true, whiteLabel: true, maxClients: 500 },
+};
+
+// ── Shared User (replaces UserProfile — matches Hearth's User type) ──
+export interface SharedUser {
   id: string;
-  uid: string;
   email: string;
   displayName: string;
-  role: UserRole;
-  agentId?: string;    // for clients — the agent who invited them
-  clientId?: string;   // for clients — links to client record in agent's data
+  phone: string;
+  roles: ("agent" | "buyer" | "seller" | "dual")[];
+  status: "pending" | "active";
+  activeRole?: "buyer" | "seller";
+  avatarUrl?: string;
+  brokerageId: string;
+  subscription: Subscription;
   createdAt: number;
-  updatedAt: number;
+  lastLoginAt: number;
 }
 
-export interface ClientInvite {
+// ── Shared Transaction (bridge between RE Tracker deals and Hearth) ──
+export type SharedTransactionStatus = "active" | "under-contract" | "closed" | "withdrawn";
+
+export interface SharedTransaction {
   id: string;
+  brokerageId: string;
+  clientId: string; // Hearth user ID
   agentId: string;
-  agentName: string;
-  clientEmail: string;
-  clientId: string;    // the client record this invite links to
-  accepted: boolean;
-  createdAt: number;
-}
-
-// ── Decision Log (Feature 5) ──
-export interface Decision {
-  id: string;
-  agentId: string;
-  clientId: string;
-  title: string;
-  description: string;
-  outcome: string;
-  clientNote: string;
-  phase: string;
-  createdAt: number;
-  updatedAt: number;
-}
-
-// ── Cost Breakdown (Feature 3) ──
-export interface CostLineItem {
+  type: "buying" | "selling";
+  status: SharedTransactionStatus;
   label: string;
-  amount: number;
-  note: string;
-}
-
-export interface CostBreakdown {
-  id: string;
-  agentId: string;
-  clientId: string;
-  type: "buyer" | "seller";
-  purchasePrice: number;
-  items: CostLineItem[];
+  hearthPortalActive: boolean;
+  reTrackerDealId: string;
+  reTrackerClientId: string;
   createdAt: number;
   updatedAt: number;
 }
 
-// ── Market Data (Feature 6) ──
-export interface MarketComp {
-  address: string;
-  soldPrice: number;
-  soldDate: string;
-  sqft: number;
-  beds: number;
-  baths: number;
-}
-
-export interface MarketData {
+// ── Milestone (subcollection of /transactions/{id}/milestones/{mId}) ──
+export interface Milestone {
   id: string;
-  agentId: string;
-  clientId: string;
-  avgDaysOnMarket: number;
-  medianPrice: number;
-  inventoryLevel: string;
-  pricePerSqft: number;
-  comps: MarketComp[];
-  agentNotes: string;
-  updatedAt: number;
-}
-
-// ── Messages (Feature 7) ──
-export interface Message {
-  id: string;
-  conversationId: string;
-  senderId: string;
-  senderRole: UserRole;
-  text: string;
-  createdAt: number;
-}
-
-export interface Conversation {
-  id: string;
-  agentId: string;
-  clientId: string;
-  clientUserId: string;
-  clientName: string;
-  lastMessage: string;
-  lastMessageAt: number;
-  createdAt: number;
+  label: string;
+  stage: string;
+  completed: boolean;
+  completedAt: number | null;
+  completedBy: string | null;
+  clientVisible: boolean;
+  notifyClient: boolean;
 }

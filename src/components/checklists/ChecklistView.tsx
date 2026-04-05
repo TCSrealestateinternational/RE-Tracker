@@ -1,14 +1,18 @@
+import { Bell, BellOff } from "lucide-react";
 import { BUYER_CHECKLIST_ITEMS, SELLER_CHECKLIST_ITEMS } from "@/types";
 import type { TransactionChecklist } from "@/types";
+import { getMilestoneMapping } from "@/constants/milestoneMap";
 import { t, card } from "@/styles/theme";
 
 interface ChecklistViewProps {
   checklist: TransactionChecklist;
   clientName: string;
-  onToggle: (checklistId: string, checklist: TransactionChecklist, key: string) => void;
+  transactionId?: string;
+  onToggle: (checklistId: string, checklist: TransactionChecklist, key: string, transactionId?: string) => void;
+  onToggleNotify?: (checklistId: string, key: string, notify: boolean) => void;
 }
 
-export function ChecklistView({ checklist, clientName, onToggle }: ChecklistViewProps) {
+export function ChecklistView({ checklist, clientName, transactionId, onToggle, onToggleNotify }: ChecklistViewProps) {
   const items = checklist.type === "buyer" ? BUYER_CHECKLIST_ITEMS : SELLER_CHECKLIST_ITEMS;
   const completed = items.filter((k) => checklist.items[k]).length;
   const total = items.length;
@@ -50,6 +54,9 @@ export function ChecklistView({ checklist, clientName, onToggle }: ChecklistView
       <div style={{ display: "grid", gap: "2px" }}>
         {items.map((item) => {
           const checked = checklist.items[item] ?? false;
+          const mapping = getMilestoneMapping(checklist.type, item);
+          const notifyClient = checklist.notifications?.[item] ?? mapping?.defaultNotifyClient ?? false;
+
           return (
             <label
               key={item}
@@ -64,16 +71,36 @@ export function ChecklistView({ checklist, clientName, onToggle }: ChecklistView
               <input
                 type="checkbox"
                 checked={checked}
-                onChange={() => onToggle(checklist.id, checklist, item)}
+                onChange={() => onToggle(checklist.id, checklist, item, transactionId)}
                 style={{ accentColor: t.teal, width: "15px", height: "15px", cursor: "pointer" }}
               />
               <span style={{
-                ...t.body,
+                ...t.body, flex: 1,
                 color: checked ? t.textTertiary : t.text,
                 textDecoration: checked ? "line-through" : "none",
               }}>
                 {item}
               </span>
+              {/* Bell icon for milestone-mapped items that are completed */}
+              {mapping && checked && onToggleNotify && (
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    onToggleNotify(checklist.id, item, !notifyClient);
+                  }}
+                  title={notifyClient ? "Client will be notified" : "Client will not be notified"}
+                  style={{
+                    background: "none", border: "none", cursor: "pointer",
+                    padding: "2px", display: "flex", alignItems: "center",
+                    color: notifyClient ? t.teal : t.textTertiary,
+                    opacity: notifyClient ? 1 : 0.4,
+                  }}
+                >
+                  {notifyClient ? <Bell size={14} strokeWidth={1.5} /> : <BellOff size={14} strokeWidth={1.5} />}
+                </button>
+              )}
             </label>
           );
         })}

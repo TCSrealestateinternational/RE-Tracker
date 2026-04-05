@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useClients } from "@/hooks/useClients";
 import { useTimeEntries } from "@/hooks/useTimeEntries";
 import { useChecklists } from "@/hooks/useChecklists";
+import { useDeals } from "@/hooks/useDeals";
 import { ClientList } from "@/components/clients/ClientList";
 import { ClientForm } from "@/components/clients/ClientForm";
 import { ClientDetail } from "@/components/clients/ClientDetail";
@@ -14,6 +15,7 @@ export function ClientsPage() {
   const { clients, error: firestoreError, addClient, updateClient, deleteClient } = useClients();
   const { entries } = useTimeEntries();
   const { createChecklist, getClientChecklist, toggleItem } = useChecklists();
+  const { deals } = useDeals();
   const [view, setView] = useState<View>("list");
   const [selected, setSelected] = useState<Client | null>(null);
   const [detailTab, setDetailTab] = useState<DetailTab>("overview");
@@ -58,11 +60,13 @@ export function ClientsPage() {
     if (!checklist) {
       createChecklist(selected.id, selected.status);
     }
+    const deal = deals.find((d) => d.clientId === selected.id);
     return (
       <ClientDetail
         client={selected}
         entries={entries}
         checklist={checklist}
+        deal={deal}
         onToggleItem={toggleItem}
         onEdit={() => setView("edit")}
         onBack={() => { setSelected(null); setView("list"); setDetailTab("overview"); }}

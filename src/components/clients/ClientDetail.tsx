@@ -1,11 +1,12 @@
 import { useState } from "react";
-import { ArrowLeft, Edit3, Clock, DollarSign, TrendingUp, CalendarClock, ExternalLink, Home, FileStack, Eye, LayoutDashboard, UserPlus, Check } from "lucide-react";
-import { t, card, inputBase, btnPrimary } from "@/styles/theme";
+import { ArrowLeft, Edit3, Clock, DollarSign, TrendingUp, CalendarClock, ExternalLink, Home, FileStack, Eye, LayoutDashboard, Flame, Check } from "lucide-react";
+import { t, card, btnPrimary } from "@/styles/theme";
 import { formatHours } from "@/utils/dates";
 import { BUYER_CHECKLIST_ITEMS, SELLER_CHECKLIST_ITEMS } from "@/types";
-import type { Client, TimeEntry, TransactionChecklist } from "@/types";
+import type { Client, TimeEntry, TransactionChecklist, Deal } from "@/types";
 import { ClientViewPanel } from "./ClientViewPanel";
-import { useClientInvites } from "@/hooks/useClientInvites";
+import { useSubscription } from "@/hooks/useSubscription";
+import { useTransactionSync } from "@/hooks/useTransactionSync";
 
 export type DetailTab = "overview" | "client-view";
 
@@ -13,7 +14,8 @@ interface ClientDetailProps {
   client: Client;
   entries: TimeEntry[];
   checklist?: TransactionChecklist;
-  onToggleItem: (checklistId: string, checklist: TransactionChecklist, key: string) => void;
+  deal?: Deal;
+  onToggleItem: (checklistId: string, checklist: TransactionChecklist, key: string, transactionId?: string) => void;
   onEdit: () => void;
   onBack: () => void;
   initialTab?: DetailTab;
@@ -32,21 +34,24 @@ function fmtDollars(n: number): string {
   return "$" + n.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 });
 }
 
-export function ClientDetail({ client, entries, checklist, onToggleItem, onEdit, onBack, initialTab = "overview" }: ClientDetailProps) {
+export function ClientDetail({ client, entries, checklist, deal, onToggleItem, onEdit, onBack, initialTab = "overview" }: ClientDetailProps) {
   const [activeTab, setActiveTab] = useState<DetailTab>(initialTab);
-  const { invites, inviteClient } = useClientInvites();
-  const [showInvite, setShowInvite] = useState(false);
-  const [inviteEmail, setInviteEmail] = useState(client.email || "");
-  const [inviteSent, setInviteSent] = useState(false);
+  const { hasHearthPortal } = useSubscription();
+  const { syncDealToTransaction, activateHearthPortal } = useTransactionSync();
+  const [portalActivating, setPortalActivating] = useState(false);
+  const transactionId = deal?.transactionId;
 
-  const existingInvite = invites.find((inv) => inv.clientId === client.id);
-
-  async function handleInvite(e: React.FormEvent) {
-    e.preventDefault();
-    if (!inviteEmail.trim()) return;
-    await inviteClient(inviteEmail, client.id);
-    setInviteSent(true);
-    setShowInvite(false);
+  async function handleActivatePortal() {
+    if (!deal || portalActivating) return;
+    setPortalActivating(true);
+    try {
+      const txId = await syncDealToTransaction(deal, client);
+      await activateHearthPortal(txId);
+    } catch (err) {
+      console.error("Failed to activate Hearth portal:", err);
+    } finally {
+      setPortalActivating(false);
+    }
   }
 
   const clientEntries = entries.filter((e) => e.clientId === client.id);
@@ -131,27 +136,29 @@ export function ClientDetail({ client, entries, checklist, onToggleItem, onEdit,
             )}
           </div>
           <div style={{ display: "flex", gap: "8px" }}>
-            {existingInvite ? (
+            {hasHearthPortal && deal && !transactionId && (
+              <button
+                onClick={handleActivatePortal}
+                disabled={portalActivating}
+                style={{
+                  ...btnPrimary,
+                  display: "flex", alignItems: "center", gap: "6px",
+                  opacity: portalActivating ? 0.6 : 1,
+                }}
+              >
+                <Flame size={14} strokeWidth={1.5} />
+                {portalActivating ? "Activating..." : "Activate Hearth Portal"}
+              </button>
+            )}
+            {hasHearthPortal && transactionId && (
               <span style={{
                 display: "flex", alignItems: "center", gap: "6px",
                 padding: "8px 16px", fontSize: "13px", fontFamily: t.font,
-                color: existingInvite.accepted ? t.success : t.gold,
-                background: existingInvite.accepted ? t.successLight : t.goldLight,
-                borderRadius: "8px",
+                color: t.success, background: t.successLight, borderRadius: "8px",
               }}>
                 <Check size={14} strokeWidth={2} />
-                {existingInvite.accepted ? "Portal Active" : "Invite Sent"}
+                Hearth Portal Active
               </span>
-            ) : (
-              <button onClick={() => setShowInvite(!showInvite)} style={{
-                display: "flex", alignItems: "center", gap: "6px",
-                padding: "8px 16px", background: t.teal, border: "none",
-                borderRadius: "8px", cursor: "pointer", fontSize: "13px", fontFamily: t.font,
-                color: t.textInverse, fontWeight: 600,
-              }}>
-                <UserPlus size={14} strokeWidth={1.5} />
-                Invite to Portal
-              </button>
             )}
             <button onClick={onEdit} style={{
               display: "flex", alignItems: "center", gap: "6px",
@@ -164,35 +171,6 @@ export function ClientDetail({ client, entries, checklist, onToggleItem, onEdit,
             </button>
           </div>
         </div>
-
-        {/* Invite form */}
-        {showInvite && (
-          <form onSubmit={handleInvite} style={{
-            display: "flex", gap: "8px", marginBottom: "16px",
-            padding: "12px", background: t.tealLight, borderRadius: "8px",
-          }}>
-            <input
-              type="email"
-              value={inviteEmail}
-              onChange={(e) => setInviteEmail(e.target.value)}
-              placeholder="Client's email address"
-              required
-              style={{ ...inputBase, flex: 1 }}
-            />
-            <button type="submit" style={{ ...btnPrimary, whiteSpace: "nowrap" }}>
-              Send Invite
-            </button>
-          </form>
-        )}
-
-        {inviteSent && !existingInvite && (
-          <div style={{
-            ...t.caption, color: t.success, background: t.successLight,
-            padding: "8px 12px", borderRadius: "8px", marginBottom: "16px",
-          }}>
-            Invite sent! When your client signs up with that email, they'll automatically be connected to this transaction.
-          </div>
-        )}
 
         {/* ── Tab Bar ── */}
         <div style={{
@@ -451,7 +429,7 @@ export function ClientDetail({ client, entries, checklist, onToggleItem, onEdit,
                       <input
                         type="checkbox"
                         checked={checked}
-                        onChange={() => onToggleItem(checklist.id, checklist, item)}
+                        onChange={() => onToggleItem(checklist.id, checklist, item, transactionId)}
                         style={{ accentColor: t.teal, width: "15px", height: "15px", cursor: "pointer" }}
                       />
                       <span style={{

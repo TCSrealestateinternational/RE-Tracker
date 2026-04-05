@@ -7,23 +7,14 @@ import {
   signOut as firebaseSignOut,
   type User,
 } from "firebase/auth";
-import {
-  doc,
-  getDoc,
-  setDoc,
-  collection,
-  query,
-  where,
-  getDocs,
-  updateDoc,
-} from "firebase/firestore";
+import { doc, getDoc, setDoc } from "firebase/firestore";
 import { auth, db, googleProvider } from "@/lib/firebase";
-import type { UserProfile, UserRole } from "@/types";
+import type { SharedUser } from "@/types";
+import { PLAN_DEFAULTS } from "@/types";
 
 interface AuthContextValue {
   user: User | null;
-  profile: UserProfile | null;
-  role: UserRole | null;
+  profile: SharedUser | null;
   loading: boolean;
   signIn: (email: string, password: string) => Promise<void>;
   signUp: (email: string, password: string) => Promise<void>;
@@ -33,43 +24,31 @@ interface AuthContextValue {
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
-async function resolveProfile(u: User): Promise<UserProfile> {
-  const profileRef = doc(db, "userProfiles", u.uid);
+const DEFAULT_BROKERAGE_ID = import.meta.env.VITE_DEFAULT_BROKERAGE_ID || "life-built-in-kentucky";
+
+async function resolveProfile(u: User): Promise<SharedUser> {
+  const profileRef = doc(db, "users", u.uid);
   const snap = await getDoc(profileRef);
-  if (snap.exists()) return { id: snap.id, ...snap.data() } as UserProfile;
+  if (snap.exists()) return { id: snap.id, ...snap.data() } as SharedUser;
 
-  // Check if there's a pending invite for this email
-  const inviteQ = query(
-    collection(db, "clientInvites"),
-    where("clientEmail", "==", u.email),
-    where("accepted", "==", false),
-  );
-  const inviteSnap = await getDocs(inviteQ);
-
-  let role: UserRole = "agent";
-  let agentId: string | undefined;
-  let clientId: string | undefined;
-
-  if (!inviteSnap.empty) {
-    const inviteDoc = inviteSnap.docs[0];
-    if (inviteDoc) {
-      const invite = inviteDoc.data();
-      role = "client";
-      agentId = invite.agentId as string;
-      clientId = invite.clientId as string;
-      await updateDoc(inviteDoc.ref, { accepted: true });
-    }
-  }
-
-  const newProfile: Omit<UserProfile, "id"> = {
-    uid: u.uid,
+  // New user — create as agent with tracker_only subscription
+  const defaults = PLAN_DEFAULTS.tracker_only;
+  const newProfile: Omit<SharedUser, "id"> = {
     email: u.email || "",
     displayName: u.displayName || u.email?.split("@")[0] || "",
-    role,
-    ...(agentId && { agentId }),
-    ...(clientId && { clientId }),
+    phone: "",
+    roles: ["agent"],
+    status: "active",
+    brokerageId: DEFAULT_BROKERAGE_ID,
+    subscription: {
+      plan: "tracker_only",
+      status: "active",
+      features: { ...defaults },
+      trialEndsAt: null,
+      billingCycleEnd: null,
+    },
     createdAt: Date.now(),
-    updatedAt: Date.now(),
+    lastLoginAt: Date.now(),
   };
 
   await setDoc(profileRef, newProfile);
@@ -78,7 +57,7 @@ async function resolveProfile(u: User): Promise<UserProfile> {
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
-  const [profile, setProfile] = useState<UserProfile | null>(null);
+  const [profile, setProfile] = useState<SharedUser | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -89,17 +68,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           const p = await resolveProfile(u);
           setProfile(p);
         } catch (err) {
-          // Firestore profile fetch failed (missing index, permissions, etc.)
-          // Fall back to agent role so the app still loads
           console.warn("Profile resolution failed, defaulting to agent:", err);
+          const defaults = PLAN_DEFAULTS.tracker_only;
           setProfile({
             id: u.uid,
-            uid: u.uid,
             email: u.email || "",
             displayName: u.displayName || u.email?.split("@")[0] || "",
-            role: "agent",
+            phone: "",
+            roles: ["agent"],
+            status: "active",
+            brokerageId: DEFAULT_BROKERAGE_ID,
+            subscription: {
+              plan: "tracker_only",
+              status: "active",
+              features: { ...defaults },
+              trialEndsAt: null,
+              billingCycleEnd: null,
+            },
             createdAt: Date.now(),
-            updatedAt: Date.now(),
+            lastLoginAt: Date.now(),
           });
         }
       } else {
@@ -127,7 +114,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   return (
-    <AuthContext.Provider value={{ user, profile, role: profile?.role ?? null, loading, signIn, signUp, signInWithGoogle, signOut }}>
+    <AuthContext.Provider value={{ user, profile, loading, signIn, signUp, signInWithGoogle, signOut }}>
       {children}
     </AuthContext.Provider>
   );

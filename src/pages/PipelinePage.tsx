@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Plus } from "lucide-react";
 import { useDeals } from "@/hooks/useDeals";
 import { useClients } from "@/hooks/useClients";
+import { useTransactionSync } from "@/hooks/useTransactionSync";
 import { KanbanBoard } from "@/components/deals/KanbanBoard";
 import { DealForm } from "@/components/deals/DealForm";
 import { t, btnPrimary } from "@/styles/theme";
@@ -10,6 +11,7 @@ import type { Deal } from "@/types";
 export function PipelinePage() {
   const { deals, addDeal, updateDeal, moveDeal, removeDeal } = useDeals();
   const { clients } = useClients();
+  const { syncDealToTransaction } = useTransactionSync();
   const [showForm, setShowForm] = useState(false);
   const [editing, setEditing] = useState<Deal | null>(null);
 
@@ -19,8 +21,18 @@ export function PipelinePage() {
         clients={clients}
         initial={editing ?? undefined}
         onSubmit={async (data) => {
-          if (editing) await updateDeal(editing.id, data);
-          else await addDeal(data);
+          if (editing) {
+            await updateDeal(editing.id, data);
+            // Sync existing deal to transaction if it already has a transactionId
+            if (editing.transactionId) {
+              const client = clients.find((c) => c.id === data.clientId);
+              if (client) {
+                await syncDealToTransaction({ ...editing, ...data } as Deal, client);
+              }
+            }
+          } else {
+            await addDeal(data);
+          }
           setShowForm(false);
           setEditing(null);
         }}

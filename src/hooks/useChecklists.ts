@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react";
 import {
-  collection, query, where, onSnapshot, addDoc, updateDoc, doc,
+  collection, query, where, onSnapshot, addDoc, updateDoc, doc, setDoc,
 } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useAuth } from "@/context/AuthContext";
 import { BUYER_CHECKLIST_ITEMS, SELLER_CHECKLIST_ITEMS } from "@/types";
 import type { TransactionChecklist } from "@/types";
+import { getMilestoneMapping } from "@/constants/milestoneMap";
 
 function emptyItems(type: "buyer" | "seller"): Record<string, boolean> {
   const source = type === "buyer" ? BUYER_CHECKLIST_ITEMS : SELLER_CHECKLIST_ITEMS;
@@ -45,12 +46,36 @@ export function useChecklists() {
     });
   }
 
-  async function toggleItem(checklistId: string, checklist: TransactionChecklist, key: string) {
-    const updated = { ...checklist.items, [key]: !checklist.items[key] };
+  async function toggleItem(
+    checklistId: string,
+    checklist: TransactionChecklist,
+    key: string,
+    transactionId?: string,
+  ) {
+    const newValue = !checklist.items[key];
+    const updated = { ...checklist.items, [key]: newValue };
     await updateDoc(doc(db, "checklists", checklistId), {
       items: updated,
       updatedAt: Date.now(),
     });
+
+    // Sync to milestone subcollection if mapping exists and transactionId provided
+    if (transactionId) {
+      const mapping = getMilestoneMapping(checklist.type, key);
+      if (mapping) {
+        const notifyClient = checklist.notifications?.[key] ?? mapping.defaultNotifyClient;
+        const milestoneRef = doc(db, "transactions", transactionId, "milestones", mapping.milestoneId);
+        await setDoc(milestoneRef, {
+          label: mapping.label,
+          stage: mapping.stage,
+          completed: newValue,
+          completedAt: newValue ? Date.now() : null,
+          completedBy: newValue ? user?.uid ?? null : null,
+          clientVisible: mapping.defaultClientVisible,
+          notifyClient: newValue ? notifyClient : false,
+        }, { merge: true });
+      }
+    }
   }
 
   function getClientChecklist(clientId: string): TransactionChecklist | undefined {
