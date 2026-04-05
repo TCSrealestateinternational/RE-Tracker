@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { UserPlus, AlertCircle, ChevronDown, ChevronRight, Trash2, RefreshCw, Home, FileStack } from "lucide-react";
+import { UserPlus, AlertCircle, ChevronDown, ChevronRight, Trash2, RefreshCw, Home, FileStack, Eye } from "lucide-react";
 import { t, card, btnPrimary, btnSecondary, inputBase } from "@/styles/theme";
 import { todayStr } from "@/utils/dates";
 import type { Client, ClientStage } from "@/types";
@@ -7,6 +7,7 @@ import type { Client, ClientStage } from "@/types";
 interface ClientListProps {
   clients: Client[];
   onSelect: (client: Client) => void;
+  onClientView?: (client: Client) => void;
   onAdd: () => void;
   onDeleteClients?: (ids: string[]) => Promise<void>;
   onBulkUpdateStage?: (ids: string[], stage: ClientStage) => Promise<void>;
@@ -27,7 +28,7 @@ function fmtDollars(n: number): string {
 
 type FolderKey = "closed" | "archived";
 
-export function ClientList({ clients, onSelect, onAdd, onDeleteClients, onBulkUpdateStage }: ClientListProps) {
+export function ClientList({ clients, onSelect, onClientView, onAdd, onDeleteClients, onBulkUpdateStage }: ClientListProps) {
   const today = todayStr();
 
   // Separate active vs folder clients
@@ -173,19 +174,37 @@ export function ClientList({ clients, onSelect, onAdd, onDeleteClients, onBulkUp
               {c.leadSource && <> &middot; {c.leadSource}</>}
             </div>
           </div>
-          <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: "2px" }}>
-            {c.commissionEarned > 0 && (
-              <span style={{ fontWeight: 600, fontSize: "14px", color: t.gold }}>
-                {fmtDollars(c.commissionEarned)}
-              </span>
-            )}
-            {projected > 0 && c.commissionEarned === 0 && (
-              <span style={{ ...t.caption, color: t.textTertiary, fontStyle: "italic" }}>
-                Proj: {fmtDollars(projected)}
-              </span>
-            )}
+          <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+            <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: "2px" }}>
+              {c.commissionEarned > 0 && (
+                <span style={{ fontWeight: 600, fontSize: "14px", color: t.gold }}>
+                  {fmtDollars(c.commissionEarned)}
+                </span>
+              )}
+              {projected > 0 && c.commissionEarned === 0 && (
+                <span style={{ ...t.caption, color: t.textTertiary, fontStyle: "italic" }}>
+                  Proj: {fmtDollars(projected)}
+                </span>
+              )}
+            </div>
           </div>
         </button>
+        {onClientView && !bulkMode && (
+          <button
+            title="Client View"
+            onClick={(e) => { e.stopPropagation(); onClientView(c); }}
+            style={{
+              display: "flex", alignItems: "center", justifyContent: "center",
+              width: "32px", height: "32px", borderRadius: "6px", flexShrink: 0,
+              background: "transparent", border: `1px solid ${t.border}`,
+              cursor: "pointer", transition: "background 0.12s, border-color 0.12s",
+            }}
+            onMouseEnter={(e) => { e.currentTarget.style.background = t.tealLight; e.currentTarget.style.borderColor = t.teal; }}
+            onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; e.currentTarget.style.borderColor = t.border; }}
+          >
+            <Eye size={14} color={t.teal} strokeWidth={1.5} />
+          </button>
+        )}
       </div>
     );
   };

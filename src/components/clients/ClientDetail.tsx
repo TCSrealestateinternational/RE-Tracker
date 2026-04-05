@@ -6,6 +6,8 @@ import { BUYER_CHECKLIST_ITEMS, SELLER_CHECKLIST_ITEMS } from "@/types";
 import type { Client, TimeEntry, TransactionChecklist } from "@/types";
 import { ClientViewPanel } from "./ClientViewPanel";
 
+export type DetailTab = "overview" | "client-view";
+
 interface ClientDetailProps {
   client: Client;
   entries: TimeEntry[];
@@ -13,6 +15,7 @@ interface ClientDetailProps {
   onToggleItem: (checklistId: string, checklist: TransactionChecklist, key: string) => void;
   onEdit: () => void;
   onBack: () => void;
+  initialTab?: DetailTab;
 }
 
 function getProjectedCommission(client: Client): number {
@@ -28,10 +31,8 @@ function fmtDollars(n: number): string {
   return "$" + n.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 });
 }
 
-type DetailTab = "overview" | "client-view";
-
-export function ClientDetail({ client, entries, checklist, onToggleItem, onEdit, onBack }: ClientDetailProps) {
-  const [activeTab, setActiveTab] = useState<DetailTab>("overview");
+export function ClientDetail({ client, entries, checklist, onToggleItem, onEdit, onBack, initialTab = "overview" }: ClientDetailProps) {
+  const [activeTab, setActiveTab] = useState<DetailTab>(initialTab);
 
   const clientEntries = entries.filter((e) => e.clientId === client.id);
   const totalMs = clientEntries.reduce((sum, e) => sum + e.durationMs, 0);

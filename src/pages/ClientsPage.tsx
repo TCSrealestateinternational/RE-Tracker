@@ -5,6 +5,7 @@ import { useChecklists } from "@/hooks/useChecklists";
 import { ClientList } from "@/components/clients/ClientList";
 import { ClientForm } from "@/components/clients/ClientForm";
 import { ClientDetail } from "@/components/clients/ClientDetail";
+import type { DetailTab } from "@/components/clients/ClientDetail";
 import type { Client, ClientStage } from "@/types";
 
 type View = "list" | "add" | "detail" | "edit";
@@ -15,6 +16,7 @@ export function ClientsPage() {
   const { createChecklist, getClientChecklist, toggleItem } = useChecklists();
   const [view, setView] = useState<View>("list");
   const [selected, setSelected] = useState<Client | null>(null);
+  const [detailTab, setDetailTab] = useState<DetailTab>("overview");
 
   async function handleDeleteClients(ids: string[]) {
     await Promise.all(ids.map((id) => deleteClient(id)));
@@ -63,7 +65,8 @@ export function ClientsPage() {
         checklist={checklist}
         onToggleItem={toggleItem}
         onEdit={() => setView("edit")}
-        onBack={() => { setSelected(null); setView("list"); }}
+        onBack={() => { setSelected(null); setView("list"); setDetailTab("overview"); }}
+        initialTab={detailTab}
       />
     );
   }
@@ -81,7 +84,8 @@ export function ClientsPage() {
       )}
       <ClientList
         clients={clients}
-        onSelect={(c) => { setSelected(c); setView("detail"); }}
+        onSelect={(c) => { setSelected(c); setDetailTab("overview"); setView("detail"); }}
+        onClientView={(c) => { setSelected(c); setDetailTab("client-view"); setView("detail"); }}
         onAdd={() => setView("add")}
         onDeleteClients={handleDeleteClients}
         onBulkUpdateStage={handleBulkUpdateStage}
