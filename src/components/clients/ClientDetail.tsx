@@ -1,8 +1,10 @@
-import { ArrowLeft, Edit3, Clock, DollarSign, TrendingUp, CalendarClock, ExternalLink, Home, FileStack } from "lucide-react";
+import { useState } from "react";
+import { ArrowLeft, Edit3, Clock, DollarSign, TrendingUp, CalendarClock, ExternalLink, Home, FileStack, Eye, LayoutDashboard } from "lucide-react";
 import { t, card } from "@/styles/theme";
 import { formatHours } from "@/utils/dates";
 import { BUYER_CHECKLIST_ITEMS, SELLER_CHECKLIST_ITEMS } from "@/types";
 import type { Client, TimeEntry, TransactionChecklist } from "@/types";
+import { ClientViewPanel } from "./ClientViewPanel";
 
 interface ClientDetailProps {
   client: Client;
@@ -26,7 +28,11 @@ function fmtDollars(n: number): string {
   return "$" + n.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 });
 }
 
+type DetailTab = "overview" | "client-view";
+
 export function ClientDetail({ client, entries, checklist, onToggleItem, onEdit, onBack }: ClientDetailProps) {
+  const [activeTab, setActiveTab] = useState<DetailTab>("overview");
+
   const clientEntries = entries.filter((e) => e.clientId === client.id);
   const totalMs = clientEntries.reduce((sum, e) => sum + e.durationMs, 0);
   const totalHours = totalMs / 3_600_000;
@@ -38,6 +44,11 @@ export function ClientDetail({ client, entries, checklist, onToggleItem, onEdit,
     { label: "Commission", value: fmtDollars(client.commissionEarned), color: t.gold, icon: DollarSign },
     { label: "Revenue/Hour", value: `$${revenuePerHour.toFixed(0)}`, color: t.teal, icon: TrendingUp },
     { label: "Follow-Up", value: client.followUpDate || "—", color: client.followUpDate ? t.rust : t.textTertiary, icon: CalendarClock },
+  ];
+
+  const tabs: { key: DetailTab; label: string; icon: typeof Eye }[] = [
+    { key: "overview", label: "Overview", icon: LayoutDashboard },
+    { key: "client-view", label: "Client View", icon: Eye },
   ];
 
   const checklistItems = checklist
@@ -61,6 +72,7 @@ export function ClientDetail({ client, entries, checklist, onToggleItem, onEdit,
 
   return (
     <div style={{ display: "grid", gap: t.sectionGap }}>
+      {/* ── Header Card (always visible) ── */}
       <div style={card}>
         <button onClick={onBack} style={{
           background: "none", border: "none", color: t.textTertiary,
@@ -72,7 +84,7 @@ export function ClientDetail({ client, entries, checklist, onToggleItem, onEdit,
           Back to Clients
         </button>
 
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "28px" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "20px" }}>
           <div>
             <h2 style={{ ...t.pageTitle, color: t.text, marginBottom: "4px" }}>{client.name}</h2>
             <p style={{ ...t.caption, color: t.textTertiary, display: "flex", alignItems: "center", gap: "6px" }}>
@@ -113,242 +125,285 @@ export function ClientDetail({ client, entries, checklist, onToggleItem, onEdit,
           </button>
         </div>
 
-        <div className="grid-4col" style={{ marginBottom: "28px" }}>
-          {stats.map(({ label, value, color, icon: Icon }) => (
-            <div key={label} style={{ background: t.bg, padding: "16px", borderRadius: "8px" }}>
-              <Icon size={14} color={t.textTertiary} strokeWidth={1.5} style={{ marginBottom: "8px" }} />
-              <div style={{ ...t.stat, fontSize: "20px", color }}>{value}</div>
-              <div style={{ ...t.label, color: t.textTertiary, marginTop: "4px" }}>{label}</div>
-            </div>
-          ))}
+        {/* ── Tab Bar ── */}
+        <div style={{
+          display: "flex", gap: "4px", borderBottom: `1px solid ${t.border}`,
+          marginLeft: `-${t.cardPadding}`, marginRight: `-${t.cardPadding}`,
+          paddingLeft: t.cardPadding, paddingRight: t.cardPadding,
+        }}>
+          {tabs.map(({ key, label, icon: Icon }) => {
+            const isActive = activeTab === key;
+            return (
+              <button
+                key={key}
+                onClick={() => setActiveTab(key)}
+                style={{
+                  display: "flex", alignItems: "center", gap: "6px",
+                  padding: "10px 16px", background: "none", border: "none",
+                  borderBottom: isActive ? `2px solid ${t.teal}` : "2px solid transparent",
+                  cursor: "pointer", fontFamily: t.font,
+                  fontSize: "13px", fontWeight: isActive ? 600 : 400,
+                  color: isActive ? t.teal : t.textTertiary,
+                  transition: "color 0.15s, border-color 0.15s",
+                  marginBottom: "-1px",
+                }}
+              >
+                <Icon size={14} strokeWidth={isActive ? 2 : 1.5} />
+                {label}
+              </button>
+            );
+          })}
         </div>
-
-        {/* Projected Commission */}
-        {projectedCommission > 0 && (
-          <div style={{
-            background: t.goldLight, borderRadius: "8px", padding: "12px 16px", marginBottom: "20px",
-            display: "flex", justifyContent: "space-between", alignItems: "center",
-          }}>
-            <span style={{ ...t.label, color: t.gold }}>Projected Commission</span>
-            <span style={{ fontWeight: 700, fontSize: "16px", color: t.gold, fontFamily: t.font }}>
-              {fmtDollars(projectedCommission)}
-              {client.commissionMode === "percentage" && (
-                <span style={{ fontWeight: 400, fontSize: "12px", marginLeft: "6px", opacity: 0.7 }}>
-                  ({client.commissionPercent}%)
-                </span>
-              )}
-            </span>
-          </div>
-        )}
-
-        {/* ── Buyer-Specific Details ── */}
-        {isBuyer && (
-          <div style={{ marginBottom: "16px" }}>
-            {(client.lenderName || (client.preApprovalAmount ?? 0) > 0) && (
-              <div style={{
-                background: t.tealLight, borderRadius: "8px", padding: "12px 16px", marginBottom: "12px",
-                display: "flex", justifyContent: "space-between", alignItems: "center",
-              }}>
-                {client.lenderName && (
-                  <div>
-                    <span style={{ ...t.label, color: t.textSecondary, display: "block", marginBottom: "2px" }}>Lender</span>
-                    <span style={{ ...t.body, color: t.text, fontWeight: 500 }}>{client.lenderName}</span>
-                  </div>
-                )}
-                {(client.preApprovalAmount ?? 0) > 0 && (
-                  <div style={{ textAlign: client.lenderName ? "right" : "left" }}>
-                    <span style={{ ...t.label, color: t.textSecondary, display: "block", marginBottom: "2px" }}>Pre-Approval</span>
-                    <span style={{ ...t.body, color: t.teal, fontWeight: 600 }}>{fmtDollars(client.preApprovalAmount)}</span>
-                  </div>
-                )}
-              </div>
-            )}
-            {(client.priceRange?.min > 0 || client.priceRange?.max > 0) && (
-              <div style={{ marginBottom: "8px" }}>
-                <span style={{ ...t.label, color: t.textSecondary, display: "block", marginBottom: "2px" }}>Price Range</span>
-                <span style={{ ...t.body, color: t.text }}>
-                  {fmtDollars(client.priceRange.min)} – {fmtDollars(client.priceRange.max)}
-                </span>
-              </div>
-            )}
-            {detailRow("Date Under Contract", client.dateUnderContract)}
-            {detailRow("Projected Close Date", client.projectedCloseDate)}
-            {client.searchCriteria && detailRow("Search Criteria", client.searchCriteria)}
-          </div>
-        )}
-
-        {/* ── Seller-Specific Details ── */}
-        {!isBuyer && (
-          <div style={{ marginBottom: "16px" }}>
-            {client.propertyAddress && detailRow("Property Address", client.propertyAddress)}
-            {(client.listPrice ?? 0) > 0 && detailRow("List Price", fmtDollars(client.listPrice))}
-
-            {/* Price Reductions */}
-            {client.priceReductions?.length > 0 && (
-              <div style={{ marginBottom: "8px" }}>
-                <span style={{ ...t.label, color: t.textSecondary, display: "block", marginBottom: "4px" }}>Price Reductions</span>
-                {client.priceReductions.map((r, i) => (
-                  <div key={i} style={{ ...t.body, color: t.rust, marginBottom: "2px" }}>
-                    −{fmtDollars(r)}
-                  </div>
-                ))}
-                <div style={{ ...t.caption, color: t.textTertiary, marginTop: "4px" }}>
-                  Effective price: {fmtDollars(client.listPrice - client.priceReductions.reduce((a, b) => a + b, 0))}
-                </div>
-              </div>
-            )}
-
-            {/* Offers Table */}
-            {client.offers?.length > 0 && (
-              <div style={{ marginBottom: "8px" }}>
-                <span style={{ ...t.label, color: t.textSecondary, display: "block", marginBottom: "6px" }}>Offers</span>
-                <div style={{ borderRadius: "8px", overflow: "hidden", border: `1px solid ${t.border}` }}>
-                  <div style={{
-                    display: "grid", gridTemplateColumns: "1fr auto",
-                    padding: "8px 12px", background: t.bg,
-                    ...t.label, color: t.textTertiary,
-                  }}>
-                    <span>Amount</span>
-                    <span>Status</span>
-                  </div>
-                  {client.offers.map((offer, i) => {
-                    const statusColor =
-                      offer.status === "accepted" ? t.success
-                        : offer.status === "rejected" ? t.rust
-                          : t.gold;
-                    return (
-                      <div key={i} style={{
-                        display: "grid", gridTemplateColumns: "1fr auto",
-                        padding: "8px 12px", borderTop: `1px solid ${t.border}`,
-                        ...t.body,
-                      }}>
-                        <span style={{ color: t.text }}>{fmtDollars(offer.amount)}</span>
-                        <span style={{
-                          padding: "2px 8px", borderRadius: "4px", fontSize: "11px", fontWeight: 600,
-                          textTransform: "uppercase",
-                          background: offer.status === "accepted" ? t.successLight
-                            : offer.status === "rejected" ? t.rustLight : t.goldLight,
-                          color: statusColor,
-                        }}>
-                          {offer.status}
-                        </span>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            )}
-
-            {detailRow("Accepted Offer Date", client.acceptedOfferDate)}
-            {detailRow("Expected Close Date", client.expectedCloseDate)}
-          </div>
-        )}
-
-        {client.notes && (
-          <div style={{ marginBottom: "16px" }}>
-            <span style={{ ...t.label, color: t.textSecondary, display: "block", marginBottom: "4px" }}>Notes</span>
-            <p style={{ ...t.body, color: t.text }}>{client.notes}</p>
-          </div>
-        )}
-
-        {/* ── Google Drive Links ── */}
-        {client.driveLinks?.length > 0 && (
-          <div>
-            <span style={{ ...t.label, color: t.textSecondary, display: "block", marginBottom: "8px" }}>Google Drive</span>
-            <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
-              {client.driveLinks.map((link, i) => (
-                <a
-                  key={i}
-                  href={link.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  style={{
-                    display: "flex", alignItems: "center", gap: "8px",
-                    padding: "8px 12px", borderRadius: "8px",
-                    background: t.bg, textDecoration: "none",
-                    transition: "background 0.12s",
-                    ...t.body, color: t.teal,
-                  }}
-                  onMouseEnter={(e) => { e.currentTarget.style.background = t.tealLight; }}
-                  onMouseLeave={(e) => { e.currentTarget.style.background = t.bg; }}
-                >
-                  <ExternalLink size={14} strokeWidth={1.5} />
-                  <span style={{ fontWeight: 500 }}>{link.label || link.url}</span>
-                </a>
-              ))}
-            </div>
-          </div>
-        )}
       </div>
 
-      {/* ── Transaction Checklist ── */}
-      {checklist && (
-        <div style={card}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "14px" }}>
-            <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-              <h3 style={{ ...t.sectionHeader, color: t.text }}>Transaction Checklist</h3>
-              <span style={{
-                display: "inline-flex", alignItems: "center", gap: "4px",
-                padding: "2px 8px", borderRadius: "4px", fontSize: "11px", fontWeight: 600,
-                background: checklist.type === "buyer" ? t.tealLight : t.goldLight,
-                color: checklist.type === "buyer" ? t.teal : t.gold,
-                textTransform: "uppercase",
-              }}>
-                {checklist.type === "buyer" ? <Home size={11} strokeWidth={2.5} /> : <FileStack size={11} strokeWidth={2.5} />}
-                {checklist.type}
-              </span>
+      {/* ── Tab Content ── */}
+      {activeTab === "overview" && (
+        <>
+          {/* Stats + Details Card */}
+          <div style={card}>
+            <div className="grid-4col" style={{ marginBottom: "28px" }}>
+              {stats.map(({ label, value, color, icon: Icon }) => (
+                <div key={label} style={{ background: t.bg, padding: "16px", borderRadius: "8px" }}>
+                  <Icon size={14} color={t.textTertiary} strokeWidth={1.5} style={{ marginBottom: "8px" }} />
+                  <div style={{ ...t.stat, fontSize: "20px", color }}>{value}</div>
+                  <div style={{ ...t.label, color: t.textTertiary, marginTop: "4px" }}>{label}</div>
+                </div>
+              ))}
             </div>
-            <span style={{
-              ...t.caption, fontWeight: 600,
-              color: pct === 100 ? t.success : t.textTertiary,
-            }}>
-              {completedCount}/{totalItems} ({pct}%)
-            </span>
-          </div>
 
-          <div style={{
-            height: "3px", background: t.tealLight, borderRadius: "2px",
-            overflow: "hidden", marginBottom: "20px",
-          }}>
-            <div style={{
-              height: "100%", width: `${pct}%`,
-              background: pct === 100 ? t.success : t.teal,
-              borderRadius: "2px", transition: "width 0.3s",
-            }} />
-          </div>
+            {/* Projected Commission */}
+            {projectedCommission > 0 && (
+              <div style={{
+                background: t.goldLight, borderRadius: "8px", padding: "12px 16px", marginBottom: "20px",
+                display: "flex", justifyContent: "space-between", alignItems: "center",
+              }}>
+                <span style={{ ...t.label, color: t.gold }}>Projected Commission</span>
+                <span style={{ fontWeight: 700, fontSize: "16px", color: t.gold, fontFamily: t.font }}>
+                  {fmtDollars(projectedCommission)}
+                  {client.commissionMode === "percentage" && (
+                    <span style={{ fontWeight: 400, fontSize: "12px", marginLeft: "6px", opacity: 0.7 }}>
+                      ({client.commissionPercent}%)
+                    </span>
+                  )}
+                </span>
+              </div>
+            )}
 
-          <div style={{ display: "grid", gap: "2px" }}>
-            {checklistItems.map((item) => {
-              const checked = checklist.items[item] ?? false;
-              return (
-                <label
-                  key={item}
-                  style={{
-                    display: "flex", alignItems: "center", gap: "10px",
-                    padding: "8px 10px", borderRadius: "6px", cursor: "pointer",
-                    transition: "background 0.1s",
-                  }}
-                  onMouseEnter={(e) => { e.currentTarget.style.background = t.bg; }}
-                  onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; }}
-                >
-                  <input
-                    type="checkbox"
-                    checked={checked}
-                    onChange={() => onToggleItem(checklist.id, checklist, item)}
-                    style={{ accentColor: t.teal, width: "15px", height: "15px", cursor: "pointer" }}
-                  />
-                  <span style={{
-                    ...t.body,
-                    color: checked ? t.textTertiary : t.text,
-                    textDecoration: checked ? "line-through" : "none",
+            {/* ── Buyer-Specific Details ── */}
+            {isBuyer && (
+              <div style={{ marginBottom: "16px" }}>
+                {(client.lenderName || (client.preApprovalAmount ?? 0) > 0) && (
+                  <div style={{
+                    background: t.tealLight, borderRadius: "8px", padding: "12px 16px", marginBottom: "12px",
+                    display: "flex", justifyContent: "space-between", alignItems: "center",
                   }}>
-                    {item}
-                  </span>
-                </label>
-              );
-            })}
+                    {client.lenderName && (
+                      <div>
+                        <span style={{ ...t.label, color: t.textSecondary, display: "block", marginBottom: "2px" }}>Lender</span>
+                        <span style={{ ...t.body, color: t.text, fontWeight: 500 }}>{client.lenderName}</span>
+                      </div>
+                    )}
+                    {(client.preApprovalAmount ?? 0) > 0 && (
+                      <div style={{ textAlign: client.lenderName ? "right" : "left" }}>
+                        <span style={{ ...t.label, color: t.textSecondary, display: "block", marginBottom: "2px" }}>Pre-Approval</span>
+                        <span style={{ ...t.body, color: t.teal, fontWeight: 600 }}>{fmtDollars(client.preApprovalAmount)}</span>
+                      </div>
+                    )}
+                  </div>
+                )}
+                {(client.priceRange?.min > 0 || client.priceRange?.max > 0) && (
+                  <div style={{ marginBottom: "8px" }}>
+                    <span style={{ ...t.label, color: t.textSecondary, display: "block", marginBottom: "2px" }}>Price Range</span>
+                    <span style={{ ...t.body, color: t.text }}>
+                      {fmtDollars(client.priceRange.min)} – {fmtDollars(client.priceRange.max)}
+                    </span>
+                  </div>
+                )}
+                {detailRow("Date Under Contract", client.dateUnderContract)}
+                {detailRow("Projected Close Date", client.projectedCloseDate)}
+                {client.searchCriteria && detailRow("Search Criteria", client.searchCriteria)}
+              </div>
+            )}
+
+            {/* ── Seller-Specific Details ── */}
+            {!isBuyer && (
+              <div style={{ marginBottom: "16px" }}>
+                {client.propertyAddress && detailRow("Property Address", client.propertyAddress)}
+                {(client.listPrice ?? 0) > 0 && detailRow("List Price", fmtDollars(client.listPrice))}
+
+                {/* Price Reductions */}
+                {client.priceReductions?.length > 0 && (
+                  <div style={{ marginBottom: "8px" }}>
+                    <span style={{ ...t.label, color: t.textSecondary, display: "block", marginBottom: "4px" }}>Price Reductions</span>
+                    {client.priceReductions.map((r, i) => (
+                      <div key={i} style={{ ...t.body, color: t.rust, marginBottom: "2px" }}>
+                        −{fmtDollars(r)}
+                      </div>
+                    ))}
+                    <div style={{ ...t.caption, color: t.textTertiary, marginTop: "4px" }}>
+                      Effective price: {fmtDollars(client.listPrice - client.priceReductions.reduce((a, b) => a + b, 0))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Offers Table */}
+                {client.offers?.length > 0 && (
+                  <div style={{ marginBottom: "8px" }}>
+                    <span style={{ ...t.label, color: t.textSecondary, display: "block", marginBottom: "6px" }}>Offers</span>
+                    <div style={{ borderRadius: "8px", overflow: "hidden", border: `1px solid ${t.border}` }}>
+                      <div style={{
+                        display: "grid", gridTemplateColumns: "1fr auto",
+                        padding: "8px 12px", background: t.bg,
+                        ...t.label, color: t.textTertiary,
+                      }}>
+                        <span>Amount</span>
+                        <span>Status</span>
+                      </div>
+                      {client.offers.map((offer, i) => {
+                        const statusColor =
+                          offer.status === "accepted" ? t.success
+                            : offer.status === "rejected" ? t.rust
+                              : t.gold;
+                        return (
+                          <div key={i} style={{
+                            display: "grid", gridTemplateColumns: "1fr auto",
+                            padding: "8px 12px", borderTop: `1px solid ${t.border}`,
+                            ...t.body,
+                          }}>
+                            <span style={{ color: t.text }}>{fmtDollars(offer.amount)}</span>
+                            <span style={{
+                              padding: "2px 8px", borderRadius: "4px", fontSize: "11px", fontWeight: 600,
+                              textTransform: "uppercase",
+                              background: offer.status === "accepted" ? t.successLight
+                                : offer.status === "rejected" ? t.rustLight : t.goldLight,
+                              color: statusColor,
+                            }}>
+                              {offer.status}
+                            </span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+
+                {detailRow("Accepted Offer Date", client.acceptedOfferDate)}
+                {detailRow("Expected Close Date", client.expectedCloseDate)}
+              </div>
+            )}
+
+            {client.notes && (
+              <div style={{ marginBottom: "16px" }}>
+                <span style={{ ...t.label, color: t.textSecondary, display: "block", marginBottom: "4px" }}>Notes</span>
+                <p style={{ ...t.body, color: t.text }}>{client.notes}</p>
+              </div>
+            )}
+
+            {/* ── Google Drive Links ── */}
+            {client.driveLinks?.length > 0 && (
+              <div>
+                <span style={{ ...t.label, color: t.textSecondary, display: "block", marginBottom: "8px" }}>Google Drive</span>
+                <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+                  {client.driveLinks.map((link, i) => (
+                    <a
+                      key={i}
+                      href={link.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      style={{
+                        display: "flex", alignItems: "center", gap: "8px",
+                        padding: "8px 12px", borderRadius: "8px",
+                        background: t.bg, textDecoration: "none",
+                        transition: "background 0.12s",
+                        ...t.body, color: t.teal,
+                      }}
+                      onMouseEnter={(e) => { e.currentTarget.style.background = t.tealLight; }}
+                      onMouseLeave={(e) => { e.currentTarget.style.background = t.bg; }}
+                    >
+                      <ExternalLink size={14} strokeWidth={1.5} />
+                      <span style={{ fontWeight: 500 }}>{link.label || link.url}</span>
+                    </a>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
-        </div>
+
+          {/* ── Transaction Checklist ── */}
+          {checklist && (
+            <div style={card}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "14px" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                  <h3 style={{ ...t.sectionHeader, color: t.text }}>Transaction Checklist</h3>
+                  <span style={{
+                    display: "inline-flex", alignItems: "center", gap: "4px",
+                    padding: "2px 8px", borderRadius: "4px", fontSize: "11px", fontWeight: 600,
+                    background: checklist.type === "buyer" ? t.tealLight : t.goldLight,
+                    color: checklist.type === "buyer" ? t.teal : t.gold,
+                    textTransform: "uppercase",
+                  }}>
+                    {checklist.type === "buyer" ? <Home size={11} strokeWidth={2.5} /> : <FileStack size={11} strokeWidth={2.5} />}
+                    {checklist.type}
+                  </span>
+                </div>
+                <span style={{
+                  ...t.caption, fontWeight: 600,
+                  color: pct === 100 ? t.success : t.textTertiary,
+                }}>
+                  {completedCount}/{totalItems} ({pct}%)
+                </span>
+              </div>
+
+              <div style={{
+                height: "3px", background: t.tealLight, borderRadius: "2px",
+                overflow: "hidden", marginBottom: "20px",
+              }}>
+                <div style={{
+                  height: "100%", width: `${pct}%`,
+                  background: pct === 100 ? t.success : t.teal,
+                  borderRadius: "2px", transition: "width 0.3s",
+                }} />
+              </div>
+
+              <div style={{ display: "grid", gap: "2px" }}>
+                {checklistItems.map((item) => {
+                  const checked = checklist.items[item] ?? false;
+                  return (
+                    <label
+                      key={item}
+                      style={{
+                        display: "flex", alignItems: "center", gap: "10px",
+                        padding: "8px 10px", borderRadius: "6px", cursor: "pointer",
+                        transition: "background 0.1s",
+                      }}
+                      onMouseEnter={(e) => { e.currentTarget.style.background = t.bg; }}
+                      onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; }}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={checked}
+                        onChange={() => onToggleItem(checklist.id, checklist, item)}
+                        style={{ accentColor: t.teal, width: "15px", height: "15px", cursor: "pointer" }}
+                      />
+                      <span style={{
+                        ...t.body,
+                        color: checked ? t.textTertiary : t.text,
+                        textDecoration: checked ? "line-through" : "none",
+                      }}>
+                        {item}
+                      </span>
+                    </label>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+        </>
+      )}
+
+      {/* ── Client View Tab ── */}
+      {activeTab === "client-view" && (
+        <ClientViewPanel client={client} checklist={checklist} />
       )}
     </div>
   );
