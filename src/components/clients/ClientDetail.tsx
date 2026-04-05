@@ -1,9 +1,11 @@
 import { useState } from "react";
-import { ArrowLeft, Edit3, Clock, DollarSign, TrendingUp, CalendarClock, ExternalLink, Home, FileStack, Eye, LayoutDashboard, Flame, Check } from "lucide-react";
+import { ArrowLeft, Edit3, Clock, DollarSign, TrendingUp, CalendarClock, ExternalLink, Home, FileStack, Eye, LayoutDashboard, Flame, Check, ChevronDown, ChevronRight } from "lucide-react";
+import type { ChecklistTemplateItem } from "@/constants/checklist-buyer";
 import { t, card, btnPrimary } from "@/styles/theme";
 import { formatHours } from "@/utils/dates";
-import { BUYER_CHECKLIST_ITEMS, SELLER_CHECKLIST_ITEMS } from "@/types";
 import type { Client, TimeEntry, TransactionChecklist, Deal } from "@/types";
+import { BUYER_CHECKLIST_TEMPLATE, BUYER_STAGES } from "@/constants/checklist-buyer";
+import { SELLER_CHECKLIST_TEMPLATE, SELLER_STAGES } from "@/constants/checklist-seller";
 import { ClientViewPanel } from "./ClientViewPanel";
 import { useSubscription } from "@/hooks/useSubscription";
 import { useTransactionSync } from "@/hooks/useTransactionSync";
@@ -72,11 +74,14 @@ export function ClientDetail({ client, entries, checklist, deal, onToggleItem, o
     { key: "client-view", label: "Client View", icon: Eye },
   ];
 
-  const checklistItems = checklist
-    ? (checklist.type === "buyer" ? BUYER_CHECKLIST_ITEMS : SELLER_CHECKLIST_ITEMS)
+  const checklistTemplate = checklist
+    ? (checklist.type === "buyer" ? BUYER_CHECKLIST_TEMPLATE : SELLER_CHECKLIST_TEMPLATE)
     : [];
-  const completedCount = checklist ? Object.values(checklist.items).filter(Boolean).length : 0;
-  const totalItems = checklistItems.length;
+  const checklistStages = checklist
+    ? (checklist.type === "buyer" ? BUYER_STAGES : SELLER_STAGES)
+    : [];
+  const completedCount = checklist ? checklistTemplate.filter((item) => checklist.items[item.label]).length : 0;
+  const totalItems = checklistTemplate.length;
   const pct = totalItems > 0 ? Math.round((completedCount / totalItems) * 100) : 0;
 
   const isBuyer = client.status === "buyer";
@@ -412,34 +417,22 @@ export function ClientDetail({ client, entries, checklist, deal, onToggleItem, o
                 }} />
               </div>
 
-              <div style={{ display: "grid", gap: "2px" }}>
-                {checklistItems.map((item) => {
-                  const checked = checklist.items[item] ?? false;
+              <div style={{ display: "grid", gap: "4px" }}>
+                {checklistStages.map((stage) => {
+                  const stageItems = checklistTemplate.filter((item) => item.stage === stage);
+                  const stageDone = stageItems.filter((item) => checklist.items[item.label]).length;
+                  const allDone = stageDone === stageItems.length;
                   return (
-                    <label
-                      key={item}
-                      style={{
-                        display: "flex", alignItems: "center", gap: "10px",
-                        padding: "8px 10px", borderRadius: "6px", cursor: "pointer",
-                        transition: "background 0.1s",
-                      }}
-                      onMouseEnter={(e) => { e.currentTarget.style.background = t.bg; }}
-                      onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; }}
-                    >
-                      <input
-                        type="checkbox"
-                        checked={checked}
-                        onChange={() => onToggleItem(checklist.id, checklist, item, transactionId)}
-                        style={{ accentColor: t.teal, width: "15px", height: "15px", cursor: "pointer" }}
-                      />
-                      <span style={{
-                        ...t.body,
-                        color: checked ? t.textTertiary : t.text,
-                        textDecoration: checked ? "line-through" : "none",
-                      }}>
-                        {item}
-                      </span>
-                    </label>
+                    <DetailStageSection
+                      key={stage}
+                      stage={stage}
+                      items={stageItems}
+                      completed={stageDone}
+                      allDone={allDone}
+                      checklist={checklist}
+                      transactionId={transactionId}
+                      onToggleItem={onToggleItem}
+                    />
                   );
                 })}
               </div>
@@ -451,6 +444,88 @@ export function ClientDetail({ client, entries, checklist, deal, onToggleItem, o
       {/* ── Client View Tab ── */}
       {activeTab === "client-view" && (
         <ClientViewPanel client={client} checklist={checklist} onToggleItem={onToggleItem} />
+      )}
+    </div>
+  );
+}
+
+function DetailStageSection({
+  stage,
+  items,
+  completed,
+  allDone,
+  checklist,
+  transactionId,
+  onToggleItem,
+}: {
+  stage: string;
+  items: ChecklistTemplateItem[];
+  completed: number;
+  allDone: boolean;
+  checklist: TransactionChecklist;
+  transactionId?: string;
+  onToggleItem: (checklistId: string, checklist: TransactionChecklist, key: string, transactionId?: string) => void;
+}) {
+  const [open, setOpen] = useState(!allDone);
+  const Chevron = open ? ChevronDown : ChevronRight;
+
+  return (
+    <div style={{ borderRadius: "8px", overflow: "hidden" }}>
+      <button
+        onClick={() => setOpen(!open)}
+        style={{
+          display: "flex", alignItems: "center", gap: "8px", width: "100%",
+          background: t.bg, border: "none", cursor: "pointer",
+          padding: "10px 12px", fontFamily: t.font,
+        }}
+      >
+        <Chevron size={14} color={t.textSecondary} strokeWidth={2} />
+        <span style={{
+          ...t.label, flex: 1, textAlign: "left",
+          color: allDone ? t.success : t.text,
+          textDecoration: allDone ? "line-through" : "none",
+        }}>
+          {stage}
+        </span>
+        <span style={{
+          ...t.caption, fontWeight: 600,
+          color: allDone ? t.success : t.textTertiary,
+        }}>
+          {completed}/{items.length}
+        </span>
+      </button>
+      {open && (
+        <div style={{ padding: "2px 0 8px 12px" }}>
+          {items.map((item) => {
+            const checked = checklist.items[item.label] ?? false;
+            return (
+              <label
+                key={item.id}
+                style={{
+                  display: "flex", alignItems: "center", gap: "10px",
+                  padding: "8px 10px", borderRadius: "6px", cursor: "pointer",
+                  transition: "background 0.1s",
+                }}
+                onMouseEnter={(e) => { e.currentTarget.style.background = t.bg; }}
+                onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; }}
+              >
+                <input
+                  type="checkbox"
+                  checked={checked}
+                  onChange={() => onToggleItem(checklist.id, checklist, item.label, transactionId)}
+                  style={{ accentColor: t.teal, width: "15px", height: "15px", cursor: "pointer" }}
+                />
+                <span style={{
+                  ...t.body,
+                  color: checked ? t.textTertiary : t.text,
+                  textDecoration: checked ? "line-through" : "none",
+                }}>
+                  {item.label}
+                </span>
+              </label>
+            );
+          })}
+        </div>
       )}
     </div>
   );

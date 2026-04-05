@@ -149,81 +149,13 @@ export interface Deal {
 }
 
 // ── Transaction Checklists ──
-export const SELLER_CHECKLIST_ITEMS = [
-  "Initial seller consultation",
-  "Property walkthrough and notes",
-  "Comparative market analysis",
-  "Pricing strategy conversation",
-  "Listing agreement signed",
-  "Coordinate professional photography",
-  "Coordinate video or virtual tour",
-  "Staging consultation or recommendations",
-  "Write MLS listing description",
-  "Input listing into MLS",
-  "Install yard sign and lockbox",
-  "Create marketing materials",
-  "Launch social media marketing campaign",
-  "Syndicate to Zillow, Realtor.com, etc.",
-  "Schedule and host showings",
-  "Collect and review showing feedback",
-  "Host open house",
-  "Review and present all offers to seller",
-  "Negotiate offer terms",
-  "Countersign accepted contract",
-  "Confirm connection with title company",
-  "Notify all parties — lender, title, attorneys",
-  "Request mortgage payoff statement for seller",
-  "Schedule interpreter for closing if needed",
-  "Coordinate inspection scheduling",
-  "Review inspection report with seller",
-  "Negotiate inspection repairs or credits",
-  "Order appraisal or coordinate access",
-  "Review appraisal with seller",
-  "Monitor financing contingency deadlines",
-  "Coordinate title search",
-  "Review title commitment for issues",
-  "Schedule final walk-through",
-  "Confirm closing date and location with all parties",
-  "Review closing disclosure with seller",
-  "Attend closing",
-  "Confirm proceeds delivered to seller",
-  "Follow up after closing",
-] as const;
+// Comprehensive stage-based templates live in constants/checklist-*.ts.
+// Flat label arrays are derived here for backward compatibility.
+import { BUYER_CHECKLIST_TEMPLATE } from "@/constants/checklist-buyer";
+import { SELLER_CHECKLIST_TEMPLATE } from "@/constants/checklist-seller";
 
-export const BUYER_CHECKLIST_ITEMS = [
-  "Initial buyer consultation",
-  "Understand wants, needs, and must-haves",
-  "Confirm pre-approval or connect with lender",
-  "Set up MLS search with buyer criteria",
-  "Send and review listings with buyer",
-  "Schedule and conduct showings",
-  "Research properties before showings",
-  "Provide neighborhood and market insights",
-  "Advise on offer strategy",
-  "Write and submit offer",
-  "Negotiate offer terms and price",
-  "Send accepted contract to lender",
-  "Send accepted contract to title company",
-  "Request title company to collect earnest money",
-  "Schedule home inspection",
-  "Attend home inspection",
-  "Review inspection report with buyer",
-  "Negotiate repairs or credits after inspection",
-  "Coordinate appraisal access",
-  "Review appraisal results with buyer",
-  "Monitor financing contingency and deadlines",
-  "Coordinate title search",
-  "Review title commitment with buyer",
-  "Review HOA documents if applicable",
-  "Confirm homeowners insurance is in place",
-  "Survey coordination if required",
-  "Review closing disclosure with buyer",
-  "Schedule and attend final walk-through",
-  "Confirm closing date, time, and location",
-  "Attend closing",
-  "Hand over keys",
-  "Follow up after closing",
-] as const;
+export const BUYER_CHECKLIST_ITEMS = BUYER_CHECKLIST_TEMPLATE.map((i) => i.label);
+export const SELLER_CHECKLIST_ITEMS = SELLER_CHECKLIST_TEMPLATE.map((i) => i.label);
 
 export interface TransactionChecklist {
   id: string;

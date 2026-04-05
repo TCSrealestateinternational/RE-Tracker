@@ -1,8 +1,10 @@
 import { useState } from "react";
 import { Home, FileStack, CalendarClock, ChevronDown, ChevronRight } from "lucide-react";
 import { t, card } from "@/styles/theme";
-import { BUYER_CHECKLIST_ITEMS, SELLER_CHECKLIST_ITEMS } from "@/types";
 import type { Client, TransactionChecklist } from "@/types";
+import { BUYER_CHECKLIST_TEMPLATE, BUYER_STAGES } from "@/constants/checklist-buyer";
+import { SELLER_CHECKLIST_TEMPLATE, SELLER_STAGES } from "@/constants/checklist-seller";
+import type { ChecklistTemplateItem } from "@/constants/checklist-buyer";
 
 interface ClientViewPanelProps {
   client: Client;
@@ -61,9 +63,10 @@ function InteractiveChecklist({
   checklist: TransactionChecklist;
   onToggleItem?: (checklistId: string, checklist: TransactionChecklist, key: string) => void;
 }) {
-  const items = checklist.type === "buyer" ? BUYER_CHECKLIST_ITEMS : SELLER_CHECKLIST_ITEMS;
-  const completedCount = Object.values(checklist.items).filter(Boolean).length;
-  const totalItems = items.length;
+  const template = checklist.type === "buyer" ? BUYER_CHECKLIST_TEMPLATE : SELLER_CHECKLIST_TEMPLATE;
+  const stages = checklist.type === "buyer" ? BUYER_STAGES : SELLER_STAGES;
+  const completedCount = template.filter((item) => checklist.items[item.label]).length;
+  const totalItems = template.length;
   const pct = totalItems > 0 ? Math.round((completedCount / totalItems) * 100) : 0;
 
   return (
@@ -90,40 +93,104 @@ function InteractiveChecklist({
         </span>
       </div>
 
-      {/* Items */}
-      <div style={{ display: "grid", gap: "2px" }}>
-        {items.map((item) => {
-          const checked = checklist.items[item] ?? false;
+      {/* Staged items */}
+      <div style={{ display: "grid", gap: "4px" }}>
+        {stages.map((stage) => {
+          const stageItems = template.filter((item) => item.stage === stage);
+          const stageDone = stageItems.filter((item) => checklist.items[item.label]).length;
           return (
-            <label
-              key={item}
-              style={{
-                display: "flex", alignItems: "center", gap: "10px",
-                padding: "8px 10px", borderRadius: "6px",
-                cursor: onToggleItem ? "pointer" : "default",
-                transition: "background 0.1s",
-              }}
-              onMouseEnter={(e) => { if (onToggleItem) e.currentTarget.style.background = t.bg; }}
-              onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; }}
-            >
-              <input
-                type="checkbox"
-                checked={checked}
-                onChange={() => onToggleItem?.(checklist.id, checklist, item)}
-                disabled={!onToggleItem}
-                style={{ accentColor: t.teal, width: "15px", height: "15px", cursor: onToggleItem ? "pointer" : "default" }}
-              />
-              <span style={{
-                ...t.body,
-                color: checked ? t.textTertiary : t.text,
-                textDecoration: checked ? "line-through" : "none",
-              }}>
-                {item}
-              </span>
-            </label>
+            <ViewStageSection
+              key={stage}
+              stage={stage}
+              items={stageItems}
+              completed={stageDone}
+              checklist={checklist}
+              onToggleItem={onToggleItem}
+            />
           );
         })}
       </div>
+    </div>
+  );
+}
+
+function ViewStageSection({
+  stage,
+  items,
+  completed,
+  checklist,
+  onToggleItem,
+}: {
+  stage: string;
+  items: ChecklistTemplateItem[];
+  completed: number;
+  checklist: TransactionChecklist;
+  onToggleItem?: (checklistId: string, checklist: TransactionChecklist, key: string) => void;
+}) {
+  const allDone = completed === items.length;
+  const [open, setOpen] = useState(!allDone);
+  const Chevron = open ? ChevronDown : ChevronRight;
+
+  return (
+    <div style={{ borderRadius: "8px", overflow: "hidden" }}>
+      <button
+        onClick={() => setOpen(!open)}
+        style={{
+          display: "flex", alignItems: "center", gap: "8px", width: "100%",
+          background: t.bg, border: "none", cursor: "pointer",
+          padding: "10px 12px", fontFamily: t.font,
+        }}
+      >
+        <Chevron size={14} color={t.textSecondary} strokeWidth={2} />
+        <span style={{
+          ...t.label, flex: 1, textAlign: "left",
+          color: allDone ? t.success : t.text,
+          textDecoration: allDone ? "line-through" : "none",
+        }}>
+          {stage}
+        </span>
+        <span style={{
+          ...t.caption, fontWeight: 600,
+          color: allDone ? t.success : t.textTertiary,
+        }}>
+          {completed}/{items.length}
+        </span>
+      </button>
+      {open && (
+        <div style={{ padding: "2px 0 8px 12px" }}>
+          {items.map((item) => {
+            const checked = checklist.items[item.label] ?? false;
+            return (
+              <label
+                key={item.id}
+                style={{
+                  display: "flex", alignItems: "center", gap: "10px",
+                  padding: "8px 10px", borderRadius: "6px",
+                  cursor: onToggleItem ? "pointer" : "default",
+                  transition: "background 0.1s",
+                }}
+                onMouseEnter={(e) => { if (onToggleItem) e.currentTarget.style.background = t.bg; }}
+                onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; }}
+              >
+                <input
+                  type="checkbox"
+                  checked={checked}
+                  onChange={() => onToggleItem?.(checklist.id, checklist, item.label)}
+                  disabled={!onToggleItem}
+                  style={{ accentColor: t.teal, width: "15px", height: "15px", cursor: onToggleItem ? "pointer" : "default" }}
+                />
+                <span style={{
+                  ...t.body,
+                  color: checked ? t.textTertiary : t.text,
+                  textDecoration: checked ? "line-through" : "none",
+                }}>
+                  {item.label}
+                </span>
+              </label>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }
@@ -302,7 +369,7 @@ export function ClientViewPanel({ client, checklist, onToggleItem }: ClientViewP
         <div style={card}>
           <CollapsibleSection
             title="Transaction Checklist"
-            badge={`${Object.values(checklist.items).filter(Boolean).length}/${(checklist.type === "buyer" ? BUYER_CHECKLIST_ITEMS : SELLER_CHECKLIST_ITEMS).length}`}
+            badge={`${(checklist.type === "buyer" ? BUYER_CHECKLIST_TEMPLATE : SELLER_CHECKLIST_TEMPLATE).filter((item) => checklist.items[item.label]).length}/${(checklist.type === "buyer" ? BUYER_CHECKLIST_TEMPLATE : SELLER_CHECKLIST_TEMPLATE).length}`}
           >
             <InteractiveChecklist checklist={checklist} onToggleItem={onToggleItem} />
           </CollapsibleSection>
