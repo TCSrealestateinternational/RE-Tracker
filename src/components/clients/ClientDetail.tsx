@@ -404,7 +404,7 @@ export function ClientDetail({ client, entries, checklist, onToggleItem, onEdit,
 
       {/* ── Client View Tab ── */}
       {activeTab === "client-view" && (
-        <ClientViewPanel client={client} checklist={checklist} />
+        <ClientViewPanel client={client} checklist={checklist} onToggleItem={onToggleItem} />
       )}
     </div>
   );

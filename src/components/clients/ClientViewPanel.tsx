@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Home, FileStack, CalendarClock, CheckCircle2, ChevronDown, ChevronRight } from "lucide-react";
+import { Home, FileStack, CalendarClock, ChevronDown, ChevronRight } from "lucide-react";
 import { t, card } from "@/styles/theme";
 import { BUYER_CHECKLIST_ITEMS, SELLER_CHECKLIST_ITEMS } from "@/types";
 import type { Client, TransactionChecklist } from "@/types";
@@ -7,6 +7,7 @@ import type { Client, TransactionChecklist } from "@/types";
 interface ClientViewPanelProps {
   client: Client;
   checklist?: TransactionChecklist;
+  onToggleItem?: (checklistId: string, checklist: TransactionChecklist, key: string) => void;
 }
 
 function fmtDollars(n: number): string {
@@ -53,7 +54,13 @@ function CollapsibleSection({
   );
 }
 
-function ReadOnlyChecklist({ checklist }: { checklist: TransactionChecklist }) {
+function InteractiveChecklist({
+  checklist,
+  onToggleItem,
+}: {
+  checklist: TransactionChecklist;
+  onToggleItem?: (checklistId: string, checklist: TransactionChecklist, key: string) => void;
+}) {
   const items = checklist.type === "buyer" ? BUYER_CHECKLIST_ITEMS : SELLER_CHECKLIST_ITEMS;
   const completedCount = Object.values(checklist.items).filter(Boolean).length;
   const totalItems = items.length;
@@ -88,21 +95,24 @@ function ReadOnlyChecklist({ checklist }: { checklist: TransactionChecklist }) {
         {items.map((item) => {
           const checked = checklist.items[item] ?? false;
           return (
-            <div
+            <label
               key={item}
               style={{
                 display: "flex", alignItems: "center", gap: "10px",
-                padding: "6px 10px", borderRadius: "6px",
+                padding: "8px 10px", borderRadius: "6px",
+                cursor: onToggleItem ? "pointer" : "default",
+                transition: "background 0.1s",
               }}
+              onMouseEnter={(e) => { if (onToggleItem) e.currentTarget.style.background = t.bg; }}
+              onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; }}
             >
-              <div style={{
-                width: "16px", height: "16px", borderRadius: "4px", flexShrink: 0,
-                display: "flex", alignItems: "center", justifyContent: "center",
-                background: checked ? t.teal : "transparent",
-                border: checked ? "none" : `1.5px solid ${t.borderMedium}`,
-              }}>
-                {checked && <CheckCircle2 size={14} color="#fff" strokeWidth={2.5} />}
-              </div>
+              <input
+                type="checkbox"
+                checked={checked}
+                onChange={() => onToggleItem?.(checklist.id, checklist, item)}
+                disabled={!onToggleItem}
+                style={{ accentColor: t.teal, width: "15px", height: "15px", cursor: onToggleItem ? "pointer" : "default" }}
+              />
               <span style={{
                 ...t.body,
                 color: checked ? t.textTertiary : t.text,
@@ -110,7 +120,7 @@ function ReadOnlyChecklist({ checklist }: { checklist: TransactionChecklist }) {
               }}>
                 {item}
               </span>
-            </div>
+            </label>
           );
         })}
       </div>
@@ -118,7 +128,7 @@ function ReadOnlyChecklist({ checklist }: { checklist: TransactionChecklist }) {
   );
 }
 
-export function ClientViewPanel({ client, checklist }: ClientViewPanelProps) {
+export function ClientViewPanel({ client, checklist, onToggleItem }: ClientViewPanelProps) {
   const isBuyer = client.status === "buyer";
 
   const detailRow = (label: string, value: string | null | undefined) => {
@@ -160,7 +170,7 @@ export function ClientViewPanel({ client, checklist }: ClientViewPanelProps) {
           </span>
         </div>
         <p style={{ ...t.caption, color: t.textSecondary, margin: 0 }}>
-          Read-only preview of the client's transaction view
+          Client's transaction view — check off steps as you guide them
         </p>
       </div>
 
@@ -294,7 +304,7 @@ export function ClientViewPanel({ client, checklist }: ClientViewPanelProps) {
             title="Transaction Checklist"
             badge={`${Object.values(checklist.items).filter(Boolean).length}/${(checklist.type === "buyer" ? BUYER_CHECKLIST_ITEMS : SELLER_CHECKLIST_ITEMS).length}`}
           >
-            <ReadOnlyChecklist checklist={checklist} />
+            <InteractiveChecklist checklist={checklist} onToggleItem={onToggleItem} />
           </CollapsibleSection>
         </div>
       )}
