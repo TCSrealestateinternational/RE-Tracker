@@ -273,3 +273,104 @@ export interface Referral {
   createdAt: number;
   updatedAt: number;
 }
+
+// ── User Profiles & Roles ──
+export type UserRole = "agent" | "client";
+
+export interface UserProfile {
+  id: string;
+  uid: string;
+  email: string;
+  displayName: string;
+  role: UserRole;
+  agentId?: string;    // for clients — the agent who invited them
+  clientId?: string;   // for clients — links to client record in agent's data
+  createdAt: number;
+  updatedAt: number;
+}
+
+export interface ClientInvite {
+  id: string;
+  agentId: string;
+  agentName: string;
+  clientEmail: string;
+  clientId: string;    // the client record this invite links to
+  accepted: boolean;
+  createdAt: number;
+}
+
+// ── Decision Log (Feature 5) ──
+export interface Decision {
+  id: string;
+  agentId: string;
+  clientId: string;
+  title: string;
+  description: string;
+  outcome: string;
+  clientNote: string;
+  phase: string;
+  createdAt: number;
+  updatedAt: number;
+}
+
+// ── Cost Breakdown (Feature 3) ──
+export interface CostLineItem {
+  label: string;
+  amount: number;
+  note: string;
+}
+
+export interface CostBreakdown {
+  id: string;
+  agentId: string;
+  clientId: string;
+  type: "buyer" | "seller";
+  purchasePrice: number;
+  items: CostLineItem[];
+  createdAt: number;
+  updatedAt: number;
+}
+
+// ── Market Data (Feature 6) ──
+export interface MarketComp {
+  address: string;
+  soldPrice: number;
+  soldDate: string;
+  sqft: number;
+  beds: number;
+  baths: number;
+}
+
+export interface MarketData {
+  id: string;
+  agentId: string;
+  clientId: string;
+  avgDaysOnMarket: number;
+  medianPrice: number;
+  inventoryLevel: string;
+  pricePerSqft: number;
+  comps: MarketComp[];
+  agentNotes: string;
+  updatedAt: number;
+}
+
+// ── Messages (Feature 7) ──
+export interface Message {
+  id: string;
+  conversationId: string;
+  senderId: string;
+  senderRole: UserRole;
+  text: string;
+  createdAt: number;
+}
+
+export interface Conversation {
+  id: string;
+  agentId: string;
+  clientId: string;
+  clientUserId: string;
+  clientName: string;
+  lastMessage: string;
+  lastMessageAt: number;
+  createdAt: number;
+}

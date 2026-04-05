@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { LoginForm } from "./LoginForm";
+import { InstallPrompt } from "@/components/shared/InstallPrompt";
 import { t } from "@/styles/theme";
 
 export function ProtectedRoute({ children }: { children: ReactNode }) {
@@ -25,5 +26,10 @@ export function ProtectedRoute({ children }: { children: ReactNode }) {
 
   if (!user) return <LoginForm />;
 
-  return <>{children}</>;
+  return (
+    <>
+      <InstallPrompt />
+      {children}
+    </>
+  );
 }
