@@ -29,10 +29,29 @@ const DEFAULT_BROKERAGE_ID = import.meta.env.VITE_DEFAULT_BROKERAGE_ID || "life-
 async function resolveProfile(u: User): Promise<SharedUser> {
   const profileRef = doc(db, "users", u.uid);
   const snap = await getDoc(profileRef);
-  if (snap.exists()) return { id: snap.id, ...snap.data() } as SharedUser;
 
-  // New user — create as agent with tracker_only subscription
-  const defaults = PLAN_DEFAULTS.tracker_only;
+  if (snap.exists()) {
+    const data = snap.data() as Omit<SharedUser, "id">;
+
+    // Migrate agents still on tracker_only to full_platform
+    if (
+      data.roles?.includes("agent") &&
+      data.subscription?.plan === "tracker_only"
+    ) {
+      const upgraded = {
+        ...data.subscription,
+        plan: "full_platform" as const,
+        features: { ...PLAN_DEFAULTS.full_platform },
+      };
+      await setDoc(profileRef, { subscription: upgraded }, { merge: true });
+      return { id: snap.id, ...data, subscription: upgraded };
+    }
+
+    return { id: snap.id, ...data } as SharedUser;
+  }
+
+  // New user — create as agent with full_platform subscription
+  const defaults = PLAN_DEFAULTS.full_platform;
   const newProfile: Omit<SharedUser, "id"> = {
     email: u.email || "",
     displayName: u.displayName || u.email?.split("@")[0] || "",
@@ -41,7 +60,7 @@ async function resolveProfile(u: User): Promise<SharedUser> {
     status: "active",
     brokerageId: DEFAULT_BROKERAGE_ID,
     subscription: {
-      plan: "tracker_only",
+      plan: "full_platform",
       status: "active",
       features: { ...defaults },
       trialEndsAt: null,
@@ -69,7 +88,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           setProfile(p);
         } catch (err) {
           console.warn("Profile resolution failed, defaulting to agent:", err);
-          const defaults = PLAN_DEFAULTS.tracker_only;
+          const defaults = PLAN_DEFAULTS.full_platform;
           setProfile({
             id: u.uid,
             email: u.email || "",
@@ -79,7 +98,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             status: "active",
             brokerageId: DEFAULT_BROKERAGE_ID,
             subscription: {
-              plan: "tracker_only",
+              plan: "full_platform",
               status: "active",
               features: { ...defaults },
               trialEndsAt: null,
