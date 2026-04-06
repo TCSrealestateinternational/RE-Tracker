@@ -27,12 +27,14 @@ export function FollowUpAlerts({ clients, onClientClick }: FollowUpAlertsProps) 
           {due.map((c) => (
             <button
               key={c.id}
+              className="hover-slide"
               onClick={() => onClientClick("/clients")}
               style={{
                 display: "flex", justifyContent: "space-between", alignItems: "center",
                 padding: "10px 14px", background: t.rustLight, border: "none",
                 borderRadius: "8px", cursor: "pointer", width: "100%", textAlign: "left",
                 fontFamily: t.font,
+                transition: "transform 0.15s, background 0.15s",
               }}
             >
               <span style={{ fontWeight: 500, fontSize: "14px", color: t.text }}>{c.name}</span>

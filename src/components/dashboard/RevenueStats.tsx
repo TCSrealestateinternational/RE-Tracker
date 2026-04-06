@@ -19,31 +19,45 @@ export function RevenueStats({ deals, entries }: RevenueStatsProps) {
   const revenuePerHour = totalHours > 0 ? closedGCI / totalHours : 0;
 
   return (
-    <div className="grid-3col" data-tour="revenue-stats">
-      <div style={{ ...card, display: "flex", alignItems: "center", gap: "16px" }}>
-        <Clock size={16} color={t.teal} strokeWidth={1.5} />
+    <div data-tour="revenue-stats" style={{ display: "flex", gap: "20px", flexWrap: "wrap" }}>
+      <div className="hover-lift" style={{
+        ...card, flex: 1, minWidth: "160px", padding: "32px",
+        display: "flex", alignItems: "center", gap: "16px",
+        borderLeft: `3px solid ${t.teal}`, boxShadow: t.heroShadow,
+      }}>
+        <Clock size={20} color={t.teal} strokeWidth={1.5} />
         <div>
           <div style={{ ...t.stat, color: t.teal, fontSize: "24px" }}>{totalHours.toFixed(1)}h</div>
           <div style={{ ...t.label, color: t.textTertiary, marginTop: "2px" }}>Total Hours</div>
         </div>
       </div>
 
-      <div style={{ ...card, display: "flex", alignItems: "center", gap: "16px" }}>
-        <DollarSign size={16} color={t.gold} strokeWidth={1.5} />
-        <div style={{ display: "flex", gap: "20px", alignItems: "baseline" }}>
-          <div>
-            <div style={{ ...t.stat, color: t.gold, fontSize: "24px" }}>${prospectiveGCI.toLocaleString()}</div>
-            <div style={{ ...t.label, color: t.textTertiary, marginTop: "2px" }}>Prospective GCI</div>
-          </div>
-          <div>
-            <div style={{ ...t.stat, color: t.success, fontSize: "24px" }}>${closedGCI.toLocaleString()}</div>
-            <div style={{ ...t.label, color: t.textTertiary, marginTop: "2px" }}>Closed GCI</div>
+      <div className="hover-lift" style={{
+        ...card, flex: 1, minWidth: "160px", padding: "32px",
+        display: "flex", alignItems: "center", gap: "16px",
+        borderLeft: `3px solid ${t.gold}`, boxShadow: t.heroShadow,
+      }}>
+        <DollarSign size={20} color={t.gold} strokeWidth={1.5} />
+        <div>
+          <div style={{ display: "flex", gap: "20px", alignItems: "baseline" }}>
+            <div>
+              <div style={{ ...t.stat, color: t.success, fontSize: "24px" }}>${closedGCI.toLocaleString()}</div>
+              <div style={{ ...t.label, color: t.textTertiary, marginTop: "2px" }}>Closed GCI</div>
+            </div>
+            <div>
+              <div style={{ ...t.stat, color: t.gold, fontSize: "18px" }}>${prospectiveGCI.toLocaleString()}</div>
+              <div style={{ ...t.label, color: t.textTertiary, marginTop: "2px" }}>Prospective</div>
+            </div>
           </div>
         </div>
       </div>
 
-      <div style={{ ...card, display: "flex", alignItems: "center", gap: "16px" }}>
-        <TrendingUp size={16} color={t.teal} strokeWidth={1.5} />
+      <div className="hover-lift" style={{
+        ...card, flex: 1, minWidth: "160px", padding: "32px",
+        display: "flex", alignItems: "center", gap: "16px",
+        borderLeft: `3px solid ${t.teal}`, boxShadow: t.heroShadow,
+      }}>
+        <TrendingUp size={20} color={t.teal} strokeWidth={1.5} />
         <div>
           <div style={{ ...t.stat, color: t.teal, fontSize: "24px" }}>${revenuePerHour.toFixed(0)}</div>
           <div style={{ ...t.label, color: t.textTertiary, marginTop: "2px" }}>Revenue / Hour</div>

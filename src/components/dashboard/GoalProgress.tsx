@@ -23,7 +23,7 @@ export function GoalProgress({ entries, weekStart, goals }: GoalProgressProps) {
 
   if (data.length === 0) {
     return (
-      <div style={card}>
+      <div className="hover-lift" style={{ ...card, boxShadow: t.heroShadow }}>
         <h3 style={{ ...t.sectionHeader, color: t.text, marginBottom: "12px" }}>
           Goal Progress
         </h3>
@@ -35,7 +35,7 @@ export function GoalProgress({ entries, weekStart, goals }: GoalProgressProps) {
   }
 
   return (
-    <div style={card}>
+    <div className="hover-lift" style={{ ...card, boxShadow: t.heroShadow }}>
       <h3 style={{ ...t.sectionHeader, color: t.text, marginBottom: "20px" }}>
         Goal vs Actual
       </h3>

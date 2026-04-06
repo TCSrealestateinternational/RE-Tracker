@@ -12,7 +12,6 @@ export function Header() {
       display: "flex",
       justifyContent: "flex-end",
       alignItems: "center",
-      background: "transparent",
     }}>
       <button
         onClick={() => startTour()}

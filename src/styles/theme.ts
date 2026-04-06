@@ -30,6 +30,12 @@ export const t = {
   success: "#2d7a4f",
   successLight: "rgba(45, 122, 79, 0.08)",
 
+  // ── Shadows ──
+  cardShadow: "0 1px 3px rgba(0,0,0,0.04)",
+  cardShadowHover: "0 8px 24px rgba(0,0,0,0.06)",
+  heroShadow: "0 20px 40px rgba(21,30,22,0.04)",
+  headerBlur: "rgba(245, 240, 235, 0.8)",
+
   // ── Spacing ──
   cardPadding: "24px",
   cardRadius: "10px",
@@ -58,6 +64,8 @@ export const card = {
   borderRadius: t.cardRadius,
   border: `1px solid ${t.border}`,
   padding: t.cardPadding,
+  boxShadow: t.cardShadow,
+  transition: "box-shadow 0.2s, transform 0.2s",
 } as const;
 
 export const inputBase = {
