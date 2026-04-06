@@ -3,9 +3,11 @@ import { useClients } from "@/hooks/useClients";
 import { useTimeEntries } from "@/hooks/useTimeEntries";
 import { useChecklists } from "@/hooks/useChecklists";
 import { useDeals } from "@/hooks/useDeals";
+import { useAuth } from "@/context/AuthContext";
 import { ClientList } from "@/components/clients/ClientList";
 import { ClientForm } from "@/components/clients/ClientForm";
 import { ClientDetail } from "@/components/clients/ClientDetail";
+import { AddToHearthModal } from "@/components/clients/AddToHearthModal";
 import type { DetailTab } from "@/components/clients/ClientDetail";
 import type { Client, ClientStage } from "@/types";
 
@@ -16,9 +18,13 @@ export function ClientsPage() {
   const { entries } = useTimeEntries();
   const { createChecklist, getClientChecklist, toggleItem } = useChecklists();
   const { deals } = useDeals();
+  const { profile } = useAuth();
   const [view, setView] = useState<View>("list");
   const [selected, setSelected] = useState<Client | null>(null);
   const [detailTab, setDetailTab] = useState<DetailTab>("overview");
+  const [hearthPromptClient, setHearthPromptClient] = useState<Client | null>(null);
+
+  const hasHearthAccess = profile?.subscription?.features?.hearthPortal ?? false;
 
   async function handleDeleteClients(ids: string[]) {
     await Promise.all(ids.map((id) => deleteClient(id)));
@@ -34,6 +40,11 @@ export function ClientsPage() {
         onSubmit={async (data) => {
           const newId = await addClient(data);
           await createChecklist(newId, data.status);
+          // If agent has Hearth access, prompt to also add client to portal
+          if (hasHearthAccess) {
+            const newClient = { ...data, id: newId, userId: profile?.id || "", createdAt: Date.now(), updatedAt: Date.now() } as Client;
+            setHearthPromptClient(newClient);
+          }
           setView("list");
         }}
         onCancel={() => setView("list")}
@@ -94,6 +105,15 @@ export function ClientsPage() {
         onDeleteClients={handleDeleteClients}
         onBulkUpdateStage={handleBulkUpdateStage}
       />
+      {hearthPromptClient && (
+        <AddToHearthModal
+          client={hearthPromptClient}
+          onClose={() => setHearthPromptClient(null)}
+          onLinked={(hearthUserId) => {
+            updateClient(hearthPromptClient.id, { hearthUserId });
+          }}
+        />
+      )}
     </>
   );
 }

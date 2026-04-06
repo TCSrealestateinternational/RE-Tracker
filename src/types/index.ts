@@ -92,6 +92,9 @@ export interface Client {
   acceptedOfferDate: string | null;
   expectedCloseDate: string | null;
 
+  // Hearth portal link
+  hearthUserId?: string;
+
   createdAt: number;
   updatedAt: number;
 }
