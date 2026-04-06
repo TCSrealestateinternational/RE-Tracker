@@ -77,15 +77,18 @@ export function AddToHearthModal({ client, onClose, onLinked }: AddToHearthModal
       // 4. Sign out secondary auth
       await signOut(secondaryAuth);
 
-      // 5. Send password reset email as invite
-      const appUrl = typeof window !== "undefined" ? window.location.origin : "";
-      await sendPasswordResetEmail(auth, client.email, {
-        url: `${appUrl}/login`,
-        handleCodeInApp: false,
-      });
+      // 5. Link the client in RE Tracker immediately (account created successfully)
+      onLinked(cred.user.uid);
+
+      // 6. Send password reset email as invite (no actionCodeSettings — uses Firebase default)
+      try {
+        await sendPasswordResetEmail(auth, client.email);
+      } catch (emailErr) {
+        console.error("Invite email failed (account was still created):", emailErr);
+        // Don't block success — the account exists, agent can resend later
+      }
 
       setSuccess(true);
-      onLinked(cred.user.uid);
     } catch (err: unknown) {
       const raw = err instanceof Error ? err.message : "";
       if (raw.includes("email-already-in-use")) {
@@ -95,7 +98,7 @@ export function AddToHearthModal({ client, onClose, onLinked }: AddToHearthModal
       } else if (raw.includes("network-request-failed")) {
         setError("Network error. Please check your connection and try again.");
       } else {
-        console.error("Hearth account creation failed:", err);
+        console.error("Hearth account creation failed:", raw, err);
         setError("Something went wrong. Please try again or contact support.");
       }
     } finally {

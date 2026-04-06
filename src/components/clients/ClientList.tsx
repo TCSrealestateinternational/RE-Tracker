@@ -1,7 +1,11 @@
-import { useState } from "react";
-import { UserPlus, AlertCircle, ChevronDown, ChevronRight, Trash2, RefreshCw, Home, FileStack, Eye } from "lucide-react";
+import { useState, useCallback } from "react";
+import { UserPlus, AlertCircle, ChevronDown, ChevronRight, Trash2, RefreshCw, Home, FileStack, Eye, Archive, Download } from "lucide-react";
 import { t, card, btnPrimary, btnSecondary, inputBase } from "@/styles/theme";
 import { todayStr } from "@/utils/dates";
+import { exportClientPDF } from "@/utils/export";
+import { useLongPress } from "@/hooks/useLongPress";
+import { ContextMenu } from "./ContextMenu";
+import type { ContextMenuAction } from "./ContextMenu";
 import type { Client, ClientStage } from "@/types";
 
 interface ClientListProps {
@@ -92,122 +96,50 @@ export function ClientList({ clients, onSelect, onClientView, onAdd, onDeleteCli
 
   const selectedCount = selectedIds.size;
 
-  // Client row renderer
-  const renderClientRow = (c: Client, showCheckbox: boolean) => {
-    const followUpDue = c.followUpDate != null && c.followUpDate <= today;
-    const projected = getProjectedCommission(c);
-    const isSelected = selectedIds.has(c.id);
+  // Context menu state
+  const [contextMenu, setContextMenu] = useState<{ clientId: string; x: number; y: number } | null>(null);
 
-    return (
-      <div
-        key={c.id}
-        style={{
-          ...card,
-          display: "flex", alignItems: "center", gap: "12px",
-          padding: "16px 20px", marginBottom: "0",
-          cursor: "pointer",
-          transition: "background 0.12s",
-          fontFamily: t.font,
-          background: isSelected && bulkMode ? t.tealLight : t.surface,
-        }}
-        onMouseEnter={(e) => { if (!isSelected || !bulkMode) e.currentTarget.style.background = t.surfaceHover; }}
-        onMouseLeave={(e) => { e.currentTarget.style.background = isSelected && bulkMode ? t.tealLight : t.surface; }}
-      >
-        {showCheckbox && bulkMode && (
-          <input
-            type="checkbox"
-            checked={isSelected}
-            onChange={(e) => { e.stopPropagation(); toggleSelect(c.id); }}
-            onClick={(e) => e.stopPropagation()}
-            style={{ accentColor: t.teal, width: "16px", height: "16px", cursor: "pointer", flexShrink: 0 }}
-          />
-        )}
-        <button
-          onClick={() => !bulkMode ? onSelect(c) : toggleSelect(c.id)}
-          style={{
-            background: "none", border: "none", cursor: "pointer",
-            display: "flex", justifyContent: "space-between", alignItems: "center",
-            width: "100%", textAlign: "left", padding: 0, fontFamily: t.font,
-          }}
-        >
-          <div>
-            <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-              <span style={{
-                display: "inline-flex",
-                alignItems: "center",
-                gap: "4px",
-                padding: "2px 8px",
-                borderRadius: "4px",
-                fontSize: "11px",
-                fontWeight: 700,
-                letterSpacing: "0.03em",
-                textTransform: "uppercase",
-                background: c.status === "buyer" ? "rgba(12, 65, 78, 0.10)" : "rgba(188, 128, 77, 0.12)",
-                color: c.status === "buyer" ? t.teal : t.gold,
-                flexShrink: 0,
-              }}>
-                {c.status === "buyer" ? <Home size={11} strokeWidth={2.5} /> : <FileStack size={11} strokeWidth={2.5} />}
-                {c.status === "buyer" ? "Buyer" : "Seller"}
-              </span>
-              <span style={{ fontWeight: 600, fontSize: "14px", color: t.text }}>
-                {c.name}
-              </span>
-              {followUpDue && (
-                <span style={{ display: "flex", alignItems: "center", gap: "3px" }}>
-                  <AlertCircle size={12} color={t.rust} strokeWidth={2} />
-                  <span style={{ ...t.caption, color: t.rust, fontWeight: 500 }}>Follow-up due</span>
-                </span>
-              )}
-            </div>
-            {c.additionalContacts?.length > 0 && (
-              <div style={{ ...t.caption, color: t.textSecondary, marginTop: "3px", paddingLeft: "0px" }}>
-                {c.additionalContacts.map((p, i) => (
-                  <span key={i} style={{ display: "inline-flex", alignItems: "center", gap: "4px", marginRight: "12px" }}>
-                    <span style={{ fontWeight: 500, color: t.text }}>{p.name}</span>
-                    {p.phone && <span style={{ color: t.textTertiary }}>{p.phone}</span>}
-                  </span>
-                ))}
-              </div>
-            )}
-            <div style={{ ...t.caption, color: t.textTertiary, marginTop: "2px" }}>
-              {c.stage}
-              {c.leadSource && <> &middot; {c.leadSource}</>}
-            </div>
-          </div>
-          <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-            <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: "2px" }}>
-              {c.commissionEarned > 0 && (
-                <span style={{ fontWeight: 600, fontSize: "14px", color: t.gold }}>
-                  {fmtDollars(c.commissionEarned)}
-                </span>
-              )}
-              {projected > 0 && c.commissionEarned === 0 && (
-                <span style={{ ...t.caption, color: t.textTertiary, fontStyle: "italic" }}>
-                  Proj: {fmtDollars(projected)}
-                </span>
-              )}
-            </div>
-          </div>
-        </button>
-        {onClientView && !bulkMode && (
-          <button
-            title="Client View"
-            onClick={(e) => { e.stopPropagation(); onClientView(c); }}
-            style={{
-              display: "flex", alignItems: "center", justifyContent: "center",
-              width: "32px", height: "32px", borderRadius: "6px", flexShrink: 0,
-              background: "transparent", border: `1px solid ${t.border}`,
-              cursor: "pointer", transition: "background 0.12s, border-color 0.12s",
-            }}
-            onMouseEnter={(e) => { e.currentTarget.style.background = t.tealLight; e.currentTarget.style.borderColor = t.teal; }}
-            onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; e.currentTarget.style.borderColor = t.border; }}
-          >
-            <Eye size={14} color={t.teal} strokeWidth={1.5} />
-          </button>
-        )}
-      </div>
-    );
-  };
+  // Single-client delete modal (from context menu)
+  const [singleDeleteClient, setSingleDeleteClient] = useState<Client | null>(null);
+  const [singleDeleteText, setSingleDeleteText] = useState("");
+  const [singleDeleting, setSingleDeleting] = useState(false);
+
+  async function handleSingleDelete() {
+    if (singleDeleteText !== "DELETE" || !onDeleteClients || !singleDeleteClient) return;
+    setSingleDeleting(true);
+    await onDeleteClients([singleDeleteClient.id]);
+    setSingleDeleting(false);
+    setSingleDeleteClient(null);
+    setSingleDeleteText("");
+  }
+
+  function openContextMenu(clientId: string, coords: { x: number; y: number }) {
+    setContextMenu({ clientId, ...coords });
+  }
+
+  function getContextActions(clientId: string): ContextMenuAction[] {
+    const client = clients.find((c) => c.id === clientId);
+    const actions: ContextMenuAction[] = [];
+    if (onBulkUpdateStage && client?.stage !== "archived") {
+      actions.push({
+        label: "Archive",
+        icon: Archive,
+        onClick: () => onBulkUpdateStage([clientId], "archived"),
+      });
+    }
+    if (onDeleteClients) {
+      actions.push({
+        label: "Delete",
+        icon: Trash2,
+        color: t.rust,
+        onClick: () => {
+          const c = clients.find((cl) => cl.id === clientId);
+          if (c) setSingleDeleteClient(c);
+        },
+      });
+    }
+    return actions;
+  }
 
   // Folder renderer
   const renderFolder = (key: FolderKey, label: string, items: Client[], color: string) => {
@@ -237,7 +169,20 @@ export function ClientList({ clients, onSelect, onClientView, onAdd, onDeleteCli
         </button>
         {isOpen && (
           <div style={{ display: "grid", gap: "8px", paddingLeft: "8px" }}>
-            {items.map((c) => renderClientRow(c, true))}
+            {items.map((c) => (
+              <ClientRow
+                key={c.id}
+                client={c}
+                today={today}
+                showCheckbox
+                bulkMode={bulkMode}
+                isSelected={selectedIds.has(c.id)}
+                onSelect={onSelect}
+                onClientView={onClientView}
+                onToggleSelect={toggleSelect}
+                onLongPress={openContextMenu}
+              />
+            ))}
           </div>
         )}
       </div>
@@ -338,7 +283,20 @@ export function ClientList({ clients, onSelect, onClientView, onAdd, onDeleteCli
 
       {/* Active clients */}
       <div data-tour="client-list" style={{ display: "grid", gap: "8px" }}>
-        {activeClients.map((c) => renderClientRow(c, true))}
+        {activeClients.map((c) => (
+          <ClientRow
+            key={c.id}
+            client={c}
+            today={today}
+            showCheckbox
+            bulkMode={bulkMode}
+            isSelected={selectedIds.has(c.id)}
+            onSelect={onSelect}
+            onClientView={onClientView}
+            onToggleSelect={toggleSelect}
+            onLongPress={openContextMenu}
+          />
+        ))}
         {clients.length === 0 && (
           <div style={{ ...card, textAlign: "center", padding: "48px 24px" }}>
             <p style={{ ...t.body, color: t.textTertiary, marginBottom: "4px" }}>
@@ -351,7 +309,89 @@ export function ClientList({ clients, onSelect, onClientView, onAdd, onDeleteCli
         )}
       </div>
 
-      {/* Delete confirmation modal */}
+      {/* Context menu (from long-press) */}
+      {contextMenu && (
+        <ContextMenu
+          x={contextMenu.x}
+          y={contextMenu.y}
+          actions={getContextActions(contextMenu.clientId)}
+          onClose={() => setContextMenu(null)}
+        />
+      )}
+
+      {/* Single-client delete modal (from context menu) */}
+      {singleDeleteClient && (
+        <div style={{
+          position: "fixed", inset: 0, zIndex: 100,
+          display: "flex", alignItems: "center", justifyContent: "center",
+          background: "rgba(0,0,0,0.4)",
+        }}
+          onClick={() => { setSingleDeleteClient(null); setSingleDeleteText(""); }}
+        >
+          <div
+            style={{
+              ...card, maxWidth: "420px", width: "90%",
+              boxShadow: "0 8px 32px rgba(0,0,0,0.2)",
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3 style={{ ...t.sectionHeader, color: t.rust, marginBottom: "12px" }}>
+              Delete {singleDeleteClient.name}?
+            </h3>
+            <p style={{ ...t.body, color: t.textSecondary, marginBottom: "12px" }}>
+              This will <strong>permanently remove</strong> all data for this client — time entries, commission records, checklist progress, and notes. This cannot be undone.
+            </p>
+            <div style={{
+              background: t.goldLight, border: `1px solid rgba(188,128,77,0.2)`,
+              borderRadius: "8px", padding: "10px 14px", marginBottom: "16px",
+              display: "flex", alignItems: "center", gap: "8px",
+            }}>
+              <Download size={14} color={t.gold} strokeWidth={2} />
+              <span style={{ ...t.caption, color: t.gold }}>
+                <button
+                  onClick={() => exportClientPDF(singleDeleteClient)}
+                  style={{
+                    background: "none", border: "none", cursor: "pointer",
+                    color: t.gold, fontWeight: 700, textDecoration: "underline",
+                    fontFamily: t.font, fontSize: "inherit", padding: 0,
+                  }}
+                >
+                  Download a PDF
+                </button>
+                {" "}of this client&apos;s data before deleting.
+              </span>
+            </div>
+            <p style={{ ...t.caption, color: t.textSecondary, marginBottom: "8px" }}>
+              Type <strong>DELETE</strong> to confirm:
+            </p>
+            <input
+              value={singleDeleteText}
+              onChange={(e) => setSingleDeleteText(e.target.value)}
+              placeholder="DELETE"
+              style={{ ...inputBase, marginBottom: "16px" }}
+              autoFocus
+            />
+            <div style={{ display: "flex", gap: "8px", justifyContent: "flex-end" }}>
+              <button onClick={() => { setSingleDeleteClient(null); setSingleDeleteText(""); }} style={btnSecondary}>
+                Cancel
+              </button>
+              <button
+                onClick={handleSingleDelete}
+                disabled={singleDeleteText !== "DELETE" || singleDeleting}
+                style={{
+                  ...btnPrimary,
+                  background: singleDeleteText === "DELETE" ? t.rust : t.textTertiary,
+                  opacity: singleDeleteText !== "DELETE" || singleDeleting ? 0.5 : 1,
+                }}
+              >
+                {singleDeleting ? "Deleting…" : "Delete Forever"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Bulk delete confirmation modal */}
       {showDeleteModal && (
         <div style={{
           position: "fixed", inset: 0, zIndex: 100,
@@ -401,6 +441,138 @@ export function ClientList({ clients, onSelect, onClientView, onAdd, onDeleteCli
             </div>
           </div>
         </div>
+      )}
+    </div>
+  );
+}
+
+// ── ClientRow (extracted for hook support) ──
+interface ClientRowProps {
+  client: Client;
+  today: string;
+  showCheckbox: boolean;
+  bulkMode: boolean;
+  isSelected: boolean;
+  onSelect: (c: Client) => void;
+  onClientView?: (c: Client) => void;
+  onToggleSelect: (id: string) => void;
+  onLongPress: (clientId: string, coords: { x: number; y: number }) => void;
+}
+
+function ClientRow({ client: c, today, showCheckbox, bulkMode, isSelected, onSelect, onClientView, onToggleSelect, onLongPress }: ClientRowProps) {
+  const followUpDue = c.followUpDate != null && c.followUpDate <= today;
+  const projected = getProjectedCommission(c);
+
+  const longPressHandlers = useLongPress(
+    useCallback((coords: { x: number; y: number }) => onLongPress(c.id, coords), [c.id, onLongPress]),
+  );
+
+  return (
+    <div
+      style={{
+        ...card,
+        display: "flex", alignItems: "center", gap: "12px",
+        padding: "16px 20px", marginBottom: "0",
+        cursor: "pointer",
+        transition: "background 0.12s",
+        fontFamily: t.font,
+        background: isSelected && bulkMode ? t.tealLight : t.surface,
+        userSelect: "none", WebkitUserSelect: "none",
+      }}
+      onMouseEnter={(e) => { if (!isSelected || !bulkMode) e.currentTarget.style.background = t.surfaceHover; }}
+      onMouseDown={longPressHandlers.onMouseDown}
+      onMouseUp={longPressHandlers.onMouseUp}
+      onMouseLeave={(e) => { longPressHandlers.onMouseLeave(); e.currentTarget.style.background = isSelected && bulkMode ? t.tealLight : t.surface; }}
+      onTouchStart={longPressHandlers.onTouchStart}
+      onTouchEnd={longPressHandlers.onTouchEnd}
+      onTouchMove={longPressHandlers.onTouchMove}
+      onContextMenu={longPressHandlers.onContextMenu}
+    >
+      {showCheckbox && bulkMode && (
+        <input
+          type="checkbox"
+          checked={isSelected}
+          onChange={(e) => { e.stopPropagation(); onToggleSelect(c.id); }}
+          onClick={(e) => e.stopPropagation()}
+          style={{ accentColor: t.teal, width: "16px", height: "16px", cursor: "pointer", flexShrink: 0 }}
+        />
+      )}
+      <button
+        onClick={() => !bulkMode ? onSelect(c) : onToggleSelect(c.id)}
+        style={{
+          background: "none", border: "none", cursor: "pointer",
+          display: "flex", justifyContent: "space-between", alignItems: "center",
+          width: "100%", textAlign: "left", padding: 0, fontFamily: t.font,
+        }}
+      >
+        <div>
+          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+            <span style={{
+              display: "inline-flex", alignItems: "center", gap: "4px",
+              padding: "2px 8px", borderRadius: "4px",
+              fontSize: "11px", fontWeight: 700, letterSpacing: "0.03em", textTransform: "uppercase",
+              background: c.status === "buyer" ? "rgba(12, 65, 78, 0.10)" : "rgba(188, 128, 77, 0.12)",
+              color: c.status === "buyer" ? t.teal : t.gold,
+              flexShrink: 0,
+            }}>
+              {c.status === "buyer" ? <Home size={11} strokeWidth={2.5} /> : <FileStack size={11} strokeWidth={2.5} />}
+              {c.status === "buyer" ? "Buyer" : "Seller"}
+            </span>
+            <span style={{ fontWeight: 600, fontSize: "14px", color: t.text }}>
+              {c.name}
+            </span>
+            {followUpDue && (
+              <span style={{ display: "flex", alignItems: "center", gap: "3px" }}>
+                <AlertCircle size={12} color={t.rust} strokeWidth={2} />
+                <span style={{ ...t.caption, color: t.rust, fontWeight: 500 }}>Follow-up due</span>
+              </span>
+            )}
+          </div>
+          {c.additionalContacts?.length > 0 && (
+            <div style={{ ...t.caption, color: t.textSecondary, marginTop: "3px", paddingLeft: "0px" }}>
+              {c.additionalContacts.map((p, i) => (
+                <span key={i} style={{ display: "inline-flex", alignItems: "center", gap: "4px", marginRight: "12px" }}>
+                  <span style={{ fontWeight: 500, color: t.text }}>{p.name}</span>
+                  {p.phone && <span style={{ color: t.textTertiary }}>{p.phone}</span>}
+                </span>
+              ))}
+            </div>
+          )}
+          <div style={{ ...t.caption, color: t.textTertiary, marginTop: "2px" }}>
+            {c.stage}
+            {c.leadSource && <> &middot; {c.leadSource}</>}
+          </div>
+        </div>
+        <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+          <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: "2px" }}>
+            {c.commissionEarned > 0 && (
+              <span style={{ fontWeight: 600, fontSize: "14px", color: t.gold }}>
+                {fmtDollars(c.commissionEarned)}
+              </span>
+            )}
+            {projected > 0 && c.commissionEarned === 0 && (
+              <span style={{ ...t.caption, color: t.textTertiary, fontStyle: "italic" }}>
+                Proj: {fmtDollars(projected)}
+              </span>
+            )}
+          </div>
+        </div>
+      </button>
+      {onClientView && !bulkMode && (
+        <button
+          title="Client View"
+          onClick={(e) => { e.stopPropagation(); onClientView(c); }}
+          style={{
+            display: "flex", alignItems: "center", justifyContent: "center",
+            width: "32px", height: "32px", borderRadius: "6px", flexShrink: 0,
+            background: "transparent", border: `1px solid ${t.border}`,
+            cursor: "pointer", transition: "background 0.12s, border-color 0.12s",
+          }}
+          onMouseEnter={(e) => { e.currentTarget.style.background = t.tealLight; e.currentTarget.style.borderColor = t.teal; }}
+          onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; e.currentTarget.style.borderColor = t.border; }}
+        >
+          <Eye size={14} color={t.teal} strokeWidth={1.5} />
+        </button>
       )}
     </div>
   );

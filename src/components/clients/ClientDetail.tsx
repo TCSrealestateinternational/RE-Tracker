@@ -1,8 +1,9 @@
 import { useState } from "react";
-import { ArrowLeft, Edit3, Clock, DollarSign, TrendingUp, CalendarClock, ExternalLink, Home, FileStack, Eye, LayoutDashboard, Flame, Check, ChevronDown, ChevronRight } from "lucide-react";
+import { ArrowLeft, Edit3, Clock, DollarSign, TrendingUp, CalendarClock, ExternalLink, Home, FileStack, Eye, LayoutDashboard, Flame, Check, ChevronDown, ChevronRight, Download } from "lucide-react";
 import type { ChecklistTemplateItem } from "@/constants/checklist-buyer";
 import { t, card, btnPrimary } from "@/styles/theme";
 import { formatHours } from "@/utils/dates";
+import { exportClientPDF } from "@/utils/export";
 import type { Client, TimeEntry, TransactionChecklist, Deal } from "@/types";
 import { BUYER_CHECKLIST_TEMPLATE, BUYER_STAGES } from "@/constants/checklist-buyer";
 import { SELLER_CHECKLIST_TEMPLATE, SELLER_STAGES } from "@/constants/checklist-seller";
@@ -165,6 +166,15 @@ export function ClientDetail({ client, entries, checklist, deal, onToggleItem, o
                 Hearth Portal Active
               </span>
             )}
+            <button onClick={() => exportClientPDF(client)} style={{
+              display: "flex", alignItems: "center", gap: "6px",
+              padding: "8px 16px", background: "transparent", border: `1px solid ${t.border}`,
+              borderRadius: "8px", cursor: "pointer", fontSize: "13px", fontFamily: t.font,
+              color: t.textSecondary,
+            }}>
+              <Download size={14} strokeWidth={1.5} />
+              PDF
+            </button>
             <button onClick={onEdit} style={{
               display: "flex", alignItems: "center", gap: "6px",
               padding: "8px 16px", background: "transparent", border: `1px solid ${t.border}`,
