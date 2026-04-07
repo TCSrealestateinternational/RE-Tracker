@@ -30,7 +30,7 @@ export function PipelineSummary({ deals }: PipelineSummaryProps) {
           <div style={{ ...t.caption, color: t.textTertiary }}>{activePipeline.length} active deals</div>
         </div>
       </div>
-      <div style={{ display: "flex", gap: "8px" }}>
+      <div className="stage-pills" style={{ display: "flex", gap: "8px" }}>
         {DEAL_STAGES.filter((s) => s !== "Lost").map((stage) => {
           const count = deals.filter((d) => d.stage === stage).length;
           return (

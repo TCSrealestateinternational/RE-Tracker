@@ -37,7 +37,7 @@ export function ReportsPage() {
 
   return (
     <div style={{ display: "grid", gap: t.sectionGap }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+      <div className="page-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
         <h1 style={{ ...t.pageTitle, color: t.text }}>Reports</h1>
         {exportData && (
           <div data-tour="export-buttons">
@@ -46,7 +46,7 @@ export function ReportsPage() {
         )}
       </div>
 
-      <div data-tour="report-tabs" style={{ display: "flex", gap: "4px" }}>
+      <div data-tour="report-tabs" className="tab-row" style={{ display: "flex", gap: "4px" }}>
         {tabs.map((item) => (
           <button
             key={item.key}

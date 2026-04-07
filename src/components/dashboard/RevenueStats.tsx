@@ -39,7 +39,7 @@ export function RevenueStats({ deals, entries }: RevenueStatsProps) {
       }}>
         <DollarSign size={20} color={t.gold} strokeWidth={1.5} />
         <div>
-          <div style={{ display: "flex", gap: "20px", alignItems: "baseline" }}>
+          <div className="stat-pair" style={{ display: "flex", gap: "20px", alignItems: "baseline" }}>
             <div>
               <div style={{ ...t.stat, color: t.success, fontSize: "24px" }}>${closedGCI.toLocaleString()}</div>
               <div style={{ ...t.label, color: t.textTertiary, marginTop: "2px" }}>Closed GCI</div>

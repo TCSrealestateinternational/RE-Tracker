@@ -43,7 +43,7 @@ export function PipelinePage() {
 
   return (
     <div style={{ display: "grid", gap: t.sectionGap }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+      <div className="page-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
         <h1 style={{ ...t.pageTitle, color: t.text }}>Deal Pipeline</h1>
         <button data-tour="add-deal" onClick={() => setShowForm(true)} style={{ ...btnPrimary, display: "flex", alignItems: "center", gap: "8px" }}>
           <Plus size={16} strokeWidth={2} />

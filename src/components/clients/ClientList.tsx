@@ -191,7 +191,7 @@ export function ClientList({ clients, onSelect, onClientView, onAdd, onDeleteCli
 
   return (
     <div>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
+      <div className="page-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
         <h2 style={{ ...t.pageTitle, color: t.text }}>Clients</h2>
         <div style={{ display: "flex", gap: "8px" }}>
           <button onClick={() => { setBulkMode(!bulkMode); if (bulkMode) { setSelectedIds(new Set()); } }} style={{
@@ -503,10 +503,11 @@ function ClientRow({ client: c, today, showCheckbox, bulkMode, isSelected, onSel
           background: "none", border: "none", cursor: "pointer",
           display: "flex", justifyContent: "space-between", alignItems: "center",
           width: "100%", textAlign: "left", padding: 0, fontFamily: t.font,
+          minWidth: 0, overflow: "hidden",
         }}
       >
-        <div>
-          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+        <div style={{ minWidth: 0, flex: 1 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap" }}>
             <span style={{
               display: "inline-flex", alignItems: "center", gap: "4px",
               padding: "2px 8px", borderRadius: "4px",
@@ -518,7 +519,7 @@ function ClientRow({ client: c, today, showCheckbox, bulkMode, isSelected, onSel
               {c.status === "buyer" ? <Home size={11} strokeWidth={2.5} /> : <FileStack size={11} strokeWidth={2.5} />}
               {c.status === "buyer" ? "Buyer" : "Seller"}
             </span>
-            <span style={{ fontWeight: 600, fontSize: "14px", color: t.text }}>
+            <span style={{ fontWeight: 600, fontSize: "14px", color: t.text, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
               {c.name}
             </span>
             {followUpDue && (

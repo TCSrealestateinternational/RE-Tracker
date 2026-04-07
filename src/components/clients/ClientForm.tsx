@@ -483,7 +483,7 @@ export function ClientForm({ initial, onSubmit, onCancel }: ClientFormProps) {
               value={link.label}
               onChange={(e) => updateDriveLink(i, "label", e.target.value)}
               placeholder="Label (e.g. Client Folder)"
-              style={{ ...inputBase, flex: "0 0 160px" }}
+              style={{ ...inputBase, flex: "1 0 100px", maxWidth: "160px" }}
             />
             <input
               value={link.url}

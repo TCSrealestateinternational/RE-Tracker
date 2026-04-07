@@ -10,6 +10,7 @@ html {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
+  overflow-x: hidden;
 }
 
 body {
@@ -18,6 +19,8 @@ body {
   line-height: 1.55;
   color: #1a1a1a;
   background: #f5f0eb;
+  overflow-x: hidden;
+  max-width: 100vw;
 }
 
 input,
@@ -238,6 +241,36 @@ a {
   .grid-3col,
   .grid-4col {
     grid-template-columns: 1fr;
+  }
+
+  /* Inline grids that need to stack on mobile */
+  .inline-2col {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Page headers: wrap and center */
+  .page-header {
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  /* Report/tab rows: allow wrapping */
+  .tab-row {
+    flex-wrap: wrap;
+  }
+
+  /* Revenue stats inner flex */
+  .stat-pair {
+    flex-direction: column;
+    gap: 8px !important;
+  }
+
+  /* Pipeline stage pills: wrap into 2x2 */
+  .stage-pills {
+    flex-wrap: wrap;
+  }
+  .stage-pills > div {
+    min-width: calc(50% - 4px);
   }
 
   .kanban-scroll > div {

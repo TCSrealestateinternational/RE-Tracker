@@ -114,7 +114,7 @@ export function DailyCheckInWidget({ todayCheckIn, streak, onSubmit, checkIns }:
           />
         </label>
       </div>
-      <div style={{ display: "flex", gap: "8px" }}>
+      <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
         <button onClick={() => onSubmit(true, contacts)} style={btnPrimary}>
           Yes, I prospected
         </button>

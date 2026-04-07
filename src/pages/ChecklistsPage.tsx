@@ -33,7 +33,7 @@ export function ChecklistsPage() {
           </p>
         </div>
       ) : (
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
+        <div className="inline-2col" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
           {checklists.map((cl) => {
             const client = clients.find((c) => c.id === cl.clientId);
             const deal = deals.find((d) => d.clientId === cl.clientId);

@@ -23,7 +23,7 @@ export function IncomeGoalSetup({ goal, onSave }: IncomeGoalSetupProps) {
     <div style={{ ...card, maxWidth: "480px" }}>
       <h3 style={{ ...t.sectionHeader, color: t.text, marginBottom: "20px" }}>Income Goal</h3>
       <form onSubmit={handleSubmit}>
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px", marginBottom: "24px" }}>
+        <div className="inline-2col" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px", marginBottom: "24px" }}>
           <label>
             <span style={{ ...t.label, color: t.textSecondary, display: "block", marginBottom: "6px" }}>
               Annual GCI Target ($)
@@ -38,7 +38,7 @@ export function IncomeGoalSetup({ goal, onSave }: IncomeGoalSetupProps) {
           </label>
         </div>
 
-        <div style={{
+        <div className="inline-2col" style={{
           background: t.bg, borderRadius: "8px", padding: "20px",
           display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px", marginBottom: "24px",
         }}>
