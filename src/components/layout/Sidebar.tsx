@@ -1,5 +1,5 @@
 import {
-  LayoutDashboard, Clock, Users, Kanban, Gift, ClipboardCheck, Target, BarChart3, LogOut,
+  LayoutDashboard, Clock, Users, Kanban, Gift, ClipboardCheck, Target, BarChart3, Settings, LogOut,
 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { t } from "@/styles/theme";
@@ -13,6 +13,7 @@ const NAV_ITEMS = [
   { label: "Checklists", path: "/checklists", icon: ClipboardCheck },
   { label: "Goals", path: "/goals", icon: Target },
   { label: "Reports", path: "/reports", icon: BarChart3 },
+  { label: "Settings", path: "/settings", icon: Settings },
 ];
 
 interface SidebarProps {

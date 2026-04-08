@@ -16,6 +16,7 @@ import { IncomeGoalBar } from "@/components/dashboard/IncomeGoalBar";
 import { CloseDateAlerts } from "@/components/dashboard/CloseDateAlerts";
 import { DailyCheckInWidget } from "@/components/checkin/DailyCheckInWidget";
 import { getWeekStart, todayStr } from "@/utils/dates";
+import { DEFAULT_WIDGET_PREFS } from "@/types";
 import { t, card } from "@/styles/theme";
 
 function getGreeting(): string {
@@ -45,6 +46,13 @@ export function DashboardPage() {
   const todayHours = (todayMs / 3_600_000).toFixed(1);
 
   const firstName = profile?.displayName?.split(" ")[0] || "there";
+  const wp = profile?.dashboardWidgets ?? DEFAULT_WIDGET_PREFS;
+
+  // Adaptive bento classes — expand remaining widget to full width when its pair is hidden
+  const revClass = wp.incomeGoalBar ? "bento-8" : "bento-full";
+  const goalClass = wp.revenueStats ? "bento-4" : "bento-full";
+  const pipeClass = wp.dailyCheckIn ? "bento-7" : "bento-full";
+  const checkInClass = (wp.pipelineSummary || wp.followUpAlerts) ? "bento-5" : "bento-full";
 
   return (
     <div style={{ display: "grid", gap: t.sectionGap }}>
@@ -90,39 +98,53 @@ export function DashboardPage() {
         </div>
       )}
 
-      <CloseDateAlerts deals={deals} onMoveDeal={moveDeal} onUpdateDeal={updateDeal} />
+      {wp.closeDateAlerts && (
+        <CloseDateAlerts deals={deals} onMoveDeal={moveDeal} onUpdateDeal={updateDeal} />
+      )}
 
       {/* Bento grid */}
       <div className="bento-grid">
         {/* Row 1: Revenue stats + GCI ring */}
-        <div className="bento-8">
-          <RevenueStats deals={deals} entries={entries} />
-        </div>
-        <div className="bento-4">
-          <IncomeGoalBar goal={goal} clients={clients} />
-        </div>
+        {wp.revenueStats && (
+          <div className={revClass}>
+            <RevenueStats deals={deals} entries={entries} />
+          </div>
+        )}
+        {wp.incomeGoalBar && (
+          <div className={goalClass}>
+            <IncomeGoalBar goal={goal} clients={clients} />
+          </div>
+        )}
 
         {/* Row 2: Pipeline + Follow-ups | Check-in */}
-        <div className="bento-7" style={{ display: "grid", gap: "20px" }}>
-          <PipelineSummary deals={deals} />
-          <FollowUpAlerts clients={clients} onClientClick={navigate} />
-        </div>
-        <div className="bento-5">
-          <DailyCheckInWidget
-            todayCheckIn={todayCheckIn}
-            streak={getStreak()}
-            onSubmit={submitCheckIn}
-            checkIns={checkIns}
-          />
-        </div>
+        {(wp.pipelineSummary || wp.followUpAlerts) && (
+          <div className={pipeClass} style={{ display: "grid", gap: "20px" }}>
+            {wp.pipelineSummary && <PipelineSummary deals={deals} />}
+            {wp.followUpAlerts && <FollowUpAlerts clients={clients} onClientClick={navigate} />}
+          </div>
+        )}
+        {wp.dailyCheckIn && (
+          <div className={checkInClass}>
+            <DailyCheckInWidget
+              todayCheckIn={todayCheckIn}
+              streak={getStreak()}
+              onSubmit={submitCheckIn}
+              checkIns={checkIns}
+            />
+          </div>
+        )}
 
         {/* Row 3: Full-width cards */}
-        <div className="bento-full">
-          <WeeklyHours entries={entries} weekStart={weekStart} />
-        </div>
-        <div className="bento-full">
-          <GoalProgress entries={entries} weekStart={weekStart} goals={{}} />
-        </div>
+        {wp.weeklyHours && (
+          <div className="bento-full">
+            <WeeklyHours entries={entries} weekStart={weekStart} />
+          </div>
+        )}
+        {wp.goalProgress && (
+          <div className="bento-full">
+            <GoalProgress entries={entries} weekStart={weekStart} goals={{}} />
+          </div>
+        )}
       </div>
     </div>
   );

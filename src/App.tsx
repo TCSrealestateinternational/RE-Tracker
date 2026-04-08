@@ -11,6 +11,7 @@ import { ChecklistsPage } from "@/pages/ChecklistsPage";
 import { GoalsPage } from "@/pages/GoalsPage";
 import { ReportsPage } from "@/pages/ReportsPage";
 import { ReferralsPage } from "@/pages/ReferralsPage";
+import { SettingsPage } from "@/pages/SettingsPage";
 
 function AppRoutes() {
   return (
@@ -25,6 +26,7 @@ function AppRoutes() {
           <Route path="/checklists" element={<ChecklistsPage />} />
           <Route path="/goals" element={<GoalsPage />} />
           <Route path="/reports" element={<ReportsPage />} />
+          <Route path="/settings" element={<SettingsPage />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </Layout>

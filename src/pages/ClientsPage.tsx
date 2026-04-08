@@ -11,6 +11,7 @@ import { ClientDetail } from "@/components/clients/ClientDetail";
 import { AddToHearthModal } from "@/components/clients/AddToHearthModal";
 import type { DetailTab } from "@/components/clients/ClientDetail";
 import type { Client, ClientStage } from "@/types";
+import { calcProjectedCommission } from "@/utils/commission";
 
 type View = "list" | "add" | "detail" | "edit";
 
@@ -68,7 +69,7 @@ export function ClientsPage() {
             const projectedCommission =
               data.commissionMode === "flat"
                 ? data.commissionFlat
-                : deal.purchasePrice * (data.commissionPercent / 100);
+                : calcProjectedCommission(deal.purchasePrice, data.commissionPercent);
 
             const patch: Partial<typeof deal> = {
               clientName: data.name,

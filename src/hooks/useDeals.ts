@@ -5,6 +5,7 @@ import {
 import { db } from "@/lib/firebase";
 import { useAuth } from "@/context/AuthContext";
 import type { Deal, DealStage } from "@/types";
+import { ensureProjectedCommission } from "@/utils/commission";
 
 export function useDeals() {
   const { user } = useAuth();
@@ -45,7 +46,9 @@ export function useDeals() {
   }
 
   async function updateDeal(id: string, data: Partial<Deal>) {
-    await updateDoc(doc(db, "deals", id), { ...data, updatedAt: Date.now() });
+    const existing = deals.find((d) => d.id === id);
+    const safePatch = existing ? ensureProjectedCommission(existing, data) : data;
+    await updateDoc(doc(db, "deals", id), { ...safePatch, updatedAt: Date.now() });
   }
 
   async function moveDeal(id: string, stage: DealStage) {

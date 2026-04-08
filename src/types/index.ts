@@ -241,6 +241,27 @@ export const PLAN_DEFAULTS: Record<SubscriptionPlan, SubscriptionFeatures> = {
   white_label: { reTracker: true, hearthPortal: true, whiteLabel: true, maxClients: 500 },
 };
 
+// ── Dashboard Widget Preferences ──
+export const DASHBOARD_WIDGETS = {
+  closeDateAlerts: "Close Date Alerts",
+  revenueStats:    "Revenue Stats",
+  incomeGoalBar:   "Annual Goal Ring",
+  pipelineSummary: "Pipeline Summary",
+  followUpAlerts:  "Follow-Up Alerts",
+  dailyCheckIn:    "Daily Check-In",
+  weeklyHours:     "Weekly Hours",
+  goalProgress:    "Goal Progress",
+} as const;
+
+export type DashboardWidgetKey = keyof typeof DASHBOARD_WIDGETS;
+export type DashboardWidgetPrefs = Record<DashboardWidgetKey, boolean>;
+
+export const DEFAULT_WIDGET_PREFS: DashboardWidgetPrefs = {
+  closeDateAlerts: true, revenueStats: true, incomeGoalBar: true,
+  pipelineSummary: true, followUpAlerts: true, dailyCheckIn: true,
+  weeklyHours: true, goalProgress: true,
+};
+
 // ── Shared User (replaces UserProfile — matches Hearth's User type) ──
 export interface SharedUser {
   id: string;
@@ -251,6 +272,7 @@ export interface SharedUser {
   status: "pending" | "active";
   activeRole?: "buyer" | "seller";
   avatarUrl?: string;
+  dashboardWidgets?: DashboardWidgetPrefs;
   brokerageId: string;
   subscription: Subscription;
   createdAt: number;

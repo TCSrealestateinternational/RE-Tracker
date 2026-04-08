@@ -7,7 +7,7 @@ import {
   signOut as firebaseSignOut,
   type User,
 } from "firebase/auth";
-import { doc, getDoc, setDoc } from "firebase/firestore";
+import { doc, getDoc, setDoc, updateDoc } from "firebase/firestore";
 import { auth, db, googleProvider } from "@/lib/firebase";
 import type { SharedUser } from "@/types";
 import { PLAN_DEFAULTS } from "@/types";
@@ -20,6 +20,7 @@ interface AuthContextValue {
   signUp: (email: string, password: string) => Promise<void>;
   signInWithGoogle: () => Promise<void>;
   signOut: () => Promise<void>;
+  updateProfile: (data: Partial<Pick<SharedUser, "displayName" | "phone" | "dashboardWidgets">>) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -132,8 +133,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     await firebaseSignOut(auth);
   }
 
+  async function updateProfile(data: Partial<Pick<SharedUser, "displayName" | "phone" | "dashboardWidgets">>) {
+    if (!user) return;
+    await updateDoc(doc(db, "users", user.uid), { ...data });
+    setProfile((prev) => prev ? { ...prev, ...data } : prev);
+  }
+
   return (
-    <AuthContext.Provider value={{ user, profile, loading, signIn, signUp, signInWithGoogle, signOut }}>
+    <AuthContext.Provider value={{ user, profile, loading, signIn, signUp, signInWithGoogle, signOut, updateProfile }}>
       {children}
     </AuthContext.Provider>
   );
