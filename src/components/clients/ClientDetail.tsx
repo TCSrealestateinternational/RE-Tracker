@@ -42,16 +42,24 @@ export function ClientDetail({ client, entries, checklist, deal, onToggleItem, o
   const { hasHearthPortal } = useSubscription();
   const { syncDealToTransaction, activateHearthPortal } = useTransactionSync();
   const [portalActivating, setPortalActivating] = useState(false);
+  const [portalError, setPortalError] = useState("");
   const transactionId = deal?.transactionId;
 
   async function handleActivatePortal() {
     if (!deal || portalActivating) return;
     setPortalActivating(true);
+    setPortalError("");
     try {
       const txId = await syncDealToTransaction(deal, client);
       await activateHearthPortal(txId);
     } catch (err) {
       console.error("Failed to activate Hearth portal:", err);
+      const msg = err instanceof Error ? err.message : String(err);
+      if (msg.includes("permission") || msg.includes("PERMISSION_DENIED")) {
+        setPortalError("Firestore permission denied — the 'transactions' collection rules may need updating.");
+      } else {
+        setPortalError("Failed to activate Hearth portal. " + msg);
+      }
     } finally {
       setPortalActivating(false);
     }
@@ -187,6 +195,16 @@ export function ClientDetail({ client, entries, checklist, deal, onToggleItem, o
             </button>
           </div>
         </div>
+
+        {portalError && (
+          <div style={{
+            background: t.rustLight, border: `1px solid rgba(157, 68, 42, 0.15)`,
+            borderRadius: "8px", padding: "10px 14px", marginBottom: "4px",
+            ...t.caption, color: t.rust,
+          }}>
+            {portalError}
+          </div>
+        )}
 
         {/* ── Tab Bar ── */}
         <div style={{

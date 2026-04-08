@@ -1,6 +1,7 @@
 import {
-  LayoutDashboard, Clock, Users, Kanban, Gift, ClipboardCheck, Target, BarChart3,
+  LayoutDashboard, Clock, Users, Kanban, Gift, ClipboardCheck, Target, BarChart3, LogOut,
 } from "lucide-react";
+import { useAuth } from "@/context/AuthContext";
 import { t } from "@/styles/theme";
 
 const NAV_ITEMS = [
@@ -22,6 +23,8 @@ interface SidebarProps {
 }
 
 export function Sidebar({ activePath, onNavigate, open, onToggle }: SidebarProps) {
+  const { signOut } = useAuth();
+
   return (
     <>
       <button className="hamburger" onClick={onToggle} aria-label="Toggle menu">
@@ -100,6 +103,31 @@ export function Sidebar({ activePath, onNavigate, open, onToggle }: SidebarProps
             );
           })}
         </nav>
+        <div style={{ padding: "16px 24px", borderTop: `1px solid ${t.border}` }}>
+          <button
+            onClick={signOut}
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "10px",
+              width: "100%",
+              padding: "9px 0",
+              background: "transparent",
+              border: "none",
+              color: t.textTertiary,
+              textAlign: "left",
+              fontSize: "14px",
+              cursor: "pointer",
+              fontFamily: t.font,
+              transition: "color 0.12s",
+            }}
+            onMouseEnter={(e) => { e.currentTarget.style.color = t.text; }}
+            onMouseLeave={(e) => { e.currentTarget.style.color = t.textTertiary; }}
+          >
+            <LogOut size={16} strokeWidth={1.5} />
+            Sign out
+          </button>
+        </div>
       </aside>
     </>
   );
