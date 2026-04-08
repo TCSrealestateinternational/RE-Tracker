@@ -1,3 +1,5 @@
+import { useState, useEffect } from "react";
+import { ChevronDown } from "lucide-react";
 import { DEAL_STAGES, type Deal, type DealStage } from "@/types";
 import { DealCard } from "./DealCard";
 import { t } from "@/styles/theme";
@@ -9,7 +11,113 @@ interface KanbanBoardProps {
   onDelete?: (id: string) => void;
 }
 
+function useIsMobile(breakpoint = 768) {
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= breakpoint);
+  useEffect(() => {
+    const onResize = () => setIsMobile(window.innerWidth <= breakpoint);
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+  }, [breakpoint]);
+  return isMobile;
+}
+
+function StageFooter({ stage, stageDeals, total }: { stage: string; stageDeals: Deal[]; total: number }) {
+  return (
+    <div style={{
+      marginTop: "10px", paddingTop: "10px",
+      borderTop: `1px solid ${t.border}`,
+      ...t.caption, color: t.textTertiary, textAlign: "center",
+    }}>
+      {stage === "Closed" ? (
+        <>
+          <div style={{ color: t.success, fontWeight: 600 }}>
+            Actual: ${stageDeals.reduce((s, d) => s + (d.actualCommission ?? d.projectedCommission ?? 0), 0).toLocaleString()}
+          </div>
+          <div>Projected: ${total.toLocaleString()}</div>
+        </>
+      ) : (
+        <>Projected: ${total.toLocaleString()}</>
+      )}
+    </div>
+  );
+}
+
 export function KanbanBoard({ deals, onMove, onEdit, onDelete }: KanbanBoardProps) {
+  const isMobile = useIsMobile();
+  const [openStage, setOpenStage] = useState<DealStage | null>(null);
+
+  // Auto-open first stage with deals on mobile
+  useEffect(() => {
+    if (isMobile && openStage === null) {
+      const first = DEAL_STAGES.find((s) => deals.some((d) => d.stage === s));
+      if (first) setOpenStage(first);
+    }
+  }, [isMobile, deals, openStage]);
+
+  if (isMobile) {
+    return (
+      <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+        {DEAL_STAGES.map((stage) => {
+          const stageDeals = deals.filter((d) => d.stage === stage);
+          const total = stageDeals.reduce((s, d) => s + d.projectedCommission, 0);
+          const isOpen = openStage === stage;
+
+          return (
+            <div key={stage} style={{ background: t.bg, borderRadius: "10px", overflow: "hidden" }}>
+              <button
+                type="button"
+                onClick={() => setOpenStage(isOpen ? null : stage)}
+                style={{
+                  width: "100%", display: "flex", justifyContent: "space-between", alignItems: "center",
+                  padding: "14px 16px", background: "none", border: "none", cursor: "pointer",
+                  fontFamily: t.font,
+                }}
+              >
+                <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                  <span style={{ ...t.label, color: t.textSecondary }}>{stage}</span>
+                  <span style={{
+                    ...t.caption, fontWeight: 600, color: t.textTertiary,
+                    background: t.surface, padding: "2px 8px", borderRadius: "10px",
+                  }}>
+                    {stageDeals.length}
+                  </span>
+                </div>
+                <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                  <span style={{ ...t.caption, color: t.gold, fontWeight: 600 }}>
+                    ${total.toLocaleString()}
+                  </span>
+                  <ChevronDown
+                    size={16}
+                    style={{
+                      color: t.textTertiary,
+                      transform: isOpen ? "rotate(180deg)" : "rotate(0deg)",
+                      transition: "transform 0.2s",
+                    }}
+                  />
+                </div>
+              </button>
+
+              {isOpen && (
+                <div style={{ padding: "0 14px 14px" }}>
+                  {stageDeals.map((deal) => (
+                    <DealCard key={deal.id} deal={deal} stages={DEAL_STAGES} onMove={onMove} onEdit={onEdit} onDelete={onDelete} />
+                  ))}
+                  {stageDeals.length === 0 && (
+                    <p style={{ ...t.caption, color: t.textTertiary, textAlign: "center", padding: "24px 0" }}>
+                      No deals
+                    </p>
+                  )}
+                  <StageFooter stage={stage} stageDeals={stageDeals} total={total} />
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    );
+  }
+
+  // Desktop: existing grid layout
   return (
     <div className="kanban-scroll">
     <div style={{
@@ -55,22 +163,7 @@ export function KanbanBoard({ deals, onMove, onEdit, onDelete }: KanbanBoardProp
               )}
             </div>
 
-            <div style={{
-              marginTop: "10px", paddingTop: "10px",
-              borderTop: `1px solid ${t.border}`,
-              ...t.caption, color: t.textTertiary, textAlign: "center",
-            }}>
-              {stage === "Closed" ? (
-                <>
-                  <div style={{ color: t.success, fontWeight: 600 }}>
-                    Actual: ${stageDeals.reduce((s, d) => s + (d.actualCommission ?? d.projectedCommission ?? 0), 0).toLocaleString()}
-                  </div>
-                  <div>Projected: ${total.toLocaleString()}</div>
-                </>
-              ) : (
-                <>Projected: ${total.toLocaleString()}</>
-              )}
-            </div>
+            <StageFooter stage={stage} stageDeals={stageDeals} total={total} />
           </div>
         );
       })}
