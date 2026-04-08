@@ -4,33 +4,62 @@ service cloud.firestore {
   match /databases/{database}/documents {
 
     // ── Helper Functions ──
-    function isAuthenticated() {
+    function isAuth() {
       return request.auth != null;
     }
 
+    function getUserData() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+    }
+
+    function hasAgentRole() {
+      return isAuth() && 'agent' in getUserData().roles;
+    }
+
+    function belongsToBrokerage(brokerageId) {
+      return isAuth() && getUserData().brokerageId == brokerageId;
+    }
+
     function isOwner(userId) {
-      return isAuthenticated() && request.auth.uid == userId;
+      return isAuth() && request.auth.uid == userId;
     }
 
-    // Check if user is the agent who owns this data
-    function isAgent() {
-      return isAuthenticated() && request.auth.uid == resource.data.userId;
+    // Check if user is the client on this transaction, or an agent in the same brokerage
+    function canAccessTransaction(transactionId) {
+      let tx = get(/databases/$(database)/documents/transactions/$(transactionId)).data;
+      return tx.clientId == request.auth.uid ||
+             (hasAgentRole() && getUserData().brokerageId == tx.brokerageId);
     }
 
-    // Check if user is a client linked to this agent's data
+    // Check if user is a client linked to this agent
     function isLinkedClient(agentId) {
-      return isAuthenticated()
+      return isAuth()
         && exists(/databases/$(database)/documents/users/$(request.auth.uid))
         && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.roles.hasAny(["buyer", "seller"])
         && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.agentId == agentId;
     }
 
-    // ── Users (shared between RE Tracker agents and Hearth portal clients) ──
+    // ── Brokerages ──
+    match /brokerages/{brokerageId} {
+      allow read: if isAuth();
+      allow create: if hasAgentRole();
+      allow update: if hasAgentRole() && belongsToBrokerage(brokerageId);
+    }
+
+    // ── Users (shared between RE Tracker & Hearth) ──
     match /users/{userId} {
-      allow read: if isOwner(userId);
-      allow create: if isAuthenticated();
-      allow update: if isOwner(userId)
-        || (isAuthenticated() && request.auth.uid == resource.data.agentId);
+      allow read: if isAuth() && (
+        request.auth.uid == userId ||
+        (hasAgentRole() && resource.data.brokerageId == getUserData().brokerageId)
+      );
+      allow create: if isAuth() && (
+        request.auth.uid == userId ||
+        (hasAgentRole() && request.resource.data.brokerageId == getUserData().brokerageId)
+      );
+      allow update: if isAuth() && (
+        request.auth.uid == userId ||
+        request.auth.uid == resource.data.agentId
+      );
     }
 
     // ── Legacy User Profiles (kept for backwards compat) ──
@@ -40,140 +69,206 @@ service cloud.firestore {
       allow update: if isOwner(userId);
     }
 
-    // ── Transactions (Hearth portal) ──
-    match /transactions/{docId} {
-      allow read: if isAuthenticated()
-        && (request.auth.uid == resource.data.agentId
-            || request.auth.uid == resource.data.clientId);
-      allow create: if isAuthenticated()
+    // ── Transactions (bridge between RE Tracker deals & Hearth views) ──
+    match /transactions/{txId} {
+      allow read: if isAuth() && (
+        resource.data.clientId == request.auth.uid ||
+        resource.data.agentId == request.auth.uid ||
+        (hasAgentRole() && belongsToBrokerage(resource.data.brokerageId))
+      );
+      allow create: if isAuth()
         && request.auth.uid == request.resource.data.agentId;
-      allow update: if isAuthenticated()
-        && (request.auth.uid == resource.data.agentId
-            || request.auth.uid == resource.data.clientId);
+      allow update: if isAuth() && (
+        resource.data.agentId == request.auth.uid ||
+        resource.data.clientId == request.auth.uid ||
+        (hasAgentRole() && belongsToBrokerage(resource.data.brokerageId))
+      );
+      allow delete: if hasAgentRole()
+        && belongsToBrokerage(resource.data.brokerageId);
+
+      // Milestones subcollection
+      match /milestones/{mId} {
+        allow read: if isAuth() && (
+          hasAgentRole() ||
+          (resource.data.clientVisible == true &&
+           get(/databases/$(database)/documents/transactions/$(txId)).data.clientId == request.auth.uid)
+        );
+        allow write: if hasAgentRole();
+      }
+
+      // Cost estimates subcollection
+      match /costEstimate/{id} {
+        allow read: if isAuth() && (
+          hasAgentRole() ||
+          get(/databases/$(database)/documents/transactions/$(txId)).data.clientId == request.auth.uid
+        );
+        allow write: if hasAgentRole();
+      }
+
+      // Decision log subcollection
+      match /decisionLog/{id} {
+        allow read: if isAuth() && (
+          hasAgentRole() ||
+          get(/databases/$(database)/documents/transactions/$(txId)).data.clientId == request.auth.uid
+        );
+        allow write: if hasAgentRole();
+      }
     }
 
     // ── Client Invites ──
     match /clientInvites/{docId} {
-      allow read: if isAuthenticated()
+      allow read: if isAuth()
         && (request.auth.uid == resource.data.agentId
             || request.auth.token.email == resource.data.clientEmail);
-      allow create: if isAuthenticated()
+      allow create: if isAuth()
         && request.auth.uid == request.resource.data.agentId;
-      allow update: if isAuthenticated();
+      allow update: if isAuth();
     }
 
-    // ── Agent-owned collections (agent can read/write, linked client can read) ──
+    // ── RE Tracker agent-only collections ──
     match /timeEntries/{docId} {
-      allow read, write: if isAuthenticated()
-        && request.auth.uid == resource.data.userId;
-      allow create: if isAuthenticated()
-        && request.auth.uid == request.resource.data.userId;
+      allow read, write: if isAuth() && request.auth.uid == resource.data.userId;
+      allow create: if isAuth() && request.auth.uid == request.resource.data.userId;
     }
 
     match /clients/{docId} {
-      allow read: if isAuthenticated()
+      allow read: if isAuth()
         && (request.auth.uid == resource.data.userId
             || isLinkedClient(resource.data.userId));
-      allow write: if isAuthenticated()
-        && request.auth.uid == resource.data.userId;
-      allow create: if isAuthenticated()
-        && request.auth.uid == request.resource.data.userId;
+      allow write: if isAuth() && request.auth.uid == resource.data.userId;
+      allow create: if isAuth() && request.auth.uid == request.resource.data.userId;
     }
 
     match /deals/{docId} {
-      allow read: if isAuthenticated()
+      allow read: if isAuth()
         && (request.auth.uid == resource.data.userId
             || isLinkedClient(resource.data.userId));
-      allow write: if isAuthenticated()
-        && request.auth.uid == resource.data.userId;
-      allow create: if isAuthenticated()
-        && request.auth.uid == request.resource.data.userId;
+      allow write: if isAuth() && request.auth.uid == resource.data.userId;
+      allow create: if isAuth() && request.auth.uid == request.resource.data.userId;
     }
 
     match /checklists/{docId} {
-      allow read: if isAuthenticated()
+      allow read: if isAuth()
         && (request.auth.uid == resource.data.userId
             || isLinkedClient(resource.data.userId));
-      allow write: if isAuthenticated()
-        && request.auth.uid == resource.data.userId;
-      allow create: if isAuthenticated()
-        && request.auth.uid == request.resource.data.userId;
+      allow write: if isAuth() && request.auth.uid == resource.data.userId;
+      allow create: if isAuth() && request.auth.uid == request.resource.data.userId;
     }
 
     match /dailyCheckIns/{docId} {
-      allow read, write: if isAuthenticated()
-        && request.auth.uid == resource.data.userId;
-      allow create: if isAuthenticated()
-        && request.auth.uid == request.resource.data.userId;
+      allow read, write: if isAuth() && request.auth.uid == resource.data.userId;
+      allow create: if isAuth() && request.auth.uid == request.resource.data.userId;
     }
 
     match /incomeGoals/{docId} {
-      allow read, write: if isAuthenticated()
-        && request.auth.uid == resource.data.userId;
-      allow create: if isAuthenticated()
-        && request.auth.uid == request.resource.data.userId;
+      allow read, write: if isAuth() && request.auth.uid == resource.data.userId;
+      allow create: if isAuth() && request.auth.uid == request.resource.data.userId;
     }
 
     match /referrals/{docId} {
-      allow read, write: if isAuthenticated()
-        && request.auth.uid == resource.data.userId;
-      allow create: if isAuthenticated()
-        && request.auth.uid == request.resource.data.userId;
+      allow read, write: if isAuth() && request.auth.uid == resource.data.userId;
+      allow create: if isAuth() && request.auth.uid == request.resource.data.userId;
     }
 
-    // ── Portal Collections ──
+    // ── RE Tracker Portal Collections ──
     match /decisions/{docId} {
-      allow read: if isAuthenticated()
+      allow read: if isAuth()
         && (request.auth.uid == resource.data.agentId
             || isLinkedClient(resource.data.agentId));
-      allow create: if isAuthenticated()
+      allow create: if isAuth()
         && request.auth.uid == request.resource.data.agentId;
-      allow update: if isAuthenticated()
+      allow update: if isAuth()
         && (request.auth.uid == resource.data.agentId
             || isLinkedClient(resource.data.agentId));
-      allow delete: if isAuthenticated()
+      allow delete: if isAuth()
         && request.auth.uid == resource.data.agentId;
     }
 
     match /costBreakdowns/{docId} {
-      allow read: if isAuthenticated()
+      allow read: if isAuth()
         && (request.auth.uid == resource.data.agentId
             || isLinkedClient(resource.data.agentId));
-      allow create: if isAuthenticated()
+      allow create: if isAuth()
         && request.auth.uid == request.resource.data.agentId;
-      allow update: if isAuthenticated()
+      allow update: if isAuth()
         && request.auth.uid == resource.data.agentId;
-      allow delete: if isAuthenticated()
+      allow delete: if isAuth()
         && request.auth.uid == resource.data.agentId;
     }
 
     match /marketData/{docId} {
-      allow read: if isAuthenticated()
+      allow read: if isAuth()
         && (request.auth.uid == resource.data.agentId
             || isLinkedClient(resource.data.agentId));
-      allow create: if isAuthenticated()
+      allow create: if isAuth()
         && request.auth.uid == request.resource.data.agentId;
-      allow update: if isAuthenticated()
+      allow update: if isAuth()
         && request.auth.uid == resource.data.agentId;
-      allow delete: if isAuthenticated()
+      allow delete: if isAuth()
         && request.auth.uid == resource.data.agentId;
+    }
+
+    // ── Hearth Collections ──
+    match /properties/{propertyId} {
+      allow read: if isAuth() && canAccessTransaction(resource.data.transactionId);
+      allow create: if isAuth() && canAccessTransaction(request.resource.data.transactionId);
+      allow update, delete: if isAuth() && canAccessTransaction(resource.data.transactionId);
+    }
+
+    match /financeScenarios/{scenarioId} {
+      allow read: if isAuth() && canAccessTransaction(resource.data.transactionId);
+      allow create: if isAuth() && canAccessTransaction(request.resource.data.transactionId);
+      allow update, delete: if isAuth() && canAccessTransaction(resource.data.transactionId);
+    }
+
+    match /offers/{offerId} {
+      allow read: if isAuth() && canAccessTransaction(resource.data.transactionId);
+      allow create: if hasAgentRole() && canAccessTransaction(request.resource.data.transactionId);
+      allow update: if hasAgentRole() && canAccessTransaction(resource.data.transactionId);
+    }
+
+    match /listings/{listingId} {
+      allow read: if isAuth() && canAccessTransaction(resource.data.transactionId);
+      allow create: if hasAgentRole() && canAccessTransaction(request.resource.data.transactionId);
+      allow update: if hasAgentRole() && canAccessTransaction(resource.data.transactionId);
+    }
+
+    match /documents/{documentId} {
+      allow read: if isAuth() && belongsToBrokerage(resource.data.brokerageId);
+      allow create: if isAuth()
+        && request.resource.data.uploadedBy == request.auth.uid
+        && belongsToBrokerage(request.resource.data.brokerageId);
     }
 
     // ── Messaging ──
     match /conversations/{docId} {
-      allow read: if isAuthenticated()
+      allow read: if isAuth()
         && (request.auth.uid == resource.data.agentId
             || request.auth.uid == resource.data.clientUserId);
-      allow create: if isAuthenticated();
-      allow update: if isAuthenticated()
+      allow create: if isAuth();
+      allow update: if isAuth()
         && (request.auth.uid == resource.data.agentId
             || request.auth.uid == resource.data.clientUserId);
     }
 
-    match /messages/{docId} {
-      allow read: if isAuthenticated();
-      allow create: if isAuthenticated()
-        && request.auth.uid == request.resource.data.senderId;
+    match /messages/{messageId} {
+      allow read: if isAuth() && (
+        resource.data.threadId == request.auth.uid ||
+        resource.data.senderId == request.auth.uid ||
+        (hasAgentRole() && getUserData().brokerageId == resource.data.brokerageId)
+      );
+      allow create: if isAuth()
+        && request.resource.data.senderId == request.auth.uid;
+      allow update: if isAuth() && (
+        resource.data.threadId == request.auth.uid ||
+        (hasAgentRole() && getUserData().brokerageId == resource.data.brokerageId)
+      );
+    }
+
+    // ── Glossary ──
+    match /glossary/{termId} {
+      allow read: if isAuth();
+      allow write: if hasAgentRole();
     }
   }
 }
