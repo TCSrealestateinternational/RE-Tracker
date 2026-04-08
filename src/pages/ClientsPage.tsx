@@ -113,6 +113,7 @@ export function ClientsPage() {
         checklist={checklist}
         deal={deal}
         onToggleItem={toggleItem}
+        onUpdateClient={updateClient}
         onEdit={() => setView("edit")}
         onBack={() => { setSelected(null); setView("list"); setDetailTab("overview"); }}
         initialTab={detailTab}

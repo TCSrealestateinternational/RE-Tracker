@@ -1,7 +1,8 @@
 import {
-  LayoutDashboard, Clock, Users, Kanban, Gift, ClipboardCheck, Target, BarChart3, Settings, LogOut,
+  LayoutDashboard, Clock, Users, Kanban, Gift, ClipboardCheck, Target, BarChart3, Settings, LogOut, HelpCircle,
 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
+import { useTour } from "@/components/tour/useTour";
 import { t } from "@/styles/theme";
 
 const NAV_ITEMS = [
@@ -24,7 +25,8 @@ interface SidebarProps {
 }
 
 export function Sidebar({ activePath, onNavigate, open, onToggle }: SidebarProps) {
-  const { signOut } = useAuth();
+  const { user, signOut } = useAuth();
+  const { startTour } = useTour();
 
   return (
     <>
@@ -104,7 +106,42 @@ export function Sidebar({ activePath, onNavigate, open, onToggle }: SidebarProps
             );
           })}
         </nav>
-        <div style={{ padding: "16px 24px", borderTop: `1px solid ${t.border}` }}>
+        <div style={{ padding: "16px 24px", borderTop: `1px solid ${t.border}`, display: "flex", flexDirection: "column", gap: "4px" }}>
+          {user?.email && (
+            <span style={{
+              ...t.caption,
+              color: t.textTertiary,
+              padding: "4px 0 8px",
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+              whiteSpace: "nowrap",
+            }}>
+              {user.email}
+            </span>
+          )}
+          <button
+            onClick={() => startTour()}
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "10px",
+              width: "100%",
+              padding: "9px 0",
+              background: "transparent",
+              border: "none",
+              color: t.textTertiary,
+              textAlign: "left",
+              fontSize: "14px",
+              cursor: "pointer",
+              fontFamily: t.font,
+              transition: "color 0.12s",
+            }}
+            onMouseEnter={(e) => { e.currentTarget.style.color = t.text; }}
+            onMouseLeave={(e) => { e.currentTarget.style.color = t.textTertiary; }}
+          >
+            <HelpCircle size={16} strokeWidth={1.5} />
+            Tour
+          </button>
           <button
             onClick={signOut}
             style={{

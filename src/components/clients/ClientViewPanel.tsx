@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Home, FileStack, CalendarClock, ChevronDown, ChevronRight } from "lucide-react";
+import { Home, FileStack, CalendarClock, ChevronDown, ChevronRight, MessageSquare, CheckCircle2 } from "lucide-react";
 import { t, card } from "@/styles/theme";
 import type { Client, TransactionChecklist } from "@/types";
 import { BUYER_CHECKLIST_TEMPLATE, BUYER_STAGES } from "@/constants/checklist-buyer";
@@ -240,6 +240,71 @@ export function ClientViewPanel({ client, checklist, onToggleItem }: ClientViewP
           Client's transaction view — check off steps as you guide them
         </p>
       </div>
+
+      {/* Agent Status Message (custom) or Getting Started (default) */}
+      {(client.statusMessage || (client.actionItems && client.actionItems.length > 0)) ? (
+        <div style={card}>
+          <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "12px" }}>
+            <MessageSquare size={16} color={t.teal} strokeWidth={2} />
+            <h3 style={{ ...t.sectionHeader, color: t.text }}>From Your Agent</h3>
+          </div>
+          {client.statusMessage && (
+            <p style={{ ...t.body, color: t.text, marginBottom: client.actionItems?.length ? "16px" : 0 }}>
+              {client.statusMessage}
+            </p>
+          )}
+          {client.actionItems && client.actionItems.length > 0 && (
+            <div style={{ display: "grid", gap: "6px" }}>
+              <span style={{ ...t.label, color: t.textSecondary, marginBottom: "2px" }}>Action Items</span>
+              {client.actionItems.map((item, i) => (
+                <div
+                  key={i}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "10px",
+                    padding: "8px 12px",
+                    background: t.bg,
+                    borderRadius: "6px",
+                  }}
+                >
+                  <CheckCircle2 size={14} color={t.textTertiary} strokeWidth={1.5} />
+                  <span style={{ ...t.body, color: t.text }}>{item}</span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      ) : (
+        <div style={card}>
+          <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "12px" }}>
+            <Home size={16} color={t.teal} strokeWidth={2} />
+            <h3 style={{ ...t.sectionHeader, color: t.text }}>Getting Started</h3>
+          </div>
+          <div style={{ display: "grid", gap: "6px" }}>
+            {[
+              "Your agent will update your dashboard as your transaction progresses.",
+              "Check back here for milestones, action items, and key dates.",
+              "You can view your transaction checklist below once it's underway.",
+            ].map((tip, i) => (
+              <div
+                key={i}
+                style={{
+                  display: "flex",
+                  alignItems: "flex-start",
+                  gap: "10px",
+                  padding: "8px 12px",
+                  background: t.bg,
+                  borderRadius: "6px",
+                }}
+              >
+                <CheckCircle2 size={14} color={t.teal} strokeWidth={1.5} style={{ marginTop: "2px", flexShrink: 0 }} />
+                <span style={{ ...t.body, color: t.text }}>{tip}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Transaction Details */}
       <div style={card}>

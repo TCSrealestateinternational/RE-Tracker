@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { ArrowLeft, Edit3, Clock, DollarSign, TrendingUp, CalendarClock, ExternalLink, Home, FileStack, Eye, LayoutDashboard, Flame, Check, ChevronDown, ChevronRight, Download } from "lucide-react";
+import { useState, useRef } from "react";
+import { ArrowLeft, Edit3, Clock, DollarSign, TrendingUp, CalendarClock, ExternalLink, Home, FileStack, Eye, LayoutDashboard, Flame, Check, ChevronDown, ChevronRight, Download, MessageSquare, Plus, X } from "lucide-react";
 import type { ChecklistTemplateItem } from "@/constants/checklist-buyer";
 import { t, card, btnPrimary } from "@/styles/theme";
 import { formatHours } from "@/utils/dates";
@@ -19,6 +19,7 @@ interface ClientDetailProps {
   checklist?: TransactionChecklist;
   deal?: Deal;
   onToggleItem: (checklistId: string, checklist: TransactionChecklist, key: string, transactionId?: string) => void;
+  onUpdateClient: (id: string, data: Partial<Client>) => Promise<void>;
   onEdit: () => void;
   onBack: () => void;
   initialTab?: DetailTab;
@@ -37,7 +38,7 @@ function fmtDollars(n: number): string {
   return "$" + n.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 });
 }
 
-export function ClientDetail({ client, entries, checklist, deal, onToggleItem, onEdit, onBack, initialTab = "overview" }: ClientDetailProps) {
+export function ClientDetail({ client, entries, checklist, deal, onToggleItem, onUpdateClient, onEdit, onBack, initialTab = "overview" }: ClientDetailProps) {
   const [activeTab, setActiveTab] = useState<DetailTab>(initialTab);
   const { hasHearthPortal } = useSubscription();
   const { syncDealToTransaction, activateHearthPortal } = useTransactionSync();
@@ -410,6 +411,9 @@ export function ClientDetail({ client, entries, checklist, deal, onToggleItem, o
             )}
           </div>
 
+          {/* ── Client Dashboard Message ── */}
+          <ClientDashboardMessageCard client={client} onUpdateClient={onUpdateClient} />
+
           {/* ── Transaction Checklist ── */}
           {checklist && (
             <div style={card}>
@@ -474,6 +478,173 @@ export function ClientDetail({ client, entries, checklist, deal, onToggleItem, o
       {activeTab === "client-view" && (
         <ClientViewPanel client={client} checklist={checklist} onToggleItem={onToggleItem} />
       )}
+    </div>
+  );
+}
+
+function ClientDashboardMessageCard({
+  client,
+  onUpdateClient,
+}: {
+  client: Client;
+  onUpdateClient: (id: string, data: Partial<Client>) => Promise<void>;
+}) {
+  const [message, setMessage] = useState(client.statusMessage ?? "");
+  const [items, setItems] = useState<string[]>(client.actionItems ?? []);
+  const [newItem, setNewItem] = useState("");
+  const [saving, setSaving] = useState(false);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  async function saveMessage(val: string) {
+    setSaving(true);
+    await onUpdateClient(client.id, { statusMessage: val || undefined });
+    setSaving(false);
+  }
+
+  async function saveItems(updated: string[]) {
+    setItems(updated);
+    await onUpdateClient(client.id, { actionItems: updated.length > 0 ? updated : undefined });
+  }
+
+  function handleAddItem() {
+    const trimmed = newItem.trim();
+    if (!trimmed) return;
+    const updated = [...items, trimmed];
+    setNewItem("");
+    saveItems(updated);
+  }
+
+  function handleRemoveItem(index: number) {
+    const updated = items.filter((_, i) => i !== index);
+    saveItems(updated);
+  }
+
+  const firstName = client.name.split(" ")[0];
+
+  return (
+    <div style={card}>
+      <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "14px" }}>
+        <MessageSquare size={16} color={t.teal} strokeWidth={2} />
+        <h3 style={{ ...t.sectionHeader, color: t.text }}>Client Dashboard Message</h3>
+      </div>
+      <p style={{ ...t.caption, color: t.textTertiary, marginBottom: "16px" }}>
+        This is what {firstName} sees on their dashboard while waiting for a transaction.
+      </p>
+
+      {/* Status message textarea */}
+      <div style={{ marginBottom: "16px" }}>
+        <label style={{ ...t.label, color: t.textSecondary, display: "block", marginBottom: "6px" }}>
+          Status Message
+        </label>
+        <textarea
+          ref={textareaRef}
+          value={message}
+          onChange={(e) => setMessage(e.target.value)}
+          onBlur={() => saveMessage(message)}
+          placeholder="e.g. We're waiting on your pre-approval letter"
+          rows={3}
+          style={{
+            width: "100%",
+            padding: "10px 12px",
+            borderRadius: "8px",
+            border: `1px solid ${t.borderMedium}`,
+            fontSize: "14px",
+            fontFamily: t.font,
+            color: t.text,
+            background: t.surface,
+            outline: "none",
+            boxSizing: "border-box" as const,
+            resize: "vertical",
+            transition: "border-color 0.15s",
+          }}
+        />
+        {saving && <span style={{ ...t.caption, color: t.textTertiary, marginTop: "4px", display: "block" }}>Saving...</span>}
+      </div>
+
+      {/* Action items list */}
+      <div>
+        <label style={{ ...t.label, color: t.textSecondary, display: "block", marginBottom: "8px" }}>
+          Action Items
+        </label>
+        {items.length > 0 && (
+          <div style={{ display: "grid", gap: "4px", marginBottom: "8px" }}>
+            {items.map((item, i) => (
+              <div
+                key={i}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "10px",
+                  padding: "8px 12px",
+                  background: t.bg,
+                  borderRadius: "6px",
+                }}
+              >
+                <span style={{ ...t.body, color: t.text, flex: 1 }}>{item}</span>
+                <button
+                  onClick={() => handleRemoveItem(i)}
+                  style={{
+                    background: "none",
+                    border: "none",
+                    cursor: "pointer",
+                    padding: "2px",
+                    display: "flex",
+                    color: t.textTertiary,
+                  }}
+                  title="Remove item"
+                >
+                  <X size={14} strokeWidth={2} />
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Add new item */}
+        <div style={{ display: "flex", gap: "8px" }}>
+          <input
+            type="text"
+            value={newItem}
+            onChange={(e) => setNewItem(e.target.value)}
+            onKeyDown={(e) => { if (e.key === "Enter") handleAddItem(); }}
+            placeholder="Add an action item..."
+            style={{
+              flex: 1,
+              padding: "8px 12px",
+              borderRadius: "8px",
+              border: `1px solid ${t.borderMedium}`,
+              fontSize: "14px",
+              fontFamily: t.font,
+              color: t.text,
+              background: t.surface,
+              outline: "none",
+              boxSizing: "border-box" as const,
+            }}
+          />
+          <button
+            onClick={handleAddItem}
+            disabled={!newItem.trim()}
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "4px",
+              padding: "8px 12px",
+              background: newItem.trim() ? t.teal : t.bg,
+              color: newItem.trim() ? t.textInverse : t.textTertiary,
+              border: "none",
+              borderRadius: "8px",
+              fontSize: "13px",
+              fontWeight: 600,
+              fontFamily: t.font,
+              cursor: newItem.trim() ? "pointer" : "default",
+              transition: "background 0.15s",
+            }}
+          >
+            <Plus size={14} strokeWidth={2} />
+            Add
+          </button>
+        </div>
+      </div>
     </div>
   );
 }

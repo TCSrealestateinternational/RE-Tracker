@@ -1,7 +1,6 @@
 import { useState, type ReactNode } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { Sidebar } from "./Sidebar";
-import { Header } from "./Header";
 import { t } from "@/styles/theme";
 
 export function Layout({ children }: { children: ReactNode }) {
@@ -18,8 +17,7 @@ export function Layout({ children }: { children: ReactNode }) {
         onToggle={() => setSidebarOpen((o) => !o)}
       />
       <div style={{ flex: 1, display: "flex", flexDirection: "column", minWidth: 0 }}>
-        <Header />
-        <main className="main-content" style={{ flex: 1 }}>
+        <main className="main-content" style={{ flex: 1, paddingTop: "32px" }}>
           {children}
         </main>
       </div>

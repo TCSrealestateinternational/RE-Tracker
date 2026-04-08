@@ -112,15 +112,7 @@ a {
 .main-content {
   padding: 4px 32px 32px;
 }
-.header {
-  padding: 16px 32px;
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  background: rgba(245, 240, 235, 0.8);
-  position: sticky;
-  top: 0;
-  z-index: 100;
-}
+/* Header removed — all controls now in sidebar */
 
 /* ── Bento grid ── */
 .bento-grid {
@@ -200,9 +192,6 @@ a {
   .main-content {
     padding: 4px 20px 20px;
   }
-  .header {
-    padding: 14px 20px;
-  }
 }
 
 /* ── Mobile: ≤768px ── */
@@ -227,11 +216,9 @@ a {
   }
 
   .main-content {
-    padding: 4px 14px 20px;
+    padding: 60px 14px 20px;
   }
-  .header {
-    padding: 14px 14px 14px 60px;
-  }
+  /* main-content gets extra top padding on mobile for hamburger */
 
   .bento-8, .bento-7, .bento-5, .bento-4, .bento-full {
     grid-column: 1 / -1;

@@ -95,6 +95,10 @@ export interface Client {
   // Hearth portal link
   hearthUserId?: string;
 
+  // Agent-editable client status (shown on client dashboard)
+  statusMessage?: string;
+  actionItems?: string[];
+
   createdAt: number;
   updatedAt: number;
 }
