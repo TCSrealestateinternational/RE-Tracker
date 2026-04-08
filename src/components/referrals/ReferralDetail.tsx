@@ -53,8 +53,8 @@ export function ReferralDetail({ referral, onEdit, onBack, onDelete }: ReferralD
           Back to Referrals
         </button>
 
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "28px" }}>
-          <div>
+        <div className="page-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "28px" }}>
+          <div style={{ minWidth: 0, flex: 1 }}>
             <h2 style={{ ...t.pageTitle, color: t.text, marginBottom: "4px" }}>{referral.clientName}</h2>
             <div style={{ display: "flex", alignItems: "center", gap: "8px", marginTop: "4px" }}>
               <span style={{

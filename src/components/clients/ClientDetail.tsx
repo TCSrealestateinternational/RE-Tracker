@@ -111,10 +111,10 @@ export function ClientDetail({ client, entries, checklist, deal, onToggleItem, o
           Back to Clients
         </button>
 
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "20px" }}>
-          <div>
+        <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "space-between", alignItems: "flex-start", gap: "12px", marginBottom: "20px" }}>
+          <div style={{ minWidth: 0, flex: "1 1 200px" }}>
             <h2 style={{ ...t.pageTitle, color: t.text, marginBottom: "4px" }}>{client.name}</h2>
-            <p style={{ ...t.caption, color: t.textTertiary, display: "flex", alignItems: "center", gap: "6px" }}>
+            <p style={{ ...t.caption, color: t.textTertiary, display: "flex", alignItems: "center", gap: "6px", flexWrap: "wrap" }}>
               <span style={{
                 display: "inline-flex", alignItems: "center", gap: "4px",
                 padding: "2px 8px", borderRadius: "4px",
@@ -125,13 +125,13 @@ export function ClientDetail({ client, entries, checklist, deal, onToggleItem, o
                 {isBuyer ? <Home size={11} strokeWidth={2.5} /> : <FileStack size={11} strokeWidth={2.5} />}
                 {client.status}
               </span>
-              {client.stage}
-              {client.leadSource && <> &middot; {client.leadSource}</>}
-              {client.email && <> &middot; {client.email}</>}
-              {client.phone && <> &middot; {client.phone}</>}
+              <span>{client.stage}</span>
+              {client.leadSource && <span>&middot; {client.leadSource}</span>}
+              {client.email && <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", maxWidth: "180px", display: "inline-block" }}>&middot; {client.email}</span>}
+              {client.phone && <span>&middot; {client.phone}</span>}
             </p>
             {client.additionalContacts?.length > 0 && (
-              <p style={{ ...t.caption, color: t.textTertiary, marginTop: "4px" }}>
+              <p style={{ ...t.caption, color: t.textTertiary, marginTop: "4px", wordBreak: "break-word" }}>
                 Also: {client.additionalContacts.map((c) => {
                   const parts = [c.name];
                   if (c.email) parts.push(c.email);
@@ -141,7 +141,7 @@ export function ClientDetail({ client, entries, checklist, deal, onToggleItem, o
               </p>
             )}
           </div>
-          <div style={{ display: "flex", gap: "8px" }}>
+          <div style={{ display: "flex", gap: "8px", flexWrap: "wrap", flexShrink: 0 }}>
             {hasHearthPortal && deal && !transactionId && (
               <button
                 onClick={handleActivatePortal}
@@ -150,25 +150,26 @@ export function ClientDetail({ client, entries, checklist, deal, onToggleItem, o
                   ...btnPrimary,
                   display: "flex", alignItems: "center", gap: "6px",
                   opacity: portalActivating ? 0.6 : 1,
+                  fontSize: "13px", padding: "8px 14px",
                 }}
               >
                 <Flame size={14} strokeWidth={1.5} />
-                {portalActivating ? "Activating..." : "Activate Hearth Portal"}
+                {portalActivating ? "Activating..." : "Activate Hearth"}
               </button>
             )}
             {hasHearthPortal && transactionId && (
               <span style={{
                 display: "flex", alignItems: "center", gap: "6px",
-                padding: "8px 16px", fontSize: "13px", fontFamily: t.font,
+                padding: "8px 14px", fontSize: "13px", fontFamily: t.font,
                 color: t.success, background: t.successLight, borderRadius: "8px",
               }}>
                 <Check size={14} strokeWidth={2} />
-                Hearth Portal Active
+                Hearth Active
               </span>
             )}
             <button onClick={() => exportClientPDF(client)} style={{
               display: "flex", alignItems: "center", gap: "6px",
-              padding: "8px 16px", background: "transparent", border: `1px solid ${t.border}`,
+              padding: "8px 14px", background: "transparent", border: `1px solid ${t.border}`,
               borderRadius: "8px", cursor: "pointer", fontSize: "13px", fontFamily: t.font,
               color: t.textSecondary,
             }}>
@@ -177,7 +178,7 @@ export function ClientDetail({ client, entries, checklist, deal, onToggleItem, o
             </button>
             <button onClick={onEdit} style={{
               display: "flex", alignItems: "center", gap: "6px",
-              padding: "8px 16px", background: "transparent", border: `1px solid ${t.border}`,
+              padding: "8px 14px", background: "transparent", border: `1px solid ${t.border}`,
               borderRadius: "8px", cursor: "pointer", fontSize: "13px", fontFamily: t.font,
               color: t.textSecondary,
             }}>
@@ -257,7 +258,7 @@ export function ClientDetail({ client, entries, checklist, deal, onToggleItem, o
                 {(client.lenderName || (client.preApprovalAmount ?? 0) > 0) && (
                   <div style={{
                     background: t.tealLight, borderRadius: "8px", padding: "12px 16px", marginBottom: "12px",
-                    display: "flex", justifyContent: "space-between", alignItems: "center",
+                    display: "flex", flexWrap: "wrap", justifyContent: "space-between", alignItems: "center", gap: "8px",
                   }}>
                     {client.lenderName && (
                       <div>

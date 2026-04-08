@@ -31,7 +31,8 @@ export function LeadSourceReport({ entries, deals }: LeadSourceReportProps) {
   return (
     <div style={card}>
       <h3 style={{ ...t.sectionHeader, color: t.text, marginBottom: "20px" }}>Lead Source ROI</h3>
-      <table style={{ width: "100%", borderCollapse: "collapse" }}>
+      <div className="table-scroll">
+      <table style={{ width: "100%", borderCollapse: "collapse", minWidth: "400px" }}>
         <thead>
           <tr>
             {["Source", "Hours", "Commission", "$/Hour"].map((h, i) => (
@@ -62,6 +63,7 @@ export function LeadSourceReport({ entries, deals }: LeadSourceReportProps) {
           ))}
         </tbody>
       </table>
+      </div>
     </div>
   );
 }

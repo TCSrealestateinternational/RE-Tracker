@@ -64,7 +64,7 @@ export function PaceTracker({ goal, deals }: PaceTrackerProps) {
       </div>
 
       {/* Stats */}
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "12px", marginBottom: "24px" }}>
+      <div className="grid-3col" style={{ marginBottom: "24px" }}>
         {[
           { label: "Closed", value: closedDeals.length, color: t.teal },
           { label: "Remaining", value: dealsRemaining, color: t.gold },

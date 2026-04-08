@@ -1,4 +1,4 @@
-import { doc, setDoc, updateDoc } from "firebase/firestore";
+import { collection, doc, setDoc, updateDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useAuth } from "@/context/AuthContext";
 import type { Deal, Client, SharedTransactionStatus } from "@/types";
@@ -21,7 +21,7 @@ export function useTransactionSync() {
     if (!user || !profile) throw new Error("Not authenticated");
 
     const brokerageId = profile.brokerageId;
-    const txId = deal.transactionId || doc(db, "transactions", "_").id;
+    const txId = deal.transactionId || doc(collection(db, "transactions")).id;
     const txRef = doc(db, "transactions", txId);
     const now = Date.now();
 

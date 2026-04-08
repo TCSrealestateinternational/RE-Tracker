@@ -29,7 +29,7 @@ export function RevenuePerHourReport({ clients, entries }: RevenuePerHourReportP
 
   return (
     <div style={card}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
+      <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "space-between", alignItems: "center", gap: "8px", marginBottom: "20px" }}>
         <h3 style={{ ...t.sectionHeader, color: t.text }}>Revenue Per Hour</h3>
         <span style={{ ...t.stat, fontSize: "20px", color: t.teal }}>
           ${overallRPH.toFixed(0)}/hr overall

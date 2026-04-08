@@ -252,7 +252,7 @@ export function ClientViewPanel({ client, checklist, onToggleItem }: ClientViewP
               {(client.lenderName || (client.preApprovalAmount ?? 0) > 0) && (
                 <div style={{
                   background: t.tealLight, borderRadius: "8px", padding: "12px 16px", marginBottom: "12px",
-                  display: "flex", justifyContent: "space-between", alignItems: "center",
+                  display: "flex", flexWrap: "wrap", justifyContent: "space-between", alignItems: "center", gap: "8px",
                 }}>
                   {client.lenderName && (
                     <div>
@@ -348,7 +348,7 @@ export function ClientViewPanel({ client, checklist, onToggleItem }: ClientViewP
 
         {/* Key Dates */}
         <CollapsibleSection title="Key Dates">
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
+          <div className="inline-2col" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
             {isBuyer ? (
               <>
                 <DateCard label="Under Contract" date={client.dateUnderContract} />

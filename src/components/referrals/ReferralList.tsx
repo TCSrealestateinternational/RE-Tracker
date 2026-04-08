@@ -117,7 +117,7 @@ export function ReferralList({ referrals, onSelect, onAdd }: ReferralListProps) 
 
   return (
     <div>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
+      <div className="page-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
         <h2 style={{ ...t.pageTitle, color: t.text }}>Referrals</h2>
         <button data-tour="add-referral" onClick={onAdd} style={{ ...btnPrimary, display: "flex", alignItems: "center", gap: "8px" }}>
           <Gift size={16} strokeWidth={2} />
