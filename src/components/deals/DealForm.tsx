@@ -35,6 +35,27 @@ export function DealForm({ clients, initial, onSubmit, onCancel }: DealFormProps
   const [leadSource, setLeadSource] = useState<LeadSource | "">(initial?.leadSource ?? "");
   const [notes, setNotes] = useState(initial?.notes ?? "");
 
+  // Auto-populate commission from client when selecting a new client (not editing)
+  function handleClientChange(newClientId: string) {
+    setClientId(newClientId);
+    if (!initial) {
+      const client = clients.find((c) => c.id === newClientId);
+      if (client) {
+        setCommissionMode(client.commissionMode ?? "percentage");
+        if (client.commissionMode === "flat" && client.commissionFlat > 0) {
+          setCommissionFlatStr(String(client.commissionFlat));
+        } else if (client.commissionPercent > 0) {
+          setCommissionPctStr(String(client.commissionPercent));
+        }
+        // Pre-fill purchase price from buyer priceMax or seller listPrice
+        const basePrice = client.status === "buyer"
+          ? (client.priceRange?.max ?? 0)
+          : (client.listPrice ?? 0);
+        if (basePrice > 0) setPurchasePriceStr(String(basePrice));
+      }
+    }
+  }
+
   const selectedClient = clients.find((c) => c.id === clientId);
 
   const purchasePrice = parseFloat(purchasePriceStr) || 0;
@@ -73,7 +94,7 @@ export function DealForm({ clients, initial, onSubmit, onCancel }: DealFormProps
       </h2>
       <div style={{ display: "grid", gap: "16px", marginBottom: "16px" }}>
         <label>{labelEl("Client *")}
-          <select value={clientId} onChange={(e) => setClientId(e.target.value)} required style={inputBase}>
+          <select value={clientId} onChange={(e) => handleClientChange(e.target.value)} required style={inputBase}>
             <option value="">Select client...</option>
             {clients.map((c) => <option key={c.id} value={c.id}>{c.status === "buyer" ? "🏠" : "📄"} {c.name}</option>)}
           </select></label>
