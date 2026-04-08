@@ -3,6 +3,7 @@ import { useClients } from "@/hooks/useClients";
 import { useTimeEntries } from "@/hooks/useTimeEntries";
 import { useChecklists } from "@/hooks/useChecklists";
 import { useDeals } from "@/hooks/useDeals";
+import { useTransactionSync } from "@/hooks/useTransactionSync";
 import { useAuth } from "@/context/AuthContext";
 import { ClientList } from "@/components/clients/ClientList";
 import { ClientForm } from "@/components/clients/ClientForm";
@@ -17,7 +18,8 @@ export function ClientsPage() {
   const { clients, error: firestoreError, addClient, updateClient, deleteClient } = useClients();
   const { entries } = useTimeEntries();
   const { createChecklist, getClientChecklist, toggleItem } = useChecklists();
-  const { deals } = useDeals();
+  const { deals, updateDeal } = useDeals();
+  const { syncDealToTransaction } = useTransactionSync();
   const { profile } = useAuth();
   const [view, setView] = useState<View>("list");
   const [selected, setSelected] = useState<Client | null>(null);
@@ -58,7 +60,38 @@ export function ClientsPage() {
         initial={{ ...selected, additionalContacts: selected.additionalContacts ?? [] }}
         onSubmit={async (data) => {
           await updateClient(selected.id, data);
-          setSelected({ ...selected, ...data } as Client);
+
+          // Sync overlapping fields to all deals linked to this client
+          const updatedClient = { ...selected, ...data } as Client;
+          const linkedDeals = deals.filter((d) => d.clientId === selected.id);
+          for (const deal of linkedDeals) {
+            const projectedCommission =
+              data.commissionMode === "flat"
+                ? data.commissionFlat
+                : deal.purchasePrice * (data.commissionPercent / 100);
+
+            const patch: Partial<typeof deal> = {
+              clientName: data.name,
+              commissionPercent: data.commissionPercent,
+              projectedCommission,
+              leadSource: data.leadSource,
+              expectedCloseDate:
+                data.status === "buyer"
+                  ? data.projectedCloseDate ?? ""
+                  : data.expectedCloseDate ?? "",
+            };
+
+            await updateDeal(deal.id, patch);
+
+            if (deal.transactionId) {
+              await syncDealToTransaction(
+                { ...deal, ...patch },
+                updatedClient,
+              );
+            }
+          }
+
+          setSelected(updatedClient);
           setView("detail");
         }}
         onCancel={() => setView("detail")}
