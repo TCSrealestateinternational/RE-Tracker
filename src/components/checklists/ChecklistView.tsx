@@ -96,7 +96,7 @@ function StageSection({
   onToggleNotify?: ChecklistViewProps["onToggleNotify"];
 }) {
   const allDone = completed === items.length;
-  const [open, setOpen] = useState(!allDone);
+  const [open, setOpen] = useState(false);
   const Chevron = open ? ChevronDown : ChevronRight;
 
   return (

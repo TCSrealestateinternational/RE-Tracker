@@ -110,7 +110,7 @@ a {
 
 /* ── Responsive utility classes ── */
 .main-content {
-  padding: 4px 32px 32px;
+  padding: 32px 32px 32px;
 }
 /* Header removed — all controls now in sidebar */
 
@@ -190,7 +190,7 @@ a {
     grid-template-columns: 1fr 1fr;
   }
   .main-content {
-    padding: 4px 20px 20px;
+    padding: 32px 20px 20px;
   }
 }
 
