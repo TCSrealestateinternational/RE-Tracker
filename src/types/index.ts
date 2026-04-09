@@ -99,6 +99,11 @@ export interface Client {
   statusMessage?: string;
   actionItems?: string[];
 
+  // Archive lifecycle
+  archivedAt?: number;                 // set when archived; cleared when un-archived
+  oneYearReminderDate?: string;        // YYYY-MM-DD
+  oneYearReminderHandledAt?: number;   // set when agent dismisses/reaches out
+
   createdAt: number;
   updatedAt: number;
 }
@@ -247,14 +252,15 @@ export const PLAN_DEFAULTS: Record<SubscriptionPlan, SubscriptionFeatures> = {
 
 // ── Dashboard Widget Preferences ──
 export const DASHBOARD_WIDGETS = {
-  closeDateAlerts: "Close Date Alerts",
-  revenueStats:    "Revenue Stats",
-  incomeGoalBar:   "Annual Goal Ring",
-  pipelineSummary: "Pipeline Summary",
-  followUpAlerts:  "Follow-Up Alerts",
-  dailyCheckIn:    "Daily Check-In",
-  weeklyHours:     "Weekly Hours",
-  goalProgress:    "Goal Progress",
+  closeDateAlerts:   "Close Date Alerts",
+  revenueStats:      "Revenue Stats",
+  incomeGoalBar:     "Annual Goal Ring",
+  pipelineSummary:   "Pipeline Summary",
+  followUpAlerts:    "Follow-Up Alerts",
+  dailyCheckIn:      "Daily Check-In",
+  weeklyHours:       "Weekly Hours",
+  goalProgress:      "Goal Progress",
+  oneYearReminders:  "1-Year Reach-Outs",
 } as const;
 
 export type DashboardWidgetKey = keyof typeof DASHBOARD_WIDGETS;
@@ -263,7 +269,7 @@ export type DashboardWidgetPrefs = Record<DashboardWidgetKey, boolean>;
 export const DEFAULT_WIDGET_PREFS: DashboardWidgetPrefs = {
   closeDateAlerts: true, revenueStats: true, incomeGoalBar: true,
   pipelineSummary: true, followUpAlerts: true, dailyCheckIn: true,
-  weeklyHours: true, goalProgress: true,
+  weeklyHours: true, goalProgress: true, oneYearReminders: true,
 };
 
 // ── Shared User (replaces UserProfile — matches Hearth's User type) ──
@@ -297,6 +303,7 @@ export interface SharedTransaction {
   hearthPortalActive: boolean;
   reTrackerDealId: string;
   reTrackerClientId: string;
+  archivedAt?: number;
   createdAt: number;
   updatedAt: number;
 }

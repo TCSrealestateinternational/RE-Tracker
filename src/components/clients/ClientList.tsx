@@ -1,9 +1,11 @@
 import { useState, useCallback } from "react";
-import { UserPlus, AlertCircle, ChevronDown, ChevronRight, Trash2, RefreshCw, Home, FileStack, Eye, Archive, Download } from "lucide-react";
+import { UserPlus, AlertCircle, ChevronDown, ChevronRight, Trash2, RefreshCw, Home, FileStack, Eye, Archive, Download, Bell, X } from "lucide-react";
+import { deleteField } from "firebase/firestore";
 import { t, card, btnPrimary, btnSecondary, inputBase } from "@/styles/theme";
 import { todayStr } from "@/utils/dates";
 import { exportClientPDF } from "@/utils/export";
 import { useLongPress } from "@/hooks/useLongPress";
+import { defaultReminderDate } from "@/utils/reminders";
 import { ContextMenu } from "./ContextMenu";
 import type { ContextMenuAction } from "./ContextMenu";
 import type { Client, ClientStage } from "@/types";
@@ -15,6 +17,8 @@ interface ClientListProps {
   onAdd: () => void;
   onDeleteClients?: (ids: string[]) => Promise<void>;
   onBulkUpdateStage?: (ids: string[], stage: ClientStage) => Promise<void>;
+  onArchiveClient?: (client: Client) => void;
+  onUpdateClient?: (id: string, patch: Partial<Client>) => Promise<void>;
 }
 
 function getProjectedCommission(c: Client): number {
@@ -32,7 +36,7 @@ function fmtDollars(n: number): string {
 
 type FolderKey = "closed" | "archived";
 
-export function ClientList({ clients, onSelect, onClientView, onAdd, onDeleteClients, onBulkUpdateStage }: ClientListProps) {
+export function ClientList({ clients, onSelect, onClientView, onAdd, onDeleteClients, onBulkUpdateStage, onArchiveClient, onUpdateClient }: ClientListProps) {
   const today = todayStr();
 
   // Separate active vs folder clients
@@ -120,11 +124,11 @@ export function ClientList({ clients, onSelect, onClientView, onAdd, onDeleteCli
   function getContextActions(clientId: string): ContextMenuAction[] {
     const client = clients.find((c) => c.id === clientId);
     const actions: ContextMenuAction[] = [];
-    if (onBulkUpdateStage && client?.stage !== "archived") {
+    if (onArchiveClient && client && client.stage !== "archived") {
       actions.push({
         label: "Archive",
         icon: Archive,
-        onClick: () => onBulkUpdateStage([clientId], "archived"),
+        onClick: () => onArchiveClient(client),
       });
     }
     if (onDeleteClients) {
@@ -145,6 +149,7 @@ export function ClientList({ clients, onSelect, onClientView, onAdd, onDeleteCli
   const renderFolder = (key: FolderKey, label: string, items: Client[], color: string) => {
     if (items.length === 0) return null;
     const isOpen = openFolders[key];
+    const isArchived = key === "archived";
     return (
       <div style={{ marginBottom: "8px" }}>
         <button
@@ -170,18 +175,33 @@ export function ClientList({ clients, onSelect, onClientView, onAdd, onDeleteCli
         {isOpen && (
           <div style={{ display: "grid", gap: "8px", paddingLeft: "8px" }}>
             {items.map((c) => (
-              <ClientRow
-                key={c.id}
-                client={c}
-                today={today}
-                showCheckbox
-                bulkMode={bulkMode}
-                isSelected={selectedIds.has(c.id)}
-                onSelect={onSelect}
-                onClientView={onClientView}
-                onToggleSelect={toggleSelect}
-                onLongPress={openContextMenu}
-              />
+              isArchived ? (
+                <ArchivedRow
+                  key={c.id}
+                  client={c}
+                  today={today}
+                  bulkMode={bulkMode}
+                  isSelected={selectedIds.has(c.id)}
+                  onSelect={onSelect}
+                  onClientView={onClientView}
+                  onToggleSelect={toggleSelect}
+                  onLongPress={openContextMenu}
+                  onUpdateClient={onUpdateClient}
+                />
+              ) : (
+                <ClientRow
+                  key={c.id}
+                  client={c}
+                  today={today}
+                  showCheckbox
+                  bulkMode={bulkMode}
+                  isSelected={selectedIds.has(c.id)}
+                  onSelect={onSelect}
+                  onClientView={onClientView}
+                  onToggleSelect={toggleSelect}
+                  onLongPress={openContextMenu}
+                />
+              )
             ))}
           </div>
         )}
@@ -244,7 +264,7 @@ export function ClientList({ clients, onSelect, onClientView, onAdd, onDeleteCli
                     position: "absolute", top: "100%", left: 0, marginTop: "4px",
                     background: t.surface, border: `1px solid ${t.border}`, borderRadius: "8px",
                     boxShadow: "0 4px 12px rgba(0,0,0,0.1)", zIndex: 10,
-                    overflow: "hidden", minWidth: "150px",
+                    overflow: "hidden", minWidth: "190px",
                   }}>
                     {(["prospect", "active", "under-contract", "closed", "archived"] as ClientStage[]).map((stage) => (
                       <button key={stage} onClick={() => handleBulkStatusChange(stage)} style={{
@@ -259,6 +279,15 @@ export function ClientList({ clients, onSelect, onClientView, onAdd, onDeleteCli
                         {stage}
                       </button>
                     ))}
+                    <div style={{
+                      borderTop: `1px solid ${t.border}`,
+                      padding: "6px 14px",
+                      ...t.caption,
+                      color: t.textTertiary,
+                      lineHeight: "1.35",
+                    }}>
+                      Bulk archive skips Hearth prompt
+                    </div>
                   </div>
                 )}
               </div>
@@ -574,6 +603,109 @@ function ClientRow({ client: c, today, showCheckbox, bulkMode, isSelected, onSel
         >
           <Eye size={14} color={t.teal} strokeWidth={1.5} />
         </button>
+      )}
+    </div>
+  );
+}
+
+// ── ArchivedRow ──
+// Wraps ClientRow with a small reminder control strip.
+interface ArchivedRowProps {
+  client: Client;
+  today: string;
+  bulkMode: boolean;
+  isSelected: boolean;
+  onSelect: (c: Client) => void;
+  onClientView?: (c: Client) => void;
+  onToggleSelect: (id: string) => void;
+  onLongPress: (clientId: string, coords: { x: number; y: number }) => void;
+  onUpdateClient?: (id: string, patch: Partial<Client>) => Promise<void>;
+}
+
+function ArchivedRow({ client, today, bulkMode, isSelected, onSelect, onClientView, onToggleSelect, onLongPress, onUpdateClient }: ArchivedRowProps) {
+  const hasReminder = Boolean(client.oneYearReminderDate);
+  const handled = Boolean(client.oneYearReminderHandledAt);
+
+  async function handleSetReminder() {
+    if (!onUpdateClient) return;
+    const date = defaultReminderDate(client);
+    await onUpdateClient(client.id, { oneYearReminderDate: date });
+  }
+
+  async function handleClearReminder() {
+    if (!onUpdateClient) return;
+    // Use deleteField via a cast so the plan's intent (cleanup) is preserved.
+    await onUpdateClient(client.id, {
+      oneYearReminderDate: deleteField() as unknown as string,
+      oneYearReminderHandledAt: deleteField() as unknown as number,
+    });
+  }
+
+  return (
+    <div style={{ display: "grid", gap: "4px" }}>
+      <ClientRow
+        client={client}
+        today={today}
+        showCheckbox
+        bulkMode={bulkMode}
+        isSelected={isSelected}
+        onSelect={onSelect}
+        onClientView={onClientView}
+        onToggleSelect={onToggleSelect}
+        onLongPress={onLongPress}
+      />
+      {onUpdateClient && (
+        <div style={{
+          display: "flex", alignItems: "center", gap: "8px",
+          padding: "4px 12px 4px 16px",
+          flexWrap: "wrap",
+        }}>
+          {!hasReminder && (
+            <button
+              onClick={handleSetReminder}
+              style={{
+                display: "inline-flex", alignItems: "center", gap: "6px",
+                padding: "4px 10px", fontSize: "11px", fontFamily: t.font,
+                background: "transparent", border: `1px dashed ${t.borderMedium}`,
+                borderRadius: "6px", cursor: "pointer", color: t.textSecondary,
+              }}
+            >
+              <Bell size={11} strokeWidth={2} />
+              Set 1-yr reminder
+            </button>
+          )}
+          {hasReminder && !handled && (
+            <span style={{
+              display: "inline-flex", alignItems: "center", gap: "6px",
+              padding: "4px 10px", fontSize: "11px", fontFamily: t.font,
+              background: t.goldLight, color: t.gold,
+              borderRadius: "6px",
+            }}>
+              <Bell size={11} strokeWidth={2} />
+              Reminder: {client.oneYearReminderDate}
+              <button
+                onClick={handleClearReminder}
+                title="Clear reminder"
+                style={{
+                  display: "inline-flex", alignItems: "center", justifyContent: "center",
+                  background: "none", border: "none", cursor: "pointer",
+                  padding: 0, marginLeft: "2px", color: t.gold,
+                }}
+              >
+                <X size={11} strokeWidth={2.5} />
+              </button>
+            </span>
+          )}
+          {hasReminder && handled && client.oneYearReminderHandledAt && (
+            <span style={{
+              ...t.caption,
+              color: t.textTertiary,
+              fontStyle: "italic",
+            }}>
+              Reached out {new Date(client.oneYearReminderHandledAt).toLocaleDateString()}
+            </span>
+          )}
+        </div>
       )}
     </div>
   );

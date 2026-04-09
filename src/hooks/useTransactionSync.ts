@@ -62,5 +62,12 @@ export function useTransactionSync() {
     });
   }
 
-  return { syncDealToTransaction, activateHearthPortal };
+  async function archiveTransaction(transactionId: string): Promise<void> {
+    await updateDoc(doc(db, "transactions", transactionId), {
+      archivedAt: Date.now(),
+      updatedAt: Date.now(),
+    });
+  }
+
+  return { syncDealToTransaction, activateHearthPortal, archiveTransaction };
 }

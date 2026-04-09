@@ -1,4 +1,6 @@
 import { useState } from "react";
+import { deleteField, doc, updateDoc } from "firebase/firestore";
+import { db } from "@/lib/firebase";
 import { useClients } from "@/hooks/useClients";
 import { useTimeEntries } from "@/hooks/useTimeEntries";
 import { useChecklists } from "@/hooks/useChecklists";
@@ -9,6 +11,7 @@ import { ClientList } from "@/components/clients/ClientList";
 import { ClientForm } from "@/components/clients/ClientForm";
 import { ClientDetail } from "@/components/clients/ClientDetail";
 import { AddToHearthModal } from "@/components/clients/AddToHearthModal";
+import { ArchiveClientModal } from "@/components/clients/ArchiveClientModal";
 import type { DetailTab } from "@/components/clients/ClientDetail";
 import type { Client, ClientStage } from "@/types";
 import { calcProjectedCommission } from "@/utils/commission";
@@ -16,16 +19,17 @@ import { calcProjectedCommission } from "@/utils/commission";
 type View = "list" | "add" | "detail" | "edit";
 
 export function ClientsPage() {
-  const { clients, error: firestoreError, addClient, updateClient, deleteClient } = useClients();
+  const { clients, error: firestoreError, addClient, updateClient, deleteClient, archiveClient } = useClients();
   const { entries } = useTimeEntries();
   const { createChecklist, getClientChecklist, toggleItem } = useChecklists();
   const { deals, updateDeal } = useDeals();
-  const { syncDealToTransaction } = useTransactionSync();
+  const { syncDealToTransaction, archiveTransaction } = useTransactionSync();
   const { profile } = useAuth();
   const [view, setView] = useState<View>("list");
   const [selected, setSelected] = useState<Client | null>(null);
   const [detailTab, setDetailTab] = useState<DetailTab>("overview");
   const [hearthPromptClient, setHearthPromptClient] = useState<Client | null>(null);
+  const [archiveTarget, setArchiveTarget] = useState<Client | null>(null);
 
   const hasHearthAccess = profile?.subscription?.features?.hearthPortal ?? false;
 
@@ -34,7 +38,55 @@ export function ClientsPage() {
   }
 
   async function handleBulkUpdateStage(ids: string[], stage: ClientStage) {
-    await Promise.all(ids.map((id) => updateClient(id, { stage })));
+    await Promise.all(ids.map(async (id) => {
+      if (stage === "archived") {
+        await updateDoc(doc(db, "clients", id), {
+          stage,
+          archivedAt: Date.now(),
+          updatedAt: Date.now(),
+        });
+      } else {
+        // Moving out of archived — clear the archivedAt flag so the invariant holds.
+        await updateDoc(doc(db, "clients", id), {
+          stage,
+          archivedAt: deleteField(),
+          updatedAt: Date.now(),
+        });
+      }
+    }));
+  }
+
+  async function handleUpdateClient(id: string, patch: Partial<Client>) {
+    await updateClient(id, patch);
+  }
+
+  async function handleArchiveClient(
+    client: Client,
+    { archiveHearth }: { archiveHearth: boolean },
+  ) {
+    await archiveClient(client.id);
+
+    if (archiveHearth && client.hearthUserId) {
+      const linkedDeals = deals.filter((d) => d.clientId === client.id && d.transactionId);
+      for (const d of linkedDeals) {
+        if (!d.transactionId) continue;
+        try {
+          await archiveTransaction(d.transactionId);
+        } catch (err) {
+          console.warn(
+            `Failed to archive Hearth transaction ${d.transactionId}:`,
+            err,
+          );
+        }
+      }
+    }
+
+    setArchiveTarget(null);
+    if (selected?.id === client.id) {
+      setSelected(null);
+      setView("list");
+      setDetailTab("overview");
+    }
   }
 
   if (view === "add") {
@@ -107,17 +159,27 @@ export function ClientsPage() {
     }
     const deal = deals.find((d) => d.clientId === selected.id);
     return (
-      <ClientDetail
-        client={selected}
-        entries={entries}
-        checklist={checklist}
-        deal={deal}
-        onToggleItem={toggleItem}
-        onUpdateClient={updateClient}
-        onEdit={() => setView("edit")}
-        onBack={() => { setSelected(null); setView("list"); setDetailTab("overview"); }}
-        initialTab={detailTab}
-      />
+      <>
+        <ClientDetail
+          client={selected}
+          entries={entries}
+          checklist={checklist}
+          deal={deal}
+          onToggleItem={toggleItem}
+          onUpdateClient={updateClient}
+          onEdit={() => setView("edit")}
+          onArchive={() => setArchiveTarget(selected)}
+          onBack={() => { setSelected(null); setView("list"); setDetailTab("overview"); }}
+          initialTab={detailTab}
+        />
+        {archiveTarget && (
+          <ArchiveClientModal
+            client={archiveTarget}
+            onClose={() => setArchiveTarget(null)}
+            onConfirm={(opts) => handleArchiveClient(archiveTarget, opts)}
+          />
+        )}
+      </>
     );
   }
 
@@ -139,6 +201,8 @@ export function ClientsPage() {
         onAdd={() => setView("add")}
         onDeleteClients={handleDeleteClients}
         onBulkUpdateStage={handleBulkUpdateStage}
+        onArchiveClient={(c) => setArchiveTarget(c)}
+        onUpdateClient={handleUpdateClient}
       />
       {hearthPromptClient && (
         <AddToHearthModal
@@ -147,6 +211,13 @@ export function ClientsPage() {
           onLinked={(hearthUserId) => {
             updateClient(hearthPromptClient.id, { hearthUserId });
           }}
+        />
+      )}
+      {archiveTarget && (
+        <ArchiveClientModal
+          client={archiveTarget}
+          onClose={() => setArchiveTarget(null)}
+          onConfirm={(opts) => handleArchiveClient(archiveTarget, opts)}
         />
       )}
     </>

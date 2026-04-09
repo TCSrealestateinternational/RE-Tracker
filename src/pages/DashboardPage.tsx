@@ -14,6 +14,7 @@ import { FollowUpAlerts } from "@/components/dashboard/FollowUpAlerts";
 import { PipelineSummary } from "@/components/dashboard/PipelineSummary";
 import { IncomeGoalBar } from "@/components/dashboard/IncomeGoalBar";
 import { CloseDateAlerts } from "@/components/dashboard/CloseDateAlerts";
+import { OneYearReminders } from "@/components/dashboard/OneYearReminders";
 import { DailyCheckInWidget } from "@/components/checkin/DailyCheckInWidget";
 import { getWeekStart, todayStr } from "@/utils/dates";
 import { DEFAULT_WIDGET_PREFS } from "@/types";
@@ -28,7 +29,7 @@ function getGreeting(): string {
 
 export function DashboardPage() {
   const { entries } = useTimeEntries();
-  const { clients } = useClients();
+  const { clients, updateClient } = useClients();
   const { deals, moveDeal, updateDeal } = useDeals();
   const { checkIns, todayCheckIn, getStreak, submitCheckIn } = useDailyCheckIns();
   const { goal } = useIncomeGoals();
@@ -47,6 +48,10 @@ export function DashboardPage() {
 
   const firstName = profile?.displayName?.split(" ")[0] || "there";
   const wp = profile?.dashboardWidgets ?? DEFAULT_WIDGET_PREFS;
+
+  async function handleDismissReminder(clientId: string) {
+    await updateClient(clientId, { oneYearReminderHandledAt: Date.now() });
+  }
 
   // Adaptive bento classes — expand remaining widget to full width when its pair is hidden
   const revClass = wp.incomeGoalBar ? "bento-8" : "bento-full";
@@ -100,6 +105,14 @@ export function DashboardPage() {
 
       {wp.closeDateAlerts && (
         <CloseDateAlerts deals={deals} onMoveDeal={moveDeal} onUpdateDeal={updateDeal} />
+      )}
+
+      {wp.oneYearReminders && (
+        <OneYearReminders
+          clients={clients}
+          onOpenClient={() => navigate("/clients")}
+          onDismiss={handleDismissReminder}
+        />
       )}
 
       {/* Bento grid */}

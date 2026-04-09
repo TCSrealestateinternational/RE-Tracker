@@ -1,10 +1,10 @@
 import { useEffect, useState } from "react";
 import {
-  collection, query, where, onSnapshot, addDoc, updateDoc, deleteDoc, doc,
+  collection, query, where, onSnapshot, addDoc, updateDoc, deleteDoc, deleteField, doc,
 } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useAuth } from "@/context/AuthContext";
-import type { Client } from "@/types";
+import type { Client, ClientStage } from "@/types";
 
 export function useClients() {
   const { user } = useAuth();
@@ -59,5 +59,25 @@ export function useClients() {
     await deleteDoc(doc(db, "clients", id));
   }
 
-  return { clients, loading, error, addClient, updateClient, deleteClient };
+  async function archiveClient(id: string) {
+    await updateDoc(doc(db, "clients", id), {
+      stage: "archived",
+      archivedAt: Date.now(),
+      updatedAt: Date.now(),
+    });
+  }
+
+  async function unarchiveClient(id: string, newStage: ClientStage = "closed") {
+    await updateDoc(doc(db, "clients", id), {
+      stage: newStage,
+      archivedAt: deleteField(),
+      updatedAt: Date.now(),
+    });
+  }
+
+  return {
+    clients, loading, error,
+    addClient, updateClient, deleteClient,
+    archiveClient, unarchiveClient,
+  };
 }

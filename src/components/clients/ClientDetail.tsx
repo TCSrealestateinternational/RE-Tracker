@@ -1,5 +1,5 @@
 import { useState, useRef } from "react";
-import { ArrowLeft, Edit3, Clock, DollarSign, TrendingUp, CalendarClock, ExternalLink, Home, FileStack, Eye, LayoutDashboard, Flame, Check, ChevronDown, ChevronRight, Download, MessageSquare, Plus, X } from "lucide-react";
+import { ArrowLeft, Edit3, Clock, DollarSign, TrendingUp, CalendarClock, ExternalLink, Home, FileStack, Eye, LayoutDashboard, Flame, Check, ChevronDown, ChevronRight, Download, MessageSquare, Plus, X, Archive } from "lucide-react";
 import type { ChecklistTemplateItem } from "@/constants/checklist-buyer";
 import { t, card, btnPrimary } from "@/styles/theme";
 import { formatHours } from "@/utils/dates";
@@ -21,6 +21,7 @@ interface ClientDetailProps {
   onToggleItem: (checklistId: string, checklist: TransactionChecklist, key: string, transactionId?: string) => void;
   onUpdateClient: (id: string, data: Partial<Client>) => Promise<void>;
   onEdit: () => void;
+  onArchive?: () => void;
   onBack: () => void;
   initialTab?: DetailTab;
 }
@@ -38,7 +39,7 @@ function fmtDollars(n: number): string {
   return "$" + n.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 });
 }
 
-export function ClientDetail({ client, entries, checklist, deal, onToggleItem, onUpdateClient, onEdit, onBack, initialTab = "overview" }: ClientDetailProps) {
+export function ClientDetail({ client, entries, checklist, deal, onToggleItem, onUpdateClient, onEdit, onArchive, onBack, initialTab = "overview" }: ClientDetailProps) {
   const [activeTab, setActiveTab] = useState<DetailTab>(initialTab);
   const { hasHearthPortal } = useSubscription();
   const { syncDealToTransaction, activateHearthPortal } = useTransactionSync();
@@ -194,6 +195,17 @@ export function ClientDetail({ client, entries, checklist, deal, onToggleItem, o
               <Edit3 size={14} strokeWidth={1.5} />
               Edit
             </button>
+            {onArchive && client.stage !== "archived" && (
+              <button onClick={onArchive} style={{
+                display: "flex", alignItems: "center", gap: "6px",
+                padding: "8px 14px", background: "transparent", border: `1px solid ${t.border}`,
+                borderRadius: "8px", cursor: "pointer", fontSize: "13px", fontFamily: t.font,
+                color: t.textSecondary,
+              }}>
+                <Archive size={14} strokeWidth={1.5} />
+                Archive
+              </button>
+            )}
           </div>
         </div>
 
