@@ -72,7 +72,7 @@ export function DashboardPage() {
       </div>
 
       {canInstall && (
-        <div style={{
+        <div className="wrap-row" style={{
           ...card,
           background: t.tealLight,
           border: `1px solid rgba(12, 65, 78, 0.15)`,

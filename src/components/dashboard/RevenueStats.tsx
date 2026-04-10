@@ -20,7 +20,7 @@ export function RevenueStats({ deals, entries }: RevenueStatsProps) {
 
   return (
     <div data-tour="revenue-stats" style={{ display: "flex", gap: "20px", flexWrap: "wrap" }}>
-      <div className="hover-lift" style={{
+      <div className="hover-lift stat-card" style={{
         ...card, flex: 1, minWidth: "160px", padding: "32px",
         display: "flex", alignItems: "center", gap: "16px",
         borderLeft: `3px solid ${t.teal}`, boxShadow: t.heroShadow,
@@ -32,7 +32,7 @@ export function RevenueStats({ deals, entries }: RevenueStatsProps) {
         </div>
       </div>
 
-      <div className="hover-lift" style={{
+      <div className="hover-lift stat-card" style={{
         ...card, flex: 1, minWidth: "160px", padding: "32px",
         display: "flex", alignItems: "center", gap: "16px",
         borderLeft: `3px solid ${t.gold}`, boxShadow: t.heroShadow,
@@ -52,7 +52,7 @@ export function RevenueStats({ deals, entries }: RevenueStatsProps) {
         </div>
       </div>
 
-      <div className="hover-lift" style={{
+      <div className="hover-lift stat-card" style={{
         ...card, flex: 1, minWidth: "160px", padding: "32px",
         display: "flex", alignItems: "center", gap: "16px",
         borderLeft: `3px solid ${t.teal}`, boxShadow: t.heroShadow,

@@ -413,7 +413,7 @@ export function ClientViewPanel({ client, checklist, onToggleItem }: ClientViewP
 
         {/* Key Dates */}
         <CollapsibleSection title="Key Dates">
-          <div className="inline-2col" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
+          <div className="inline-2col stack-mobile" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
             {isBuyer ? (
               <>
                 <DateCard label="Under Contract" date={client.dateUnderContract} />

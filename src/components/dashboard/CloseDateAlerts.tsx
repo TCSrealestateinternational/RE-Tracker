@@ -48,7 +48,7 @@ export function CloseDateAlerts({ deals, onMoveDeal, onUpdateDeal }: CloseDateAl
               Expected close: {deal.expectedCloseDate} — Did this deal close?
             </div>
           </div>
-          <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+          <div className="touch-actions" style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
             <button
               onClick={() => {
                 const today = new Date().toISOString().slice(0, 10);

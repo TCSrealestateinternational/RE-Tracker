@@ -275,9 +275,23 @@ a {
     gap: 10px;
   }
 
-  /* Report/tab rows: allow wrapping */
+  /* Report/tab rows: horizontally scrollable */
   .tab-row {
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    margin-left: -14px;
+    margin-right: -14px;
+    padding-left: 14px;
+    padding-right: 14px;
+  }
+  .tab-row::-webkit-scrollbar {
+    display: none;
+  }
+  .tab-row > button {
+    flex-shrink: 0;
+    min-height: 40px;
   }
 
   /* Revenue stats inner flex */
@@ -303,6 +317,103 @@ a {
 
   .email-truncate {
     max-width: 120px;
+  }
+
+  /* Generic card padding override on mobile */
+  .mobile-card {
+    padding: 18px !important;
+  }
+
+  /* Stat cards: tighter padding so they don't eat all the screen */
+  .stat-card {
+    padding: 18px !important;
+    min-width: 0 !important;
+    flex-basis: 100% !important;
+  }
+
+  /* Compact action button rows: ensure ≥44px touch target */
+  .touch-actions > button {
+    min-height: 44px;
+  }
+  .touch-actions {
+    gap: 8px !important;
+  }
+
+  /* Wrapping flex rows that need to wrap on mobile */
+  .wrap-row {
+    flex-wrap: wrap !important;
+  }
+
+  /* Reminder rows: smaller flex basis so they shrink */
+  .reminder-row > div:first-child {
+    flex: 1 1 100% !important;
+  }
+
+  /* Forms and inline grids inside forms */
+  .form-grid-2,
+  .form-grid-3,
+  .form-grid-4 {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Inline form grids defined with inline gridTemplateColumns must be overridden */
+  .stack-mobile {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Page title chip area: smaller font on mobile */
+  .page-header h1,
+  .page-header h2 {
+    font-size: 20px !important;
+  }
+
+  /* Detail header: stack title and actions */
+  .detail-header {
+    flex-direction: column !important;
+    align-items: stretch !important;
+  }
+  .detail-header-actions {
+    width: 100%;
+  }
+  .detail-header-actions > button,
+  .detail-header-actions > span {
+    flex: 1 1 calc(50% - 4px);
+    justify-content: center;
+  }
+
+  /* Bulk action toolbar: smaller buttons */
+  .bulk-toolbar > button {
+    flex: 1 1 calc(50% - 6px);
+    min-height: 40px;
+    justify-content: center;
+  }
+
+  /* Hide on mobile */
+  .hide-mobile {
+    display: none !important;
+  }
+
+  /* Show only on mobile */
+  .show-mobile {
+    display: initial !important;
+  }
+
+  /* Commission preset rows: stack into 2-3 columns */
+  .preset-row {
+    display: grid !important;
+    grid-template-columns: repeat(3, 1fr) !important;
+    gap: 6px !important;
+  }
+  .preset-row > button {
+    min-height: 32px;
+  }
+
+  /* PaceTracker monthly bars: shrink labels */
+  .pace-month-row > span:first-child {
+    width: 26px !important;
+  }
+  .pace-month-row > span:last-child {
+    width: 50px !important;
   }
 }
 

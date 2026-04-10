@@ -66,7 +66,7 @@ export function DailyCheckInWidget({ todayCheckIn, streak, onSubmit, checkIns }:
           <h3 style={{ ...t.sectionHeader, color: t.text }}>Today's Check-In</h3>
         </div>
         <StreakDots checkIns={checkIns} />
-        <div style={{ display: "flex", gap: "24px" }}>
+        <div className="wrap-row" style={{ display: "flex", gap: "24px", flexWrap: "wrap" }}>
           <div>
             <div style={{ ...t.stat, fontSize: "20px", color: todayCheckIn.prospected ? t.success : t.textTertiary }}>
               {todayCheckIn.prospected ? "Yes" : "No"}
@@ -114,7 +114,7 @@ export function DailyCheckInWidget({ todayCheckIn, streak, onSubmit, checkIns }:
           />
         </label>
       </div>
-      <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+      <div className="touch-actions" style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
         <button onClick={() => onSubmit(true, contacts)} style={btnPrimary}>
           Yes, I prospected
         </button>

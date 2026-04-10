@@ -150,9 +150,10 @@ function StageSection({
                   style={{ accentColor: t.teal, width: "15px", height: "15px", cursor: "pointer" }}
                 />
                 <span style={{
-                  ...t.body, flex: 1,
+                  ...t.body, flex: 1, minWidth: 0,
                   color: checked ? t.textTertiary : t.text,
                   textDecoration: checked ? "line-through" : "none",
+                  wordBreak: "break-word",
                 }}>
                   {item.label}
                 </span>

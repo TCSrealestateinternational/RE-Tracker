@@ -230,7 +230,7 @@ export function ClientList({ clients, onSelect, onClientView, onAdd, onDeleteCli
 
       {/* Bulk action bar */}
       {bulkMode && (
-        <div style={{
+        <div className="bulk-toolbar" style={{
           ...card, padding: "10px 16px", marginBottom: "16px",
           display: "flex", alignItems: "center", gap: "12px", flexWrap: "wrap",
         }}>

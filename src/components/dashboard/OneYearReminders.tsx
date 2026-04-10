@@ -35,6 +35,7 @@ export function OneYearReminders({ clients, onOpenClient, onDismiss }: OneYearRe
           return (
             <div
               key={c.id}
+              className="reminder-row"
               style={{
                 display: "flex",
                 alignItems: "center",

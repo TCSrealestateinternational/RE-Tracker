@@ -99,7 +99,7 @@ export function DealForm({ clients, initial, onSubmit, onCancel }: DealFormProps
             {clients.map((c) => <option key={c.id} value={c.id}>{c.status === "buyer" ? "🏠" : "📄"} {c.name}</option>)}
           </select></label>
 
-        <div className="inline-2col" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
+        <div className="inline-2col stack-mobile" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
           <label>{labelEl("Stage")}
             <select value={stage} onChange={(e) => setStage(e.target.value as DealStage)} style={inputBase}>
               {DEAL_STAGES.map((s) => <option key={s} value={s}>{s}</option>)}
@@ -137,7 +137,7 @@ export function DealForm({ clients, initial, onSubmit, onCancel }: DealFormProps
           </div>
 
           {commissionMode === "percentage" ? (
-            <div className="inline-2col" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px", marginBottom: "12px" }}>
+            <div className="inline-2col stack-mobile" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px", marginBottom: "12px" }}>
               <label>{labelEl("Purchase Price ($)")}
                 <input
                   type="text"
@@ -163,7 +163,7 @@ export function DealForm({ clients, initial, onSubmit, onCancel }: DealFormProps
                   placeholder="3"
                   style={inputBase}
                 />
-                <div style={{ display: "flex", gap: "4px", marginTop: "6px", flexWrap: "wrap" }}>
+                <div className="preset-row" style={{ display: "flex", gap: "4px", marginTop: "6px", flexWrap: "wrap" }}>
                   {COMMISSION_PRESETS.map((p) => (
                     <button
                       key={p}
@@ -227,7 +227,7 @@ export function DealForm({ clients, initial, onSubmit, onCancel }: DealFormProps
             /></label>
         )}
 
-        <div className="inline-2col" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
+        <div className="inline-2col stack-mobile" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
           <label>{labelEl("Expected Close")}
             <input type="date" value={expectedCloseDate} onChange={(e) => setExpectedCloseDate(e.target.value)} style={inputBase} /></label>
           <label>{labelEl("Actual Close Date")}

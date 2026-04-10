@@ -121,7 +121,7 @@ export function ClientDetail({ client, entries, checklist, deal, onToggleItem, o
           Back to Clients
         </button>
 
-        <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "space-between", alignItems: "flex-start", gap: "12px", marginBottom: "20px" }}>
+        <div className="detail-header" style={{ display: "flex", flexWrap: "wrap", justifyContent: "space-between", alignItems: "flex-start", gap: "12px", marginBottom: "20px" }}>
           <div style={{ minWidth: 0, flex: "1 1 200px" }}>
             <h2 style={{ ...t.pageTitle, color: t.text, marginBottom: "4px" }}>{client.name}</h2>
             <p style={{ ...t.caption, color: t.textTertiary, display: "flex", alignItems: "center", gap: "6px", flexWrap: "wrap" }}>
@@ -137,7 +137,7 @@ export function ClientDetail({ client, entries, checklist, deal, onToggleItem, o
               </span>
               <span>{client.stage}</span>
               {client.leadSource && <span>&middot; {client.leadSource}</span>}
-              {client.email && <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", maxWidth: "180px", display: "inline-block" }}>&middot; {client.email}</span>}
+              {client.email && <span className="email-truncate">&middot; {client.email}</span>}
               {client.phone && <span>&middot; {client.phone}</span>}
             </p>
             {client.additionalContacts?.length > 0 && (
@@ -151,7 +151,7 @@ export function ClientDetail({ client, entries, checklist, deal, onToggleItem, o
               </p>
             )}
           </div>
-          <div style={{ display: "flex", gap: "8px", flexWrap: "wrap", flexShrink: 0 }}>
+          <div className="detail-header-actions" style={{ display: "flex", gap: "8px", flexWrap: "wrap", flexShrink: 0 }}>
             {hasHearthPortal && deal && !transactionId && (
               <button
                 onClick={handleActivatePortal}

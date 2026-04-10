@@ -81,7 +81,7 @@ export function PaceTracker({ goal, deals }: PaceTrackerProps) {
       <span style={{ ...t.label, color: t.textSecondary, display: "block", marginBottom: "10px" }}>Monthly</span>
       <div style={{ display: "grid", gap: "6px" }}>
         {monthlyData.map(({ month, earned, target }) => (
-          <div key={month} style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+          <div key={month} className="pace-month-row" style={{ display: "flex", alignItems: "center", gap: "8px" }}>
             <span style={{ width: "30px", ...t.caption, color: t.textTertiary }}>{month}</span>
             <div style={{ flex: 1, height: "4px", background: t.tealLight, borderRadius: "2px", overflow: "hidden" }}>
               <div style={{
