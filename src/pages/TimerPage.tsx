@@ -31,7 +31,7 @@ export function TimerPage() {
         </div>
       )}
 
-      <div data-tour="recent-entries" style={card}>
+      <div data-tour="recent-entries" className="timer-card" style={card}>
         <h3 style={{ ...t.sectionHeader, color: t.text, marginBottom: "20px" }}>Recent Entries</h3>
         {recent.length === 0 ? (
           <p style={{ ...t.body, color: t.textTertiary }}>
@@ -39,7 +39,7 @@ export function TimerPage() {
           </p>
         ) : (
           <div className="table-scroll">
-          <table style={{ width: "100%", borderCollapse: "collapse", minWidth: "600px" }}>
+          <table className="timer-table" style={{ width: "100%", borderCollapse: "collapse", minWidth: "600px" }}>
             <thead>
               <tr>
                 {["Date", "Category", "Client", "Source", "Duration", "Note", ""].map((h) => (

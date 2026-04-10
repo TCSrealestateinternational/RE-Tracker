@@ -10,15 +10,15 @@ export function LiveTimer() {
   const { clients } = useClients();
 
   return (
-    <div style={card}>
+    <div className="timer-card" style={card}>
       <h3 style={{ ...t.sectionHeader, color: t.text, marginBottom: "20px" }}>Live Timer</h3>
 
-      <div style={{
+      <div className="timer-display-wrap" style={{
         textAlign: "center",
         padding: "20px 0",
         marginBottom: "24px",
       }}>
-        <span style={{
+        <span className="timer-display" style={{
           fontFamily: "'Manrope', monospace",
           fontSize: "48px",
           fontWeight: 700,
@@ -69,7 +69,7 @@ export function LiveTimer() {
         </label>
       </div>
 
-      <div style={{ display: "flex", gap: "8px" }}>
+      <div className="timer-actions">
         {!timer.running ? (
           <button onClick={timer.start} style={{ ...btnPrimary, flex: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: "8px" }}>
             <Play size={16} strokeWidth={2} />
@@ -84,13 +84,13 @@ export function LiveTimer() {
               <Square size={14} strokeWidth={2} />
               Stop & Save
             </button>
-            <button onClick={timer.reset} style={{
+            <button onClick={timer.reset} title="Discard" style={{
               padding: "10px 16px", background: "transparent", border: `1px solid ${t.border}`,
               borderRadius: "8px", cursor: "pointer", color: t.textTertiary, fontFamily: t.font,
-              display: "flex", alignItems: "center", gap: "6px", fontSize: "14px",
+              display: "flex", alignItems: "center", justifyContent: "center", gap: "6px", fontSize: "14px",
             }}>
               <X size={14} strokeWidth={1.5} />
-              Discard
+              <span className="timer-discard-label">Discard</span>
             </button>
           </>
         )}

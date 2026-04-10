@@ -57,7 +57,7 @@ export function ManualEntry({ initial, onCancel, onSaved }: ManualEntryProps) {
   }
 
   return (
-    <div style={card}>
+    <div className="timer-card" style={card}>
       <h3 style={{ ...t.sectionHeader, color: t.text, marginBottom: "20px" }}>
         {isEditing ? "Edit Entry" : "Manual Entry"}
       </h3>
@@ -108,12 +108,12 @@ export function ManualEntry({ initial, onCancel, onSaved }: ManualEntryProps) {
           <span style={{ ...t.label, color: t.textSecondary, display: "block", marginBottom: "6px" }}>Note</span>
           <input value={note} onChange={(e) => setNote(e.target.value)} placeholder="Optional note" style={inputBase} />
         </label>
-        <div style={{ display: "flex", gap: "10px" }}>
-          <button type="submit" style={{ ...btnPrimary, display: "flex", alignItems: "center", gap: "8px" }}>
+        <div className="manual-entry-actions" style={{ display: "flex", gap: "10px" }}>
+          <button type="submit" style={{ ...btnPrimary, display: "flex", alignItems: "center", justifyContent: "center", gap: "8px" }}>
             {isEditing ? <><Save size={16} strokeWidth={2} /> Save Changes</> : <><Plus size={16} strokeWidth={2} /> Add Entry</>}
           </button>
           {isEditing && onCancel && (
-            <button type="button" onClick={onCancel} style={{ ...btnSecondary, display: "flex", alignItems: "center", gap: "8px" }}>
+            <button type="button" onClick={onCancel} style={{ ...btnSecondary, display: "flex", alignItems: "center", justifyContent: "center", gap: "8px" }}>
               <X size={16} strokeWidth={2} /> Cancel
             </button>
           )}

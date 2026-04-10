@@ -194,10 +194,44 @@ a {
   }
 }
 
+/* ── Timer page ── */
+.timer-actions {
+  display: flex;
+  gap: 8px;
+}
+
 /* ── Mobile: ≤768px ── */
 @media (max-width: 768px) {
   .hamburger {
     display: flex;
+  }
+
+  /* Timer page mobile optimizations */
+  .timer-card {
+    padding: 18px !important;
+  }
+  .timer-display {
+    font-size: 40px !important;
+  }
+  .timer-display-wrap {
+    padding: 10px 0 !important;
+    margin-bottom: 16px !important;
+  }
+  .timer-actions {
+    flex-wrap: wrap;
+  }
+  .timer-actions > button {
+    min-height: 44px;
+  }
+  .manual-entry-actions > button {
+    min-height: 44px;
+    flex: 1;
+  }
+  .timer-discard-label {
+    display: none;
+  }
+  .timer-table {
+    min-width: 520px !important;
   }
 
   .sidebar {
@@ -269,5 +303,15 @@ a {
 
   .email-truncate {
     max-width: 120px;
+  }
+}
+
+/* ── Small mobile: ≤480px ── */
+@media (max-width: 480px) {
+  .timer-card {
+    padding: 16px !important;
+  }
+  .timer-display {
+    font-size: 34px !important;
   }
 }
