@@ -1,6 +1,6 @@
 import { ArrowLeft, Edit3, DollarSign, Percent, User, Phone, Mail } from "lucide-react";
 import { t, card } from "@/styles/theme";
-import type { Referral } from "@/types";
+import { REFERRAL_STATUS_LABELS, type Referral } from "@/types";
 
 interface ReferralDetailProps {
   referral: Referral;
@@ -15,6 +15,9 @@ function fmtDollars(n: number): string {
 
 const statusColors: Record<string, { bg: string; color: string }> = {
   pending: { bg: t.goldLight, color: t.gold },
+  searching: { bg: t.goldLight, color: t.gold },
+  "pre-listing": { bg: t.goldLight, color: t.gold },
+  listed: { bg: t.tealLight, color: t.teal },
   "under-contract": { bg: t.tealLight, color: t.teal },
   closed: { bg: t.successLight, color: t.success },
   paid: { bg: t.successLight, color: t.success },
@@ -61,7 +64,7 @@ export function ReferralDetail({ referral, onEdit, onBack, onDelete }: ReferralD
                 padding: "2px 8px", borderRadius: "4px", fontSize: "11px", fontWeight: 600,
                 textTransform: "uppercase", background: sc.bg, color: sc.color,
               }}>
-                {referral.status}
+                {REFERRAL_STATUS_LABELS[referral.status as keyof typeof REFERRAL_STATUS_LABELS] ?? referral.status}
               </span>
               {referral.referralDate && (
                 <span style={{ ...t.caption, color: t.textTertiary }}>

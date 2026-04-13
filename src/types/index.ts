@@ -201,7 +201,18 @@ export interface IncomeGoal {
 }
 
 // ── Agent Referrals ──
-export type ReferralStatus = "pending" | "under-contract" | "closed" | "paid" | "lost";
+export type ReferralStatus = "pending" | "searching" | "pre-listing" | "listed" | "under-contract" | "closed" | "paid" | "lost";
+
+export const REFERRAL_STATUS_LABELS: Record<ReferralStatus, string> = {
+  pending: "Pending",
+  searching: "Searching for a Home",
+  "pre-listing": "Pre-Listing",
+  listed: "Listed",
+  "under-contract": "Under Contract",
+  closed: "Closed",
+  paid: "Paid",
+  lost: "Lost",
+};
 
 export interface Referral {
   id: string;

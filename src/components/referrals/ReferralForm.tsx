@@ -1,5 +1,5 @@
 import { useState, type FormEvent, type CSSProperties } from "react";
-import type { Referral, ReferralStatus } from "@/types";
+import { REFERRAL_STATUS_LABELS, type Referral, type ReferralStatus } from "@/types";
 import { t, card, inputBase, btnPrimary, btnSecondary } from "@/styles/theme";
 
 interface ReferralFormProps {
@@ -123,11 +123,9 @@ export function ReferralForm({ initial, onSubmit, onCancel }: ReferralFormProps)
           <input type="date" value={referralDate} onChange={(e) => setReferralDate(e.target.value)} style={inputBase} /></label>
         <label>{labelEl("Status")}
           <select value={status} onChange={(e) => setStatus(e.target.value as ReferralStatus)} style={inputBase}>
-            <option value="pending">Pending</option>
-            <option value="under-contract">Under Contract</option>
-            <option value="closed">Closed</option>
-            <option value="paid">Paid</option>
-            <option value="lost">Lost</option>
+            {(Object.entries(REFERRAL_STATUS_LABELS) as [ReferralStatus, string][]).map(([val, label]) => (
+              <option key={val} value={val}>{label}</option>
+            ))}
           </select></label>
       </div>
 
