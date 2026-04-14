@@ -11,7 +11,7 @@ import { ClientViewPanel } from "./ClientViewPanel";
 import { useSubscription } from "@/hooks/useSubscription";
 import { useTransactionSync } from "@/hooks/useTransactionSync";
 
-export type DetailTab = "overview" | "client-view";
+export type DetailTab = "overview" | "client-view" | "client-dashboard";
 
 interface ClientDetailProps {
   client: Client;
@@ -80,9 +80,13 @@ export function ClientDetail({ client, entries, checklist, deal, onToggleItem, o
     { label: "Follow-Up", value: client.followUpDate || "—", color: client.followUpDate ? t.rust : t.textTertiary, icon: "event" },
   ];
 
+  const isBuyer = client.status === "buyer";
+
+  const dashboardLabel = isBuyer ? "Buyer Dashboard" : "Seller Dashboard";
   const tabs: { key: DetailTab; label: string; icon: string }[] = [
     { key: "overview", label: "Overview", icon: "dashboard" },
     { key: "client-view", label: "Client View", icon: "visibility" },
+    { key: "client-dashboard", label: dashboardLabel, icon: isBuyer ? "home" : "description" },
   ];
 
   const checklistTemplate = checklist
@@ -94,8 +98,6 @@ export function ClientDetail({ client, entries, checklist, deal, onToggleItem, o
   const completedCount = checklist ? checklistTemplate.filter((item) => checklist.items[item.label]).length : 0;
   const totalItems = checklistTemplate.length;
   const pct = totalItems > 0 ? Math.round((completedCount / totalItems) * 100) : 0;
-
-  const isBuyer = client.status === "buyer";
 
   const detailRow = (label: string, value: string | null | undefined) => {
     if (!value) return null;
@@ -138,16 +140,27 @@ export function ClientDetail({ client, entries, checklist, deal, onToggleItem, o
               <span>{client.stage}</span>
               {client.leadSource && <span>&middot; {client.leadSource}</span>}
               {client.email && <span className="email-truncate">&middot; {client.email}</span>}
-              {client.phone && <span>&middot; {client.phone}</span>}
+              {client.phone && (
+                <span>&middot;{" "}
+                  <a href={`tel:${client.phone}`} onClick={(e) => e.stopPropagation()} style={{ color: t.teal, textDecoration: "none", display: "inline-flex", alignItems: "center", gap: "3px" }}>
+                    <Icon name="call" size={11} />
+                    {client.phone}
+                  </a>
+                </span>
+              )}
             </p>
             {client.additionalContacts?.length > 0 && (
               <p style={{ ...t.caption, color: t.textTertiary, marginTop: "4px", wordBreak: "break-word" }}>
-                Also: {client.additionalContacts.map((c) => {
-                  const parts = [c.name];
-                  if (c.email) parts.push(c.email);
-                  if (c.phone) parts.push(c.phone);
-                  return parts.join(" — ");
-                }).join("; ")}
+                Also: {client.additionalContacts.map((c, i) => (
+                  <span key={i}>
+                    {i > 0 && "; "}
+                    {c.name}
+                    {c.email && ` — ${c.email}`}
+                    {c.phone && (
+                      <> — <a href={`tel:${c.phone}`} onClick={(e) => e.stopPropagation()} style={{ color: t.teal, textDecoration: "none" }}>{c.phone}</a></>
+                    )}
+                  </span>
+                ))}
               </p>
             )}
           </div>
@@ -489,6 +502,29 @@ export function ClientDetail({ client, entries, checklist, deal, onToggleItem, o
       {/* ── Client View Tab ── */}
       {activeTab === "client-view" && (
         <ClientViewPanel client={client} checklist={checklist} onToggleItem={onToggleItem} />
+      )}
+
+      {/* ── Buyer/Seller Dashboard Preview Tab ── */}
+      {activeTab === "client-dashboard" && (
+        <>
+          <div style={{
+            ...card,
+            background: "rgba(12, 65, 78, 0.03)",
+            border: `1px solid rgba(12, 65, 78, 0.10)`,
+            display: "flex", alignItems: "center", gap: "10px",
+          }}>
+            <Icon name="visibility" size={16} color={t.teal} />
+            <div>
+              <span style={{ ...t.label, color: t.teal, display: "block", marginBottom: "2px" }}>
+                Previewing {dashboardLabel}
+              </span>
+              <span style={{ ...t.caption, color: t.textSecondary }}>
+                This is exactly what {client.name.split(" ")[0]} sees when they log in to their portal.
+              </span>
+            </div>
+          </div>
+          <ClientViewPanel client={client} checklist={checklist} />
+        </>
       )}
     </div>
   );

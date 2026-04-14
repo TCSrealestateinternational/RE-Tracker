@@ -565,7 +565,12 @@ function ClientRow({ client: c, today, showCheckbox, bulkMode, isSelected, onSel
               {c.additionalContacts.map((p, i) => (
                 <span key={i} style={{ display: "inline-flex", alignItems: "center", gap: "4px", marginRight: "12px" }}>
                   <span style={{ fontWeight: 500, color: t.text }}>{p.name}</span>
-                  {p.phone && <span style={{ color: t.textTertiary }}>{p.phone}</span>}
+                  {p.phone && (
+                    <a href={`tel:${p.phone}`} onClick={(e) => e.stopPropagation()} style={{ color: t.teal, textDecoration: "none", display: "inline-flex", alignItems: "center", gap: "2px" }}>
+                      <Icon name="call" size={10} />
+                      {p.phone}
+                    </a>
+                  )}
                 </span>
               ))}
             </div>
