@@ -10,6 +10,7 @@ import { secondaryAuth } from "@/lib/firebase-secondary";
 import { auth, db } from "@/lib/firebase";
 import { useAuth } from "@/context/AuthContext";
 import { t, btnPrimary, btnSecondary, card } from "@/styles/theme";
+import { useFocusTrap } from "@/hooks/useFocusTrap";
 import type { Client } from "@/types";
 import type { CSSProperties } from "react";
 
@@ -26,6 +27,7 @@ export function AddToHearthModal({ client, onClose, onLinked }: AddToHearthModal
   const [error, setError] = useState("");
 
   const needsEmail = !client.email;
+  const dialogRef = useFocusTrap<HTMLDivElement>({ onEscape: onClose });
 
   async function handleAdd() {
     if (!profile || !client.email) return;
@@ -108,11 +110,11 @@ export function AddToHearthModal({ client, onClose, onLinked }: AddToHearthModal
 
   return (
     <div style={styles.overlay} onClick={onClose}>
-      <div style={styles.modal} onClick={(e) => e.stopPropagation()}>
+      <div ref={dialogRef} role="dialog" aria-modal="true" aria-labelledby="hearth-modal-title" style={styles.modal} onClick={(e) => e.stopPropagation()}>
         {success ? (
           <>
             <div style={styles.successIcon}>&#10003;</div>
-            <h2 style={{ ...t.sectionHeader, color: t.text, textAlign: "center" as const, marginBottom: "8px" }}>
+            <h2 id="hearth-modal-title" style={{ ...t.sectionHeader, color: t.text, textAlign: "center" as const, marginBottom: "8px" }}>
               Invite Sent!
             </h2>
             <p style={{ ...t.body, color: t.textSecondary, textAlign: "center" as const, marginBottom: "8px" }}>
@@ -131,7 +133,7 @@ export function AddToHearthModal({ client, onClose, onLinked }: AddToHearthModal
           </>
         ) : (
           <>
-            <h2 style={{ ...t.sectionHeader, color: t.text, marginBottom: "4px" }}>
+            <h2 id="hearth-modal-title" style={{ ...t.sectionHeader, color: t.text, marginBottom: "4px" }}>
               Also add to Hearth?
             </h2>
             <p style={{ ...t.body, color: t.textSecondary, marginBottom: "16px" }}>
@@ -174,7 +176,7 @@ export function AddToHearthModal({ client, onClose, onLinked }: AddToHearthModal
             )}
 
             {error && (
-              <div style={styles.warningBox}>
+              <div style={styles.warningBox} role="alert" aria-live="polite">
                 <p style={{ ...t.caption, color: t.rust }}>{error}</p>
               </div>
             )}

@@ -5,7 +5,7 @@ export const t = {
   tealMuted: "rgba(12, 65, 78, 0.5)",
   rust: "#9d442a",
   rustLight: "rgba(157, 68, 42, 0.08)",
-  gold: "#bc804d",
+  gold: "#9a6534",
   goldLight: "rgba(188, 128, 77, 0.08)",
 
   // ── Surfaces ──
@@ -18,8 +18,8 @@ export const t = {
 
   // ── Typography ──
   text: "#1a1a1a",
-  textSecondary: "#6b6560",
-  textTertiary: "#9b9590",
+  textSecondary: "#514b47",
+  textTertiary: "#6e6864",
   textInverse: "#ffffff",
 
   // ── Borders ──
@@ -27,7 +27,7 @@ export const t = {
   borderMedium: "rgba(0, 0, 0, 0.10)",
 
   // ── Semantic ──
-  success: "#2d7a4f",
+  success: "#1d6640",
   successLight: "rgba(45, 122, 79, 0.08)",
 
   // ── Shadows ──
@@ -38,13 +38,16 @@ export const t = {
   deepShadow: "0 32px 64px -12px rgba(28,28,25,0.04)",
   headerBlur: "rgba(245, 240, 235, 0.8)",
 
+  // ── Focus ──
+  focusRing: "0 0 0 2px #ffffff, 0 0 0 4px #0c414e",
+
   // ── Spacing ──
   cardPadding: "24px",
   cardRadius: "12px",
   sectionGap: "28px",
 
   // ── Gradients ──
-  goldGradient: "linear-gradient(135deg, #bc804d 0%, #daa870 100%)",
+  goldGradient: "linear-gradient(135deg, #9a6534 0%, #b8813a 100%)",
 
   // ── Typography scale ──
   font: "'Manrope', sans-serif",
@@ -113,7 +116,6 @@ export const inputBase = {
   fontFamily: t.font,
   color: t.text,
   background: t.surface,
-  outline: "none",
   boxSizing: "border-box" as const,
   transition: "border-color 0.15s",
 } as const;

@@ -10,6 +10,9 @@ export function Layout({ children }: { children: ReactNode }) {
 
   return (
     <div style={{ display: "flex", minHeight: "100vh", fontFamily: t.font }}>
+      <a href="#main-content" className="skip-to-content">
+        Skip to main content
+      </a>
       <Sidebar
         activePath={location.pathname}
         onNavigate={navigate}
@@ -17,7 +20,7 @@ export function Layout({ children }: { children: ReactNode }) {
         onToggle={() => setSidebarOpen((o) => !o)}
       />
       <div style={{ flex: 1, display: "flex", flexDirection: "column", minWidth: 0 }}>
-        <main className="main-content" style={{ flex: 1 }}>
+        <main id="main-content" className="main-content" style={{ flex: 1 }}>
           {children}
         </main>
       </div>

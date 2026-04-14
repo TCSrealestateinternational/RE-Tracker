@@ -358,15 +358,19 @@ export function ClientList({ clients, onSelect, onClientView, onAdd, onDeleteCli
           background: "rgba(0,0,0,0.4)",
         }}
           onClick={() => { setSingleDeleteClient(null); setSingleDeleteText(""); }}
+          onKeyDown={(e) => { if (e.key === "Escape") { setSingleDeleteClient(null); setSingleDeleteText(""); } }}
         >
           <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="single-delete-title"
             style={{
               ...card, maxWidth: "420px", width: "90%",
               boxShadow: "0 8px 32px rgba(0,0,0,0.2)",
             }}
             onClick={(e) => e.stopPropagation()}
           >
-            <h3 style={{ ...t.sectionHeader, color: t.rust, marginBottom: "12px" }}>
+            <h3 id="single-delete-title" style={{ ...t.sectionHeader, color: t.rust, marginBottom: "12px" }}>
               Delete {singleDeleteClient.name}?
             </h3>
             <p style={{ ...t.body, color: t.textSecondary, marginBottom: "12px" }}>
@@ -430,15 +434,19 @@ export function ClientList({ clients, onSelect, onClientView, onAdd, onDeleteCli
           background: "rgba(0,0,0,0.4)",
         }}
           onClick={() => { setShowDeleteModal(false); setDeleteConfirmText(""); }}
+          onKeyDown={(e) => { if (e.key === "Escape") { setShowDeleteModal(false); setDeleteConfirmText(""); } }}
         >
           <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="bulk-delete-title"
             style={{
               ...card, maxWidth: "400px", width: "90%",
               boxShadow: "0 8px 32px rgba(0,0,0,0.2)",
             }}
             onClick={(e) => e.stopPropagation()}
           >
-            <h3 style={{ ...t.sectionHeader, color: t.rust, marginBottom: "12px" }}>
+            <h3 id="bulk-delete-title" style={{ ...t.sectionHeader, color: t.rust, marginBottom: "12px" }}>
               Delete {selectedCount} Client{selectedCount > 1 ? "s" : ""}?
             </h3>
             <p style={{ ...t.body, color: t.textSecondary, marginBottom: "16px" }}>
@@ -525,6 +533,7 @@ function ClientRow({ client: c, today, showCheckbox, bulkMode, isSelected, onSel
           checked={isSelected}
           onChange={(e) => { e.stopPropagation(); onToggleSelect(c.id); }}
           onClick={(e) => e.stopPropagation()}
+          aria-label={`Select ${c.name}`}
           style={{ accentColor: t.teal, width: "16px", height: "16px", cursor: "pointer", flexShrink: 0 }}
         />
       )}
@@ -598,6 +607,7 @@ function ClientRow({ client: c, today, showCheckbox, bulkMode, isSelected, onSel
       {onClientView && !bulkMode && (
         <button
           title="Client View"
+          aria-label={`View ${c.name} client dashboard`}
           onClick={(e) => { e.stopPropagation(); onClientView(c); }}
           style={{
             display: "flex", alignItems: "center", justifyContent: "center",

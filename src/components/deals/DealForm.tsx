@@ -94,7 +94,7 @@ export function DealForm({ clients, initial, onSubmit, onCancel }: DealFormProps
       </h2>
       <div style={{ display: "grid", gap: "16px", marginBottom: "16px" }}>
         <label>{labelEl("Client *")}
-          <select value={clientId} onChange={(e) => handleClientChange(e.target.value)} required style={inputBase}>
+          <select value={clientId} onChange={(e) => handleClientChange(e.target.value)} required aria-required="true" style={inputBase}>
             <option value="">Select client...</option>
             {clients.map((c) => <option key={c.id} value={c.id}>{c.status === "buyer" ? "🏠" : "📄"} {c.name}</option>)}
           </select></label>
@@ -123,6 +123,8 @@ export function DealForm({ clients, initial, onSubmit, onCancel }: DealFormProps
                   key={mode}
                   type="button"
                   onClick={() => setCommissionMode(mode)}
+                  aria-pressed={commissionMode === mode}
+                  aria-label={mode === "percentage" ? "Commission as percentage" : "Commission as flat dollar amount"}
                   style={{
                     padding: "5px 14px", fontSize: "12px", fontWeight: 600, fontFamily: t.font,
                     background: commissionMode === mode ? t.teal : t.surface,
@@ -169,6 +171,8 @@ export function DealForm({ clients, initial, onSubmit, onCancel }: DealFormProps
                       key={p}
                       type="button"
                       onClick={() => setCommissionPctStr(String(p))}
+                      aria-pressed={commissionPctStr === String(p)}
+                      aria-label={`Set commission to ${p} percent`}
                       style={{
                         padding: "3px 8px", fontSize: "11px", fontWeight: 600, fontFamily: t.font,
                         background: commissionPctStr === String(p) ? t.teal : t.surface,

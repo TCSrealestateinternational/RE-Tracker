@@ -7,9 +7,11 @@ interface IconProps {
   className?: string;
   style?: CSSProperties;
   color?: string;
+  /** When provided, the icon is treated as meaningful (not decorative) */
+  ariaLabel?: string;
 }
 
-export function Icon({ name, size = 20, filled = false, className, style, color }: IconProps) {
+export function Icon({ name, size = 20, filled = false, className, style, color, ariaLabel }: IconProps) {
   return (
     <span
       className={`material-symbols-outlined${className ? ` ${className}` : ""}`}
@@ -23,6 +25,9 @@ export function Icon({ name, size = 20, filled = false, className, style, color 
         color,
         ...style,
       }}
+      aria-hidden={ariaLabel ? undefined : true}
+      role={ariaLabel ? "img" : undefined}
+      aria-label={ariaLabel || undefined}
     >
       {name}
     </span>

@@ -27,11 +27,37 @@ export function ContextMenu({ x, y, actions, onClose }: ContextMenuProps) {
     function handleScroll() {
       onClose();
     }
+    function handleKeyDown(e: KeyboardEvent) {
+      if (e.key === "Escape") { onClose(); return; }
+      if (e.key === "ArrowDown" || e.key === "ArrowUp") {
+        e.preventDefault();
+        const items = ref.current?.querySelectorAll<HTMLElement>('[role="menuitem"]');
+        if (!items || items.length === 0) return;
+        const currentIndex = Array.from(items).findIndex(
+          (el) => el === document.activeElement,
+        );
+        let nextIndex: number;
+        if (e.key === "ArrowDown") {
+          nextIndex = currentIndex < items.length - 1 ? currentIndex + 1 : 0;
+        } else {
+          nextIndex = currentIndex > 0 ? currentIndex - 1 : items.length - 1;
+        }
+        items[nextIndex]?.focus();
+      }
+    }
     document.addEventListener("mousedown", handleClick);
     document.addEventListener("scroll", handleScroll, true);
+    document.addEventListener("keydown", handleKeyDown);
+
+    requestAnimationFrame(() => {
+      const firstItem = ref.current?.querySelector<HTMLElement>('[role="menuitem"]');
+      firstItem?.focus();
+    });
+
     return () => {
       document.removeEventListener("mousedown", handleClick);
       document.removeEventListener("scroll", handleScroll, true);
+      document.removeEventListener("keydown", handleKeyDown);
     };
   }, [onClose]);
 
@@ -41,12 +67,14 @@ export function ContextMenu({ x, y, actions, onClose }: ContextMenuProps) {
   const top = y + menuH > window.innerHeight ? y - menuH : y;
 
   return (
-    <div ref={ref} style={{ ...styles.menu, left, top }}>
+    <div ref={ref} role="menu" aria-label="Client actions" style={{ ...styles.menu, left, top }}>
       {actions.map((action) => {
         const color = action.color || t.text;
         return (
           <button
             key={action.label}
+            role="menuitem"
+            tabIndex={-1}
             onClick={() => { action.onClick(); onClose(); }}
             style={{ ...styles.item, color }}
             onMouseEnter={(e) => { e.currentTarget.style.background = t.bg; }}

@@ -233,16 +233,24 @@ export function ClientDetail({ client, entries, checklist, deal, onToggleItem, o
         )}
 
         {/* ── Tab Bar ── */}
-        <div style={{
-          display: "flex", gap: "4px", borderBottom: `1px solid ${t.border}`,
-          marginLeft: `-${t.cardPadding}`, marginRight: `-${t.cardPadding}`,
-          paddingLeft: t.cardPadding, paddingRight: t.cardPadding,
-        }}>
+        <div
+          role="tablist"
+          aria-label="Client detail views"
+          style={{
+            display: "flex", gap: "4px", borderBottom: `1px solid ${t.border}`,
+            marginLeft: `-${t.cardPadding}`, marginRight: `-${t.cardPadding}`,
+            paddingLeft: t.cardPadding, paddingRight: t.cardPadding,
+          }}
+        >
           {tabs.map(({ key, label, icon: iconName }) => {
             const isActive = activeTab === key;
             return (
               <button
                 key={key}
+                role="tab"
+                aria-selected={isActive}
+                aria-controls={`tabpanel-${key}`}
+                id={`tab-${key}`}
                 onClick={() => setActiveTab(key)}
                 style={{
                   display: "flex", alignItems: "center", gap: "6px",
@@ -265,7 +273,7 @@ export function ClientDetail({ client, entries, checklist, deal, onToggleItem, o
 
       {/* ── Tab Content ── */}
       {activeTab === "overview" && (
-        <>
+        <div role="tabpanel" id="tabpanel-overview" aria-labelledby="tab-overview">
           {/* Stats + Details Card */}
           <div style={card}>
             <div className="grid-4col" style={{ marginBottom: "28px" }}>
@@ -496,17 +504,19 @@ export function ClientDetail({ client, entries, checklist, deal, onToggleItem, o
               </div>
             </div>
           )}
-        </>
+        </div>
       )}
 
       {/* ── Client View Tab ── */}
       {activeTab === "client-view" && (
-        <ClientViewPanel client={client} checklist={checklist} onToggleItem={onToggleItem} />
+        <div role="tabpanel" id="tabpanel-client-view" aria-labelledby="tab-client-view">
+          <ClientViewPanel client={client} checklist={checklist} onToggleItem={onToggleItem} />
+        </div>
       )}
 
       {/* ── Buyer/Seller Dashboard Preview Tab ── */}
       {activeTab === "client-dashboard" && (
-        <>
+        <div role="tabpanel" id="tabpanel-client-dashboard" aria-labelledby="tab-client-dashboard">
           <div style={{
             ...card,
             background: "rgba(12, 65, 78, 0.03)",
@@ -524,7 +534,7 @@ export function ClientDetail({ client, entries, checklist, deal, onToggleItem, o
             </div>
           </div>
           <ClientViewPanel client={client} checklist={checklist} />
-        </>
+        </div>
       )}
     </div>
   );
@@ -631,6 +641,7 @@ function ClientDashboardMessageCard({
                 <span style={{ ...t.body, color: t.text, flex: 1 }}>{item}</span>
                 <button
                   onClick={() => handleRemoveItem(i)}
+                  aria-label={`Remove action item: ${item}`}
                   style={{
                     background: "none",
                     border: "none",

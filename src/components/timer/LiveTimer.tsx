@@ -19,14 +19,14 @@ export function LiveTimer() {
         marginBottom: "24px",
       }}>
         {timer.running && (
-          <span className="animate-pulse" style={{
+          <span className="animate-pulse" aria-hidden="true" style={{
             display: "inline-block",
             width: "8px", height: "8px", borderRadius: "50%",
             background: t.gold,
             marginBottom: "12px",
           }} />
         )}
-        <span className="timer-display" style={{
+        <span className="timer-display" role="timer" aria-live="polite" aria-atomic="true" style={{
           display: "block",
           fontFamily: t.fontHeadline,
           fontSize: "80px",
@@ -100,7 +100,7 @@ export function LiveTimer() {
               <Icon name="stop" size={18} />
               Stop & Save
             </button>
-            <button onClick={timer.reset} title="Discard" style={{
+            <button onClick={timer.reset} title="Discard" aria-label="Discard timer" style={{
               padding: "10px 16px", background: "transparent", border: `1px solid ${t.border}`,
               borderRadius: "12px", cursor: "pointer", color: t.textTertiary, fontFamily: t.font,
               display: "flex", alignItems: "center", justifyContent: "center", gap: "6px", fontSize: "14px",

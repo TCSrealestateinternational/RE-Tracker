@@ -47,12 +47,12 @@ export function TimerPage() {
           <table className="timer-table" style={{ width: "100%", borderCollapse: "collapse", minWidth: "600px" }}>
             <thead>
               <tr>
-                {["Date", "Category", "Client", "Source", "Duration", "Note", ""].map((h) => (
-                  <th key={h || "_actions"} style={{
+                {["Date", "Category", "Client", "Source", "Duration", "Note", "Actions"].map((h) => (
+                  <th key={h} scope="col" style={{
                     ...t.microLabel, color: t.textTertiary, textAlign: h === "Duration" ? "right" : "left",
                     padding: "0 12px 10px 0", borderBottom: `1px solid ${t.border}`,
                   }}>
-                    {h}
+                    {h === "Actions" ? <span className="sr-only">{h}</span> : h}
                   </th>
                 ))}
               </tr>
@@ -83,6 +83,7 @@ export function TimerPage() {
                       <button
                         onClick={(ev) => { ev.stopPropagation(); deleteTimeEntry(e.id); }}
                         title="Delete entry"
+                        aria-label={`Delete ${e.category} entry from ${formatDate(e.startTime)}`}
                         style={{
                           background: "none", border: "none", cursor: "pointer",
                           color: t.textTertiary, padding: "4px", borderRadius: "4px",

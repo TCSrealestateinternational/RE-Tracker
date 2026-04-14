@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { useTour } from "@/components/tour/useTour";
 import { Icon } from "@/components/shared/Icon";
@@ -30,6 +31,15 @@ export function Sidebar({ activePath, onNavigate, open, onToggle }: SidebarProps
     ? user.email.slice(0, 2).toUpperCase()
     : "RE";
 
+  useEffect(() => {
+    if (!open) return;
+    function handleKeyDown(e: KeyboardEvent) {
+      if (e.key === "Escape") onToggle();
+    }
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [open, onToggle]);
+
   return (
     <>
       <button className="hamburger" onClick={onToggle} aria-label="Toggle menu">
@@ -40,10 +50,12 @@ export function Sidebar({ activePath, onNavigate, open, onToggle }: SidebarProps
       <div
         className={`sidebar-backdrop${open ? " sidebar-backdrop-visible" : ""}`}
         onClick={onToggle}
+        aria-hidden="true"
       />
 
       <aside
         className={`sidebar${open ? " sidebar-open" : ""}`}
+        aria-label="Main navigation"
         style={{
           background: t.sidebar,
           borderRight: `1px solid ${t.border}`,
@@ -109,6 +121,7 @@ export function Sidebar({ activePath, onNavigate, open, onToggle }: SidebarProps
                   onNavigate(item.path);
                   onToggle();
                 }}
+                aria-current={active ? "page" : undefined}
                 style={{
                   display: "flex",
                   alignItems: "center",

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Icon } from "@/components/shared/Icon";
 import { t, card, btnPrimary, btnSecondary } from "@/styles/theme";
+import { useFocusTrap } from "@/hooks/useFocusTrap";
 import type { Client } from "@/types";
 
 interface ArchiveClientModalProps {
@@ -14,6 +15,9 @@ export function ArchiveClientModal({ client, onClose, onConfirm }: ArchiveClient
   const [working, setWorking] = useState(false);
 
   const hasHearthLink = Boolean(client.hearthUserId);
+  const dialogRef = useFocusTrap<HTMLDivElement>({
+    onEscape: () => { if (!working) onClose(); },
+  });
 
   async function handleConfirm() {
     if (working) return;
@@ -35,6 +39,10 @@ export function ArchiveClientModal({ client, onClose, onConfirm }: ArchiveClient
       onClick={() => { if (!working) onClose(); }}
     >
       <div
+        ref={dialogRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="archive-modal-title"
         style={{
           ...card, maxWidth: "440px", width: "90%",
           boxShadow: "0 8px 32px rgba(0,0,0,0.2)",
@@ -43,7 +51,7 @@ export function ArchiveClientModal({ client, onClose, onConfirm }: ArchiveClient
       >
         <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "12px" }}>
           <Icon name="archive" size={18} color={t.textSecondary} />
-          <h3 style={{ ...t.sectionHeader, color: t.text }}>
+          <h3 id="archive-modal-title" style={{ ...t.sectionHeader, color: t.text }}>
             Archive {client.name}?
           </h3>
         </div>

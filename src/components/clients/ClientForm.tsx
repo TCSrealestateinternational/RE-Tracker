@@ -211,7 +211,7 @@ export function ClientForm({ initial, onSubmit, onCancel }: ClientFormProps) {
       </h2>
 
       {error && (
-        <div style={{
+        <div role="alert" style={{
           background: t.rustLight, border: `1px solid ${t.rust}`,
           borderRadius: "8px", padding: "10px 14px", marginBottom: "16px",
           ...t.body, color: t.rust,
@@ -227,7 +227,7 @@ export function ClientForm({ initial, onSubmit, onCancel }: ClientFormProps) {
         </div>
         <div className="grid-3col" style={{ marginBottom: 0 }}>
           <label>{labelEl("Name *")}
-            <input value={name} onChange={(e) => setName(e.target.value)} required placeholder="Full name" style={inputBase} /></label>
+            <input value={name} onChange={(e) => setName(e.target.value)} required aria-required="true" placeholder="Full name" style={inputBase} /></label>
           <label>{labelEl("Email")}
             <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Optional" style={inputBase} /></label>
           <label>{labelEl("Phone")}
@@ -240,7 +240,7 @@ export function ClientForm({ initial, onSubmit, onCancel }: ClientFormProps) {
         <div key={i} style={sectionBox}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px" }}>
             <span style={{ ...t.label, color: t.textSecondary }}>Additional Contact</span>
-            <button type="button" onClick={() => removeContact(i)} style={{
+            <button type="button" onClick={() => removeContact(i)} aria-label={`Remove additional contact ${i + 1}`} style={{
               background: "none", border: "none", cursor: "pointer",
               color: t.textTertiary, padding: "2px",
               display: "flex", alignItems: "center",
@@ -352,7 +352,7 @@ export function ClientForm({ initial, onSubmit, onCancel }: ClientFormProps) {
                   style={{ ...inputBase, flex: 1 }}
                   inputMode="decimal"
                 />
-                <button type="button" onClick={() => removePriceReduction(i)} style={{
+                <button type="button" onClick={() => removePriceReduction(i)} aria-label={`Remove price reduction ${i + 1}`} style={{
                   background: "none", border: "none", cursor: "pointer",
                   color: t.textTertiary, padding: "4px", display: "flex", alignItems: "center",
                 }}>
@@ -396,7 +396,7 @@ export function ClientForm({ initial, onSubmit, onCancel }: ClientFormProps) {
                   <option value="accepted">Accepted</option>
                   <option value="rejected">Rejected</option>
                 </select>
-                <button type="button" onClick={() => removeOffer(i)} style={{
+                <button type="button" onClick={() => removeOffer(i)} aria-label={`Remove offer ${i + 1}`} style={{
                   background: "none", border: "none", cursor: "pointer",
                   color: t.textTertiary, padding: "4px", display: "flex", alignItems: "center",
                 }}>
@@ -491,7 +491,7 @@ export function ClientForm({ initial, onSubmit, onCancel }: ClientFormProps) {
               placeholder="https://drive.google.com/..."
               style={{ ...inputBase, flex: 1 }}
             />
-            <button type="button" onClick={() => removeDriveLink(i)} style={{
+            <button type="button" onClick={() => removeDriveLink(i)} aria-label={`Remove drive link ${i + 1}`} style={{
               background: "none", border: "none", cursor: "pointer",
               color: t.textTertiary, padding: "4px", display: "flex", alignItems: "center",
             }}>
