@@ -34,14 +34,20 @@ export function useReferrals() {
   }, [user]);
 
   async function addReferral(data: Omit<Referral, "id" | "userId" | "createdAt" | "updatedAt">) {
-    if (!user) return;
+    if (!user) throw new Error("You must be signed in to add a referral.");
     const now = Date.now();
-    await addDoc(collection(db, "referrals"), {
+    const payload = {
       ...data,
       userId: user.uid,
       createdAt: now,
       updatedAt: now,
-    });
+    };
+    try {
+      await addDoc(collection(db, "referrals"), payload);
+    } catch (err) {
+      console.error("addReferral failed:", { uid: user.uid, payload, err });
+      throw err;
+    }
   }
 
   async function updateReferral(id: string, data: Partial<Referral>) {
