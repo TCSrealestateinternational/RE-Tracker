@@ -1,4 +1,4 @@
-import { LogOut, HelpCircle } from "lucide-react";
+import { Icon } from "@/components/shared/Icon";
 import { useAuth } from "@/context/AuthContext";
 import { useTour } from "@/components/tour/useTour";
 import { t } from "@/styles/theme";
@@ -34,7 +34,7 @@ export function Header() {
         onMouseEnter={(e) => { e.currentTarget.style.borderColor = t.borderMedium; }}
         onMouseLeave={(e) => { e.currentTarget.style.borderColor = t.border; }}
       >
-        <HelpCircle size={14} strokeWidth={1.5} />
+        <Icon name="help" size={14} />
         Tour
       </button>
       <span className="email-truncate" style={{ ...t.caption, color: t.textTertiary, marginRight: "16px" }}>
@@ -59,7 +59,7 @@ export function Header() {
         onMouseEnter={(e) => { e.currentTarget.style.borderColor = t.borderMedium; }}
         onMouseLeave={(e) => { e.currentTarget.style.borderColor = t.border; }}
       >
-        <LogOut size={14} strokeWidth={1.5} />
+        <Icon name="logout" size={14} />
         Sign out
       </button>
     </header>

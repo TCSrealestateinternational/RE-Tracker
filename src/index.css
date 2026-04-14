@@ -47,6 +47,36 @@ a {
   background: rgba(12, 65, 78, 0.12);
 }
 
+/* ── Material Symbols base config ── */
+.material-symbols-outlined {
+  font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24;
+}
+
+/* ── Editorial typography utilities ── */
+.font-headline {
+  font-family: "Newsreader", serif;
+  font-style: italic;
+}
+
+/* ── Editorial shadow utility ── */
+.editorial-shadow {
+  box-shadow: 0 10px 30px -10px rgba(28, 28, 25, 0.04);
+}
+
+/* ── Micro-label utility ── */
+.label-md {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  font-family: "Manrope", sans-serif;
+}
+
+/* ── Gold gradient progress bars ── */
+.progress-gradient {
+  background: linear-gradient(135deg, #bc804d 0%, #daa870 100%);
+}
+
 /* Scrollbar */
 ::-webkit-scrollbar {
   width: 6px;
@@ -92,7 +122,7 @@ a {
 
 /* ── Sidebar classes ── */
 .sidebar {
-  width: 228px;
+  width: 280px;
   flex-shrink: 0;
   min-height: 100vh;
   display: flex;
@@ -112,7 +142,6 @@ a {
 .main-content {
   padding: 32px 32px 32px;
 }
-/* Header removed — all controls now in sidebar */
 
 /* ── Bento grid ── */
 .bento-grid {
@@ -128,11 +157,11 @@ a {
 
 /* ── Hover utilities ── */
 .hover-lift {
-  transition: transform 0.2s, box-shadow 0.2s;
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
 }
 .hover-lift:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 24px rgba(0,0,0,0.06);
+  transform: translateY(-3px);
+  box-shadow: 0 12px 28px rgba(0,0,0,0.06);
 }
 .hover-slide {
   transition: transform 0.15s, background 0.15s;
@@ -261,7 +290,6 @@ a {
   .main-content {
     padding: 60px 14px 20px;
   }
-  /* main-content gets extra top padding on mobile for hamburger */
 
   .bento-8, .bento-7, .bento-5, .bento-4, .bento-full {
     grid-column: 1 / -1;
@@ -373,7 +401,7 @@ a {
   /* Page title chip area: smaller font on mobile */
   .page-header h1,
   .page-header h2 {
-    font-size: 20px !important;
+    font-size: 24px !important;
   }
 
   /* Detail header: stack title and actions */
@@ -441,4 +469,13 @@ a {
   .timer-display {
     font-size: 34px !important;
   }
+}
+
+/* ── Pulse animation for timer indicator ── */
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+.animate-pulse {
+  animation: pulse-dot 1.5s ease-in-out infinite;
 }

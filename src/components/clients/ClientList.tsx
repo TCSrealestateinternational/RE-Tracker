@@ -1,5 +1,5 @@
 import { useState, useCallback } from "react";
-import { UserPlus, AlertCircle, ChevronDown, ChevronRight, Trash2, RefreshCw, Home, FileStack, Eye, Archive, Download, Bell, X } from "lucide-react";
+import { Icon } from "@/components/shared/Icon";
 import { deleteField } from "firebase/firestore";
 import { t, card, btnPrimary, btnSecondary, inputBase } from "@/styles/theme";
 import { todayStr } from "@/utils/dates";
@@ -127,14 +127,14 @@ export function ClientList({ clients, onSelect, onClientView, onAdd, onDeleteCli
     if (onArchiveClient && client && client.stage !== "archived") {
       actions.push({
         label: "Archive",
-        icon: Archive,
+        iconName: "archive",
         onClick: () => onArchiveClient(client),
       });
     }
     if (onDeleteClients) {
       actions.push({
         label: "Delete",
-        icon: Trash2,
+        iconName: "delete",
         color: t.rust,
         onClick: () => {
           const c = clients.find((cl) => cl.id === clientId);
@@ -160,10 +160,7 @@ export function ClientList({ clients, onSelect, onClientView, onAdd, onDeleteCli
             padding: "10px 4px", width: "100%", fontFamily: t.font,
           }}
         >
-          {isOpen
-            ? <ChevronDown size={16} color={t.textTertiary} strokeWidth={2} />
-            : <ChevronRight size={16} color={t.textTertiary} strokeWidth={2} />
-          }
+          <Icon name={isOpen ? "expand_more" : "chevron_right"} size={16} color={t.textTertiary} />
           <span style={{ ...t.label, color }}>{label}</span>
           <span style={{
             padding: "1px 8px", borderRadius: "10px", fontSize: "11px", fontWeight: 600,
@@ -211,20 +208,25 @@ export function ClientList({ clients, onSelect, onClientView, onAdd, onDeleteCli
 
   return (
     <div>
-      <div className="page-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
-        <h2 style={{ ...t.pageTitle, color: t.text }}>Clients</h2>
-        <div style={{ display: "flex", gap: "8px" }}>
-          <button onClick={() => { setBulkMode(!bulkMode); if (bulkMode) { setSelectedIds(new Set()); } }} style={{
-            ...btnSecondary, display: "flex", alignItems: "center", gap: "6px",
-            fontSize: "13px", padding: "8px 14px",
-            ...(bulkMode ? { borderColor: t.teal, color: t.teal } : {}),
-          }}>
-            {bulkMode ? "Done" : "Select"}
-          </button>
-          <button data-tour="add-client" onClick={onAdd} style={{ ...btnPrimary, display: "flex", alignItems: "center", gap: "8px" }}>
-            <UserPlus size={16} strokeWidth={2} />
-            Add Client
-          </button>
+      <div>
+        <span style={{ ...t.eyebrow, color: t.gold, display: "block", marginBottom: "8px" }}>
+          PORTFOLIO MANAGEMENT
+        </span>
+        <div className="page-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
+          <h2 style={{ ...t.pageTitle, color: t.text }}>Your Client Ledger</h2>
+          <div style={{ display: "flex", gap: "8px" }}>
+            <button onClick={() => { setBulkMode(!bulkMode); if (bulkMode) { setSelectedIds(new Set()); } }} style={{
+              ...btnSecondary, display: "flex", alignItems: "center", gap: "6px",
+              fontSize: "13px", padding: "8px 14px",
+              ...(bulkMode ? { borderColor: t.teal, color: t.teal } : {}),
+            }}>
+              {bulkMode ? "Done" : "Select"}
+            </button>
+            <button data-tour="add-client" onClick={onAdd} style={{ ...btnPrimary, display: "flex", alignItems: "center", gap: "8px" }}>
+              <Icon name="person_add" size={16} />
+              Add Client
+            </button>
+          </div>
         </div>
       </div>
 
@@ -256,7 +258,7 @@ export function ClientList({ clients, onSelect, onClientView, onAdd, onDeleteCli
                   ...btnSecondary, padding: "4px 10px", fontSize: "12px",
                   display: "flex", alignItems: "center", gap: "4px",
                 }}>
-                  <RefreshCw size={12} strokeWidth={2} />
+                  <Icon name="sync" size={12} />
                   Change Stage
                 </button>
                 {showStatusMenu && (
@@ -297,7 +299,7 @@ export function ClientList({ clients, onSelect, onClientView, onAdd, onDeleteCli
                   color: t.rust, borderColor: t.rust,
                   display: "flex", alignItems: "center", gap: "4px",
                 }}>
-                  <Trash2 size={12} strokeWidth={2} />
+                  <Icon name="delete" size={12} />
                   Delete ({selectedCount})
                 </button>
               )}
@@ -375,7 +377,7 @@ export function ClientList({ clients, onSelect, onClientView, onAdd, onDeleteCli
               borderRadius: "8px", padding: "10px 14px", marginBottom: "16px",
               display: "flex", alignItems: "center", gap: "8px",
             }}>
-              <Download size={14} color={t.gold} strokeWidth={2} />
+              <Icon name="download" size={14} color={t.gold} />
               <span style={{ ...t.caption, color: t.gold }}>
                 <button
                   onClick={() => exportClientPDF(singleDeleteClient)}
@@ -545,7 +547,7 @@ function ClientRow({ client: c, today, showCheckbox, bulkMode, isSelected, onSel
               color: c.status === "buyer" ? t.teal : t.gold,
               flexShrink: 0,
             }}>
-              {c.status === "buyer" ? <Home size={11} strokeWidth={2.5} /> : <FileStack size={11} strokeWidth={2.5} />}
+              {c.status === "buyer" ? <Icon name="home" size={11} /> : <Icon name="description" size={11} />}
               {c.status === "buyer" ? "Buyer" : "Seller"}
             </span>
             <span style={{ fontWeight: 600, fontSize: "14px", color: t.text, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
@@ -553,7 +555,7 @@ function ClientRow({ client: c, today, showCheckbox, bulkMode, isSelected, onSel
             </span>
             {followUpDue && (
               <span style={{ display: "flex", alignItems: "center", gap: "3px" }}>
-                <AlertCircle size={12} color={t.rust} strokeWidth={2} />
+                <Icon name="error" size={12} color={t.rust} />
                 <span style={{ ...t.caption, color: t.rust, fontWeight: 500 }}>Follow-up due</span>
               </span>
             )}
@@ -601,7 +603,7 @@ function ClientRow({ client: c, today, showCheckbox, bulkMode, isSelected, onSel
           onMouseEnter={(e) => { e.currentTarget.style.background = t.tealLight; e.currentTarget.style.borderColor = t.teal; }}
           onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; e.currentTarget.style.borderColor = t.border; }}
         >
-          <Eye size={14} color={t.teal} strokeWidth={1.5} />
+          <Icon name="visibility" size={14} color={t.teal} />
         </button>
       )}
     </div>
@@ -670,7 +672,7 @@ function ArchivedRow({ client, today, bulkMode, isSelected, onSelect, onClientVi
                 borderRadius: "6px", cursor: "pointer", color: t.textSecondary,
               }}
             >
-              <Bell size={11} strokeWidth={2} />
+              <Icon name="notifications" size={11} />
               Set 1-yr reminder
             </button>
           )}
@@ -681,7 +683,7 @@ function ArchivedRow({ client, today, bulkMode, isSelected, onSelect, onClientVi
               background: t.goldLight, color: t.gold,
               borderRadius: "6px",
             }}>
-              <Bell size={11} strokeWidth={2} />
+              <Icon name="notifications" size={11} />
               Reminder: {client.oneYearReminderDate}
               <button
                 onClick={handleClearReminder}
@@ -692,7 +694,7 @@ function ArchivedRow({ client, today, bulkMode, isSelected, onSelect, onClientVi
                   padding: 0, marginLeft: "2px", color: t.gold,
                 }}
               >
-                <X size={11} strokeWidth={2.5} />
+                <Icon name="close" size={11} />
               </button>
             </span>
           )}

@@ -1,4 +1,4 @@
-import { Target } from "lucide-react";
+import { Icon } from "@/components/shared/Icon";
 import { t, card } from "@/styles/theme";
 import type { Client, IncomeGoal } from "@/types";
 
@@ -15,9 +15,9 @@ const CIRCUMFERENCE = 2 * Math.PI * RADIUS;
 export function IncomeGoalBar({ goal, clients }: IncomeGoalBarProps) {
   if (!goal) {
     return (
-      <div data-tour="income-goal" style={{ ...card, boxShadow: t.heroShadow }}>
+      <div data-tour="income-goal" style={card}>
         <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "12px" }}>
-          <Target size={16} color={t.textTertiary} strokeWidth={1.5} />
+          <Icon name="ads_click" size={18} color={t.textTertiary} />
           <h3 style={{ ...t.sectionHeader, color: t.text }}>Annual Goal</h3>
         </div>
         <p style={{ ...t.body, color: t.textTertiary }}>
@@ -37,37 +37,22 @@ export function IncomeGoalBar({ goal, clients }: IncomeGoalBarProps) {
 
   return (
     <div data-tour="income-goal" style={{
-      ...card, boxShadow: t.heroShadow,
+      ...card,
       display: "flex", flexDirection: "column", alignItems: "center",
       padding: "32px 24px",
     }}>
       <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "20px", alignSelf: "flex-start" }}>
-        <Target size={16} color={t.textTertiary} strokeWidth={1.5} />
+        <Icon name="ads_click" size={18} color={t.textTertiary} />
         <h3 style={{ ...t.sectionHeader, color: t.text }}>Annual Goal</h3>
       </div>
 
       <div style={{ position: "relative", width: RING_SIZE, height: RING_SIZE }}>
         <svg width={RING_SIZE} height={RING_SIZE} viewBox={`0 0 ${RING_SIZE} ${RING_SIZE}`}>
-          {/* Track */}
+          <circle cx={RING_SIZE / 2} cy={RING_SIZE / 2} r={RADIUS} fill="none" stroke={t.tealLight} strokeWidth={STROKE_WIDTH} />
           <circle
-            cx={RING_SIZE / 2}
-            cy={RING_SIZE / 2}
-            r={RADIUS}
-            fill="none"
-            stroke={t.tealLight}
-            strokeWidth={STROKE_WIDTH}
-          />
-          {/* Progress */}
-          <circle
-            cx={RING_SIZE / 2}
-            cy={RING_SIZE / 2}
-            r={RADIUS}
-            fill="none"
-            stroke={strokeColor}
-            strokeWidth={STROKE_WIDTH}
-            strokeLinecap="round"
-            strokeDasharray={CIRCUMFERENCE}
-            strokeDashoffset={dashOffset}
+            cx={RING_SIZE / 2} cy={RING_SIZE / 2} r={RADIUS}
+            fill="none" stroke={strokeColor} strokeWidth={STROKE_WIDTH}
+            strokeLinecap="round" strokeDasharray={CIRCUMFERENCE} strokeDashoffset={dashOffset}
             transform={`rotate(-90 ${RING_SIZE / 2} ${RING_SIZE / 2})`}
             style={{ transition: "stroke-dashoffset 0.6s ease" }}
           />

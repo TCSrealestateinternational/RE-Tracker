@@ -1,4 +1,4 @@
-import { Trash2 } from "lucide-react";
+import { Icon } from "@/components/shared/Icon";
 import { t } from "@/styles/theme";
 import type { Deal, DealStage } from "@/types";
 
@@ -20,22 +20,33 @@ export function DealCard({ deal, stages, onMove, onEdit, onDelete }: DealCardPro
       style={{
         background: t.surface,
         border: `1px solid ${t.border}`,
-        borderRadius: "8px",
+        borderRadius: "12px",
         padding: "14px",
         marginBottom: "8px",
         cursor: "pointer",
-        transition: "background 0.12s",
+        transition: "background 0.12s, transform 0.15s, box-shadow 0.15s",
       }}
       onClick={() => onEdit(deal)}
-      onMouseEnter={(e) => { e.currentTarget.style.background = t.surfaceHover; }}
-      onMouseLeave={(e) => { e.currentTarget.style.background = t.surface; }}
+      onMouseEnter={(e) => {
+        e.currentTarget.style.background = t.surfaceHover;
+        e.currentTarget.style.transform = "translateY(-1px)";
+        e.currentTarget.style.boxShadow = "0 4px 12px rgba(0,0,0,0.04)";
+      }}
+      onMouseLeave={(e) => {
+        e.currentTarget.style.background = t.surface;
+        e.currentTarget.style.transform = "translateY(0)";
+        e.currentTarget.style.boxShadow = "none";
+      }}
     >
       <div style={{ fontWeight: 600, fontSize: "14px", color: t.text, marginBottom: "4px" }}>
         {deal.clientName}
       </div>
       {isClosed ? (
         <>
-          <div style={{ fontSize: "13px", color: t.success, fontWeight: 600, marginBottom: "2px" }}>
+          <div style={{
+            fontFamily: t.fontHeadline, fontStyle: "italic",
+            fontSize: "16px", color: t.success, fontWeight: 400, marginBottom: "2px",
+          }}>
             Actual: ${(actual ?? projected).toLocaleString()}
           </div>
           <div style={{ ...t.caption, color: t.textTertiary }}>
@@ -43,7 +54,10 @@ export function DealCard({ deal, stages, onMove, onEdit, onDelete }: DealCardPro
           </div>
         </>
       ) : (
-        <div style={{ fontSize: "13px", color: t.gold, fontWeight: 600, marginBottom: "2px" }}>
+        <div style={{
+          fontFamily: t.fontHeadline, fontStyle: "italic",
+          fontSize: "16px", color: t.gold, fontWeight: 400, marginBottom: "2px",
+        }}>
           Projected: ${projected.toLocaleString()}
         </div>
       )}
@@ -88,7 +102,7 @@ export function DealCard({ deal, stages, onMove, onEdit, onDelete }: DealCardPro
             onMouseEnter={(ev) => { ev.currentTarget.style.color = t.rust; }}
             onMouseLeave={(ev) => { ev.currentTarget.style.color = t.textTertiary; }}
           >
-            <Trash2 size={13} />
+            <Icon name="delete" size={14} />
           </button>
         )}
       </div>

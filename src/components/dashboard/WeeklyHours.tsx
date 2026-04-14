@@ -33,7 +33,7 @@ export function WeeklyHours({ entries, weekStart }: WeeklyHoursProps) {
   const maxHours = Math.max(...hoursByCategory.map((h) => h.hours), 1);
 
   return (
-    <div className="hover-lift" style={{ ...card, boxShadow: t.heroShadow }}>
+    <div className="hover-lift" style={card}>
       <h3 style={{ ...t.sectionHeader, color: t.text, marginBottom: "20px" }}>
         Weekly Hours
       </h3>

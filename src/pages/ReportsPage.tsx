@@ -38,7 +38,12 @@ export function ReportsPage() {
   return (
     <div style={{ display: "grid", gap: t.sectionGap }}>
       <div className="page-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-        <h1 style={{ ...t.pageTitle, color: t.text }}>Reports</h1>
+        <div>
+          <span style={{ ...t.eyebrow, color: t.gold, display: "block", marginBottom: "8px" }}>
+            PERFORMANCE ANALYTICS
+          </span>
+          <h1 style={{ ...t.pageTitle, color: t.text }}>Reports</h1>
+        </div>
         {exportData && (
           <div data-tour="export-buttons">
             <ExportButtons title={exportData.title} headers={exportData.headers} rows={exportData.rows} filenameBase={exportData.file} />
@@ -52,7 +57,7 @@ export function ReportsPage() {
             key={item.key}
             onClick={() => setTab(item.key)}
             style={{
-              padding: "8px 16px", border: "none", borderRadius: "8px",
+              padding: "8px 16px", border: "none", borderRadius: "20px",
               background: tab === item.key ? t.teal : "transparent",
               color: tab === item.key ? t.textInverse : t.textSecondary,
               fontWeight: tab === item.key ? 600 : 400,

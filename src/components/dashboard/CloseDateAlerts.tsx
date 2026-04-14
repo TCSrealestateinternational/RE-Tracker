@@ -1,4 +1,4 @@
-import { AlertTriangle } from "lucide-react";
+import { Icon } from "@/components/shared/Icon";
 import { t, card, btnPrimary } from "@/styles/theme";
 import type { Deal, DealStage } from "@/types";
 
@@ -30,7 +30,7 @@ export function CloseDateAlerts({ deals, onMoveDeal, onUpdateDeal }: CloseDateAl
   return (
     <div style={{ display: "grid", gap: "12px" }}>
       <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-        <AlertTriangle size={16} color={t.rust} strokeWidth={2} />
+        <Icon name="warning" size={18} color={t.rust} />
         <h3 style={{ ...t.sectionHeader, color: t.rust }}>Close Date Alerts</h3>
       </div>
       {overdue.map((deal) => (

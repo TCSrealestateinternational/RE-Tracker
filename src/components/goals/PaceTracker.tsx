@@ -50,7 +50,7 @@ export function PaceTracker({ goal, deals }: PaceTrackerProps) {
         <div style={{ position: "relative", height: "6px", background: t.tealLight, borderRadius: "3px", overflow: "hidden" }}>
           <div style={{
             height: "100%", width: `${pctOfGoal}%`,
-            background: onPace ? t.success : t.rust,
+            background: onPace ? t.success : t.goldGradient,
             borderRadius: "3px", transition: "width 0.3s",
           }} />
           <div style={{

@@ -1,4 +1,4 @@
-import { Bell } from "lucide-react";
+import { Icon } from "@/components/shared/Icon";
 import { t, card } from "@/styles/theme";
 import { todayStr } from "@/utils/dates";
 import type { Client } from "@/types";
@@ -15,7 +15,7 @@ export function FollowUpAlerts({ clients, onClientClick }: FollowUpAlertsProps) 
   return (
     <div data-tour="follow-ups" style={card}>
       <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "16px" }}>
-        <Bell size={16} color={due.length > 0 ? t.rust : t.textTertiary} strokeWidth={1.5} />
+        <Icon name="notifications" size={18} color={due.length > 0 ? t.rust : t.textTertiary} />
         <h3 style={{ ...t.sectionHeader, color: t.text }}>Follow-Ups</h3>
       </div>
       {due.length === 0 ? (

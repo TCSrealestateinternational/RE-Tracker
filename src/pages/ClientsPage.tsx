@@ -46,7 +46,6 @@ export function ClientsPage() {
           updatedAt: Date.now(),
         });
       } else {
-        // Moving out of archived — clear the archivedAt flag so the invariant holds.
         await updateDoc(doc(db, "clients", id), {
           stage,
           archivedAt: deleteField(),
@@ -95,7 +94,6 @@ export function ClientsPage() {
         onSubmit={async (data) => {
           const newId = await addClient(data);
           await createChecklist(newId, data.status);
-          // If agent has Hearth access, prompt to also add client to portal
           if (hasHearthAccess) {
             const newClient = { ...data, id: newId, userId: profile?.id || "", createdAt: Date.now(), updatedAt: Date.now() } as Client;
             setHearthPromptClient(newClient);
@@ -114,7 +112,6 @@ export function ClientsPage() {
         onSubmit={async (data) => {
           await updateClient(selected.id, data);
 
-          // Sync overlapping fields to all deals linked to this client
           const updatedClient = { ...selected, ...data } as Client;
           const linkedDeals = deals.filter((d) => d.clientId === selected.id);
           for (const deal of linkedDeals) {

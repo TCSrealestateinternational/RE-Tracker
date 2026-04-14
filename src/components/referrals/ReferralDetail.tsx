@@ -1,4 +1,4 @@
-import { ArrowLeft, Edit3, DollarSign, Percent, User, Phone, Mail } from "lucide-react";
+import { Icon } from "@/components/shared/Icon";
 import { t, card } from "@/styles/theme";
 import { REFERRAL_STATUS_LABELS, type Referral } from "@/types";
 
@@ -38,9 +38,9 @@ export function ReferralDetail({ referral, onEdit, onBack, onDelete }: ReferralD
   };
 
   const stats = [
-    { label: "Expected Commission", value: fmtDollars(referral.expectedCommission), color: t.textSecondary, icon: DollarSign },
-    { label: "Referral %", value: `${referral.referralPercent}%`, color: t.teal, icon: Percent },
-    { label: "Referral Fee", value: fmtDollars(referral.referralFee), color: t.gold, icon: DollarSign },
+    { label: "Expected Commission", value: fmtDollars(referral.expectedCommission), color: t.textSecondary, icon: "payments" },
+    { label: "Referral %", value: `${referral.referralPercent}%`, color: t.teal, icon: "percent" },
+    { label: "Referral Fee", value: fmtDollars(referral.referralFee), color: t.gold, icon: "payments" },
   ];
 
   return (
@@ -52,7 +52,7 @@ export function ReferralDetail({ referral, onEdit, onBack, onDelete }: ReferralD
           display: "flex", alignItems: "center", gap: "6px",
           ...t.caption, marginBottom: "20px",
         }}>
-          <ArrowLeft size={14} strokeWidth={1.5} />
+          <Icon name="arrow_back" size={14} />
           Back to Referrals
         </button>
 
@@ -61,8 +61,9 @@ export function ReferralDetail({ referral, onEdit, onBack, onDelete }: ReferralD
             <h2 style={{ ...t.pageTitle, color: t.text, marginBottom: "4px" }}>{referral.clientName}</h2>
             <div style={{ display: "flex", alignItems: "center", gap: "8px", marginTop: "4px" }}>
               <span style={{
-                padding: "2px 8px", borderRadius: "4px", fontSize: "11px", fontWeight: 600,
-                textTransform: "uppercase", background: sc.bg, color: sc.color,
+                padding: "2px 8px", borderRadius: "20px", fontSize: "10px", fontWeight: 600,
+                textTransform: "uppercase", letterSpacing: "0.05em",
+                background: sc.bg, color: sc.color,
               }}>
                 {REFERRAL_STATUS_LABELS[referral.status as keyof typeof REFERRAL_STATUS_LABELS] ?? referral.status}
               </span>
@@ -80,7 +81,7 @@ export function ReferralDetail({ referral, onEdit, onBack, onDelete }: ReferralD
               borderRadius: "8px", cursor: "pointer", fontSize: "13px", fontFamily: t.font,
               color: t.textSecondary,
             }}>
-              <Edit3 size={14} strokeWidth={1.5} />
+              <Icon name="edit" size={14} />
               Edit
             </button>
             <button onClick={() => onDelete(referral.id)} style={{
@@ -96,32 +97,32 @@ export function ReferralDetail({ referral, onEdit, onBack, onDelete }: ReferralD
 
         {/* Stats */}
         <div className="grid-3col" style={{ marginBottom: "28px" }}>
-          {stats.map(({ label, value, color, icon: Icon }) => (
-            <div key={label} style={{ background: t.bg, padding: "16px", borderRadius: "8px" }}>
-              <Icon size={14} color={t.textTertiary} strokeWidth={1.5} style={{ marginBottom: "8px" }} />
+          {stats.map(({ label, value, color, icon }) => (
+            <div key={label} style={{ background: t.bg, padding: "16px", borderRadius: "10px" }}>
+              <Icon name={icon} size={16} color={t.textTertiary} style={{ marginBottom: "8px" }} />
               <div style={{ ...t.stat, fontSize: "20px", color }}>{value}</div>
-              <div style={{ ...t.label, color: t.textTertiary, marginTop: "4px" }}>{label}</div>
+              <div style={{ ...t.microLabel, color: t.textTertiary, marginTop: "4px" }}>{label}</div>
             </div>
           ))}
         </div>
 
         {/* Agent Info */}
         <div style={{ background: t.bg, borderRadius: "10px", padding: "16px", marginBottom: "16px" }}>
-          <span style={{ ...t.label, color: t.teal, display: "block", marginBottom: "12px" }}>Receiving Agent</span>
+          <span style={{ ...t.eyebrow, color: t.teal, display: "block", marginBottom: "12px" }}>Receiving Agent</span>
           <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
             <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-              <User size={14} color={t.textTertiary} strokeWidth={1.5} />
+              <Icon name="person" size={16} color={t.textTertiary} />
               <span style={{ ...t.body, color: t.text }}>{referral.agentName}</span>
             </div>
             {referral.agentEmail && (
               <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                <Mail size={14} color={t.textTertiary} strokeWidth={1.5} />
+                <Icon name="mail" size={16} color={t.textTertiary} />
                 <span style={{ ...t.body, color: t.text }}>{referral.agentEmail}</span>
               </div>
             )}
             {referral.agentPhone && (
               <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                <Phone size={14} color={t.textTertiary} strokeWidth={1.5} />
+                <Icon name="phone" size={16} color={t.textTertiary} />
                 <span style={{ ...t.body, color: t.text }}>{referral.agentPhone}</span>
               </div>
             )}

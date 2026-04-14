@@ -1,4 +1,4 @@
-import { Play, Square, X } from "lucide-react";
+import { Icon } from "@/components/shared/Icon";
 import { useTimer } from "@/hooks/useTimer";
 import { useClients } from "@/hooks/useClients";
 import { ACTIVITY_CATEGORIES, LEAD_SOURCES, type LeadSource } from "@/types";
@@ -18,12 +18,23 @@ export function LiveTimer() {
         padding: "20px 0",
         marginBottom: "24px",
       }}>
+        {timer.running && (
+          <span className="animate-pulse" style={{
+            display: "inline-block",
+            width: "8px", height: "8px", borderRadius: "50%",
+            background: t.gold,
+            marginBottom: "12px",
+          }} />
+        )}
         <span className="timer-display" style={{
-          fontFamily: "'Manrope', monospace",
-          fontSize: "48px",
-          fontWeight: 700,
+          display: "block",
+          fontFamily: t.fontHeadline,
+          fontSize: "80px",
+          fontWeight: 300,
+          fontStyle: "italic",
           color: timer.running ? t.teal : t.text,
           letterSpacing: "-0.02em",
+          lineHeight: 1,
         }}>
           {formatTime(timer.elapsed)}
         </span>
@@ -71,8 +82,12 @@ export function LiveTimer() {
 
       <div className="timer-actions">
         {!timer.running ? (
-          <button onClick={timer.start} style={{ ...btnPrimary, flex: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: "8px" }}>
-            <Play size={16} strokeWidth={2} />
+          <button onClick={timer.start} style={{
+            ...btnPrimary, flex: 1,
+            display: "flex", alignItems: "center", justifyContent: "center", gap: "8px",
+            borderRadius: "12px", textTransform: "uppercase", letterSpacing: "0.05em", fontSize: "13px",
+          }}>
+            <Icon name="play_arrow" size={18} />
             Start
           </button>
         ) : (
@@ -80,16 +95,17 @@ export function LiveTimer() {
             <button onClick={timer.stop} style={{
               ...btnPrimary, flex: 1, background: t.rust,
               display: "flex", alignItems: "center", justifyContent: "center", gap: "8px",
+              borderRadius: "12px", textTransform: "uppercase", letterSpacing: "0.05em", fontSize: "13px",
             }}>
-              <Square size={14} strokeWidth={2} />
+              <Icon name="stop" size={18} />
               Stop & Save
             </button>
             <button onClick={timer.reset} title="Discard" style={{
               padding: "10px 16px", background: "transparent", border: `1px solid ${t.border}`,
-              borderRadius: "8px", cursor: "pointer", color: t.textTertiary, fontFamily: t.font,
+              borderRadius: "12px", cursor: "pointer", color: t.textTertiary, fontFamily: t.font,
               display: "flex", alignItems: "center", justifyContent: "center", gap: "6px", fontSize: "14px",
             }}>
-              <X size={14} strokeWidth={1.5} />
+              <Icon name="close" size={16} />
               <span className="timer-discard-label">Discard</span>
             </button>
           </>

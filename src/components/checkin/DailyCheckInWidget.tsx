@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Flame, Check } from "lucide-react";
+import { Icon } from "@/components/shared/Icon";
 import { t, card, inputBase, btnPrimary, btnSecondary } from "@/styles/theme";
 import type { DailyCheckIn } from "@/types";
 
@@ -43,7 +43,7 @@ function StreakDots({ checkIns }: { checkIns?: DailyCheckIn[] }) {
               display: "flex", alignItems: "center", justifyContent: "center",
               transition: "background 0.2s",
             }}>
-              {done && <Check size={12} color="#fff" strokeWidth={3} />}
+              {done && <Icon name="check" size={12} color="#fff" />}
             </div>
             <span style={{ fontSize: "10px", fontWeight: isToday ? 700 : 400, color: isToday ? t.teal : t.textTertiary }}>
               {DAY_LABELS[i]}
@@ -60,9 +60,9 @@ export function DailyCheckInWidget({ todayCheckIn, streak, onSubmit, checkIns }:
 
   if (todayCheckIn) {
     return (
-      <div data-tour="daily-checkin" style={{ ...card, boxShadow: t.heroShadow }}>
+      <div data-tour="daily-checkin" style={card}>
         <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "16px" }}>
-          <Check size={16} color={t.success} strokeWidth={2} />
+          <Icon name="check_circle" size={18} color={t.success} />
           <h3 style={{ ...t.sectionHeader, color: t.text }}>Today's Check-In</h3>
         </div>
         <StreakDots checkIns={checkIns} />
@@ -71,18 +71,18 @@ export function DailyCheckInWidget({ todayCheckIn, streak, onSubmit, checkIns }:
             <div style={{ ...t.stat, fontSize: "20px", color: todayCheckIn.prospected ? t.success : t.textTertiary }}>
               {todayCheckIn.prospected ? "Yes" : "No"}
             </div>
-            <div style={{ ...t.label, color: t.textTertiary, marginTop: "2px" }}>Prospected</div>
+            <div style={{ ...t.microLabel, color: t.textTertiary, marginTop: "4px" }}>Prospected</div>
           </div>
           <div>
             <div style={{ ...t.stat, fontSize: "20px", color: t.teal }}>{todayCheckIn.contactsMade}</div>
-            <div style={{ ...t.label, color: t.textTertiary, marginTop: "2px" }}>Contacts</div>
+            <div style={{ ...t.microLabel, color: t.textTertiary, marginTop: "4px" }}>Contacts</div>
           </div>
           {streak > 0 && (
             <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-              <Flame size={16} color={t.gold} strokeWidth={1.5} />
+              <Icon name="local_fire_department" size={18} color={t.gold} />
               <div>
                 <div style={{ ...t.stat, fontSize: "20px", color: t.gold }}>{streak}</div>
-                <div style={{ ...t.label, color: t.textTertiary, marginTop: "2px" }}>Day Streak</div>
+                <div style={{ ...t.microLabel, color: t.textTertiary, marginTop: "4px" }}>Day Streak</div>
               </div>
             </div>
           )}
@@ -92,7 +92,7 @@ export function DailyCheckInWidget({ todayCheckIn, streak, onSubmit, checkIns }:
   }
 
   return (
-    <div data-tour="daily-checkin" style={{ ...card, background: t.bg, border: `1px solid ${t.borderMedium}`, boxShadow: t.heroShadow }}>
+    <div data-tour="daily-checkin" style={{ ...card, background: t.bg, border: `1px solid ${t.borderMedium}` }}>
       <h3 style={{ ...t.sectionHeader, color: t.text, marginBottom: "4px" }}>
         Morning Check-In
       </h3>
@@ -124,7 +124,7 @@ export function DailyCheckInWidget({ todayCheckIn, streak, onSubmit, checkIns }:
       </div>
       {streak > 0 && (
         <div style={{ display: "flex", alignItems: "center", gap: "6px", marginTop: "14px" }}>
-          <Flame size={14} color={t.gold} strokeWidth={1.5} />
+          <Icon name="local_fire_department" size={16} color={t.gold} />
           <span style={{ ...t.caption, color: t.textTertiary }}>
             {streak} day streak — keep it going
           </span>

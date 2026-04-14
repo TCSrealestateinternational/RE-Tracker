@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Home, FileStack, CalendarClock, ChevronDown, ChevronRight, MessageSquare, CheckCircle2 } from "lucide-react";
+import { Icon } from "@/components/shared/Icon";
 import { t, card } from "@/styles/theme";
 import type { Client, TransactionChecklist } from "@/types";
 import { BUYER_CHECKLIST_TEMPLATE, BUYER_STAGES } from "@/constants/checklist-buyer";
@@ -28,7 +28,6 @@ function CollapsibleSection({
   children: React.ReactNode;
 }) {
   const [open, setOpen] = useState(defaultOpen);
-  const Chevron = open ? ChevronDown : ChevronRight;
 
   return (
     <div style={{ marginBottom: "20px" }}>
@@ -40,7 +39,7 @@ function CollapsibleSection({
           fontFamily: t.font,
         }}
       >
-        <Chevron size={16} color={t.textSecondary} strokeWidth={2} />
+        <Icon name={open ? "expand_more" : "chevron_right"} size={16} color={t.textSecondary} />
         <span style={{ ...t.sectionHeader, color: t.text }}>{title}</span>
         {badge && (
           <span style={{
@@ -129,7 +128,6 @@ function ViewStageSection({
 }) {
   const allDone = completed === items.length;
   const [open, setOpen] = useState(!allDone);
-  const Chevron = open ? ChevronDown : ChevronRight;
 
   return (
     <div style={{ borderRadius: "8px", overflow: "hidden" }}>
@@ -141,7 +139,7 @@ function ViewStageSection({
           padding: "10px 12px", fontFamily: t.font,
         }}
       >
-        <Chevron size={14} color={t.textSecondary} strokeWidth={2} />
+        <Icon name={open ? "expand_more" : "chevron_right"} size={14} color={t.textSecondary} />
         <span style={{
           ...t.label, flex: 1, textAlign: "left",
           color: allDone ? t.success : t.text,
@@ -219,9 +217,7 @@ export function ClientViewPanel({ client, checklist, onToggleItem }: ClientViewP
         <div style={{
           display: "flex", alignItems: "center", gap: "8px", marginBottom: "4px",
         }}>
-          {isBuyer
-            ? <Home size={16} color={t.teal} strokeWidth={2} />
-            : <FileStack size={16} color={t.gold} strokeWidth={2} />}
+          <Icon name={isBuyer ? "home" : "description"} size={16} color={isBuyer ? t.teal : t.gold} />
           <span style={{
             ...t.label, fontSize: "11px", fontWeight: 700,
             color: isBuyer ? t.teal : t.gold,
@@ -245,7 +241,7 @@ export function ClientViewPanel({ client, checklist, onToggleItem }: ClientViewP
       {(client.statusMessage || (client.actionItems && client.actionItems.length > 0)) ? (
         <div style={card}>
           <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "12px" }}>
-            <MessageSquare size={16} color={t.teal} strokeWidth={2} />
+            <Icon name="chat" size={16} color={t.teal} />
             <h3 style={{ ...t.sectionHeader, color: t.text }}>From Your Agent</h3>
           </div>
           {client.statusMessage && (
@@ -268,7 +264,7 @@ export function ClientViewPanel({ client, checklist, onToggleItem }: ClientViewP
                     borderRadius: "6px",
                   }}
                 >
-                  <CheckCircle2 size={14} color={t.textTertiary} strokeWidth={1.5} />
+                  <Icon name="check_circle" size={14} color={t.textTertiary} />
                   <span style={{ ...t.body, color: t.text }}>{item}</span>
                 </div>
               ))}
@@ -278,7 +274,7 @@ export function ClientViewPanel({ client, checklist, onToggleItem }: ClientViewP
       ) : (
         <div style={card}>
           <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "12px" }}>
-            <Home size={16} color={t.teal} strokeWidth={2} />
+            <Icon name="home" size={16} color={t.teal} />
             <h3 style={{ ...t.sectionHeader, color: t.text }}>Getting Started</h3>
           </div>
           <div style={{ display: "grid", gap: "6px" }}>
@@ -298,7 +294,7 @@ export function ClientViewPanel({ client, checklist, onToggleItem }: ClientViewP
                   borderRadius: "6px",
                 }}
               >
-                <CheckCircle2 size={14} color={t.teal} strokeWidth={1.5} style={{ marginTop: "2px", flexShrink: 0 }} />
+                <Icon name="check_circle" size={14} color={t.teal} style={{ marginTop: "2px", flexShrink: 0 }} />
                 <span style={{ ...t.body, color: t.text }}>{tip}</span>
               </div>
             ))}
@@ -450,7 +446,7 @@ function DateCard({ label, date }: { label: string; date: string | null }) {
       background: t.bg, borderRadius: "8px", padding: "12px 16px",
       display: "flex", alignItems: "center", gap: "10px",
     }}>
-      <CalendarClock size={16} color={date ? t.teal : t.textTertiary} strokeWidth={1.5} />
+      <Icon name="event" size={16} color={date ? t.teal : t.textTertiary} />
       <div>
         <div style={{ ...t.label, color: t.textSecondary, marginBottom: "2px" }}>{label}</div>
         <div style={{ ...t.body, color: date ? t.text : t.textTertiary, fontWeight: date ? 500 : 400 }}>

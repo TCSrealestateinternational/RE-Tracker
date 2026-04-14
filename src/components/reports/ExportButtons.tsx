@@ -1,4 +1,4 @@
-import { Download } from "lucide-react";
+import { Icon } from "@/components/shared/Icon";
 import { exportCSV, exportPDF } from "@/utils/export";
 import { t } from "@/styles/theme";
 
@@ -28,11 +28,11 @@ export function ExportButtons({ title, headers, rows, filenameBase }: ExportButt
   return (
     <div style={{ display: "flex", gap: "6px" }}>
       <button onClick={() => exportCSV(headers, rows, `${filenameBase}.csv`)} style={btnStyle}>
-        <Download size={14} strokeWidth={1.5} />
+        <Icon name="download" size={14} />
         CSV
       </button>
       <button onClick={() => exportPDF(title, headers, rows)} style={btnStyle}>
-        <Download size={14} strokeWidth={1.5} />
+        <Icon name="download" size={14} />
         PDF
       </button>
     </div>

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Gift, ChevronDown, ChevronRight } from "lucide-react";
+import { Icon } from "@/components/shared/Icon";
 import { t, card, btnPrimary } from "@/styles/theme";
 import { REFERRAL_STATUS_LABELS, type Referral } from "@/types";
 
@@ -28,7 +28,6 @@ const statusColors: Record<string, { bg: string; color: string }> = {
 type FolderKey = "paid" | "lost";
 
 export function ReferralList({ referrals, onSelect, onAdd }: ReferralListProps) {
-  // Separate active vs folder referrals
   const activeReferrals = referrals.filter((r) => r.status !== "paid" && r.status !== "lost");
   const paidReferrals = referrals.filter((r) => r.status === "paid");
   const lostReferrals = referrals.filter((r) => r.status === "lost");
@@ -57,8 +56,9 @@ export function ReferralList({ referrals, onSelect, onAdd }: ReferralListProps) 
           <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
             <span style={{ fontWeight: 600, fontSize: "14px", color: t.text }}>{r.clientName}</span>
             <span style={{
-              padding: "2px 8px", borderRadius: "4px", fontSize: "11px", fontWeight: 600,
-              textTransform: "uppercase", background: sc.bg, color: sc.color,
+              padding: "2px 8px", borderRadius: "20px", fontSize: "10px", fontWeight: 600,
+              textTransform: "uppercase", letterSpacing: "0.05em",
+              background: sc.bg, color: sc.color,
             }}>
               {REFERRAL_STATUS_LABELS[r.status as keyof typeof REFERRAL_STATUS_LABELS] ?? r.status}
             </span>
@@ -70,7 +70,7 @@ export function ReferralList({ referrals, onSelect, onAdd }: ReferralListProps) 
         </div>
         <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: "2px", flexShrink: 0 }}>
           {r.referralFee > 0 && (
-            <span style={{ fontWeight: 600, fontSize: "14px", color: t.gold }}>
+            <span style={{ fontFamily: t.fontHeadline, fontStyle: "italic", fontSize: "16px", color: t.gold }}>
               {fmtDollars(r.referralFee)}
             </span>
           )}
@@ -97,10 +97,7 @@ export function ReferralList({ referrals, onSelect, onAdd }: ReferralListProps) 
             padding: "10px 4px", width: "100%", fontFamily: t.font,
           }}
         >
-          {isOpen
-            ? <ChevronDown size={16} color={t.textTertiary} strokeWidth={2} />
-            : <ChevronRight size={16} color={t.textTertiary} strokeWidth={2} />
-          }
+          <Icon name={isOpen ? "expand_more" : "chevron_right"} size={16} color={t.textTertiary} />
           <span style={{ ...t.label, color }}>{label}</span>
           <span style={{
             padding: "1px 8px", borderRadius: "10px", fontSize: "11px", fontWeight: 600,
@@ -120,19 +117,20 @@ export function ReferralList({ referrals, onSelect, onAdd }: ReferralListProps) 
 
   return (
     <div>
+      <span style={{ ...t.eyebrow, color: t.gold, display: "block", marginBottom: "8px" }}>
+        PROFESSIONAL NETWORK
+      </span>
       <div className="page-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
-        <h2 style={{ ...t.pageTitle, color: t.text }}>Referrals</h2>
+        <h2 style={{ ...t.pageTitle, color: t.text }}>Agent Referrals</h2>
         <button data-tour="add-referral" onClick={onAdd} style={{ ...btnPrimary, display: "flex", alignItems: "center", gap: "8px" }}>
-          <Gift size={16} strokeWidth={2} />
+          <Icon name="handshake" size={16} />
           Add Referral
         </button>
       </div>
 
-      {/* Paid / Lost folders */}
       {renderFolder("paid", "Paid", paidReferrals, t.success)}
       {renderFolder("lost", "Lost", lostReferrals, t.textTertiary)}
 
-      {/* Active referrals */}
       <div style={{ display: "grid", gap: "8px" }}>
         {activeReferrals.map((r) => renderRow(r))}
         {referrals.length === 0 && (

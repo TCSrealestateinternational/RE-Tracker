@@ -1,5 +1,5 @@
 import { useState, useRef } from "react";
-import { ArrowLeft, Edit3, Clock, DollarSign, TrendingUp, CalendarClock, ExternalLink, Home, FileStack, Eye, LayoutDashboard, Flame, Check, ChevronDown, ChevronRight, Download, MessageSquare, Plus, X, Archive } from "lucide-react";
+import { Icon } from "@/components/shared/Icon";
 import type { ChecklistTemplateItem } from "@/constants/checklist-buyer";
 import { t, card, btnPrimary } from "@/styles/theme";
 import { formatHours } from "@/utils/dates";
@@ -74,15 +74,15 @@ export function ClientDetail({ client, entries, checklist, deal, onToggleItem, o
   const projectedCommission = getProjectedCommission(client);
 
   const stats = [
-    { label: "Time Logged", value: formatHours(totalMs), color: t.teal, icon: Clock },
-    { label: "Commission", value: fmtDollars(client.commissionEarned), color: t.gold, icon: DollarSign },
-    { label: "Revenue/Hour", value: `$${revenuePerHour.toFixed(0)}`, color: t.teal, icon: TrendingUp },
-    { label: "Follow-Up", value: client.followUpDate || "—", color: client.followUpDate ? t.rust : t.textTertiary, icon: CalendarClock },
+    { label: "Time Logged", value: formatHours(totalMs), color: t.teal, icon: "schedule" },
+    { label: "Commission", value: fmtDollars(client.commissionEarned), color: t.gold, icon: "payments" },
+    { label: "Revenue/Hour", value: `$${revenuePerHour.toFixed(0)}`, color: t.teal, icon: "trending_up" },
+    { label: "Follow-Up", value: client.followUpDate || "—", color: client.followUpDate ? t.rust : t.textTertiary, icon: "event" },
   ];
 
-  const tabs: { key: DetailTab; label: string; icon: typeof Eye }[] = [
-    { key: "overview", label: "Overview", icon: LayoutDashboard },
-    { key: "client-view", label: "Client View", icon: Eye },
+  const tabs: { key: DetailTab; label: string; icon: string }[] = [
+    { key: "overview", label: "Overview", icon: "dashboard" },
+    { key: "client-view", label: "Client View", icon: "visibility" },
   ];
 
   const checklistTemplate = checklist
@@ -117,7 +117,7 @@ export function ClientDetail({ client, entries, checklist, deal, onToggleItem, o
           display: "flex", alignItems: "center", gap: "6px",
           ...t.caption, marginBottom: "20px",
         }}>
-          <ArrowLeft size={14} strokeWidth={1.5} />
+          <Icon name="arrow_back" size={14} />
           Back to Clients
         </button>
 
@@ -132,7 +132,7 @@ export function ClientDetail({ client, entries, checklist, deal, onToggleItem, o
                 background: isBuyer ? "rgba(12, 65, 78, 0.10)" : "rgba(188, 128, 77, 0.12)",
                 color: isBuyer ? t.teal : t.gold,
               }}>
-                {isBuyer ? <Home size={11} strokeWidth={2.5} /> : <FileStack size={11} strokeWidth={2.5} />}
+                <Icon name={isBuyer ? "home" : "description"} size={11} />
                 {client.status}
               </span>
               <span>{client.stage}</span>
@@ -163,7 +163,7 @@ export function ClientDetail({ client, entries, checklist, deal, onToggleItem, o
                   fontSize: "13px", padding: "8px 14px",
                 }}
               >
-                <Flame size={14} strokeWidth={1.5} />
+                <Icon name="local_fire_department" size={14} />
                 {portalActivating ? "Activating..." : "Activate Hearth"}
               </button>
             )}
@@ -173,7 +173,7 @@ export function ClientDetail({ client, entries, checklist, deal, onToggleItem, o
                 padding: "8px 14px", fontSize: "13px", fontFamily: t.font,
                 color: t.success, background: t.successLight, borderRadius: "8px",
               }}>
-                <Check size={14} strokeWidth={2} />
+                <Icon name="check" size={14} />
                 Hearth Active
               </span>
             )}
@@ -183,7 +183,7 @@ export function ClientDetail({ client, entries, checklist, deal, onToggleItem, o
               borderRadius: "8px", cursor: "pointer", fontSize: "13px", fontFamily: t.font,
               color: t.textSecondary,
             }}>
-              <Download size={14} strokeWidth={1.5} />
+              <Icon name="download" size={14} />
               PDF
             </button>
             <button onClick={onEdit} style={{
@@ -192,7 +192,7 @@ export function ClientDetail({ client, entries, checklist, deal, onToggleItem, o
               borderRadius: "8px", cursor: "pointer", fontSize: "13px", fontFamily: t.font,
               color: t.textSecondary,
             }}>
-              <Edit3 size={14} strokeWidth={1.5} />
+              <Icon name="edit" size={14} />
               Edit
             </button>
             {onArchive && client.stage !== "archived" && (
@@ -202,7 +202,7 @@ export function ClientDetail({ client, entries, checklist, deal, onToggleItem, o
                 borderRadius: "8px", cursor: "pointer", fontSize: "13px", fontFamily: t.font,
                 color: t.textSecondary,
               }}>
-                <Archive size={14} strokeWidth={1.5} />
+                <Icon name="archive" size={14} />
                 Archive
               </button>
             )}
@@ -225,7 +225,7 @@ export function ClientDetail({ client, entries, checklist, deal, onToggleItem, o
           marginLeft: `-${t.cardPadding}`, marginRight: `-${t.cardPadding}`,
           paddingLeft: t.cardPadding, paddingRight: t.cardPadding,
         }}>
-          {tabs.map(({ key, label, icon: Icon }) => {
+          {tabs.map(({ key, label, icon: iconName }) => {
             const isActive = activeTab === key;
             return (
               <button
@@ -242,7 +242,7 @@ export function ClientDetail({ client, entries, checklist, deal, onToggleItem, o
                   marginBottom: "-1px",
                 }}
               >
-                <Icon size={14} strokeWidth={isActive ? 2 : 1.5} />
+                <Icon name={iconName} size={14} filled={isActive} />
                 {label}
               </button>
             );
@@ -256,9 +256,9 @@ export function ClientDetail({ client, entries, checklist, deal, onToggleItem, o
           {/* Stats + Details Card */}
           <div style={card}>
             <div className="grid-4col" style={{ marginBottom: "28px" }}>
-              {stats.map(({ label, value, color, icon: Icon }) => (
+              {stats.map(({ label, value, color, icon: iconName }) => (
                 <div key={label} style={{ background: t.bg, padding: "16px", borderRadius: "8px" }}>
-                  <Icon size={14} color={t.textTertiary} strokeWidth={1.5} style={{ marginBottom: "8px" }} />
+                  <Icon name={iconName} size={14} color={t.textTertiary} style={{ marginBottom: "8px" }} />
                   <div style={{ ...t.stat, fontSize: "20px", color }}>{value}</div>
                   <div style={{ ...t.label, color: t.textTertiary, marginTop: "4px" }}>{label}</div>
                 </div>
@@ -414,7 +414,7 @@ export function ClientDetail({ client, entries, checklist, deal, onToggleItem, o
                       onMouseEnter={(e) => { e.currentTarget.style.background = t.tealLight; }}
                       onMouseLeave={(e) => { e.currentTarget.style.background = t.bg; }}
                     >
-                      <ExternalLink size={14} strokeWidth={1.5} />
+                      <Icon name="open_in_new" size={14} />
                       <span style={{ fontWeight: 500 }}>{link.label || link.url}</span>
                     </a>
                   ))}
@@ -439,7 +439,7 @@ export function ClientDetail({ client, entries, checklist, deal, onToggleItem, o
                     color: checklist.type === "buyer" ? t.teal : t.gold,
                     textTransform: "uppercase",
                   }}>
-                    {checklist.type === "buyer" ? <Home size={11} strokeWidth={2.5} /> : <FileStack size={11} strokeWidth={2.5} />}
+                    <Icon name={checklist.type === "buyer" ? "home" : "description"} size={11} />
                     {checklist.type}
                   </span>
                 </div>
@@ -536,7 +536,7 @@ function ClientDashboardMessageCard({
   return (
     <div style={card}>
       <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "14px" }}>
-        <MessageSquare size={16} color={t.teal} strokeWidth={2} />
+        <Icon name="chat" size={16} color={t.teal} />
         <h3 style={{ ...t.sectionHeader, color: t.text }}>Client Dashboard Message</h3>
       </div>
       <p style={{ ...t.caption, color: t.textTertiary, marginBottom: "16px" }}>
@@ -605,7 +605,7 @@ function ClientDashboardMessageCard({
                   }}
                   title="Remove item"
                 >
-                  <X size={14} strokeWidth={2} />
+                  <Icon name="close" size={14} />
                 </button>
               </div>
             ))}
@@ -652,7 +652,7 @@ function ClientDashboardMessageCard({
               transition: "background 0.15s",
             }}
           >
-            <Plus size={14} strokeWidth={2} />
+            <Icon name="add" size={14} />
             Add
           </button>
         </div>
@@ -679,7 +679,6 @@ function DetailStageSection({
   onToggleItem: (checklistId: string, checklist: TransactionChecklist, key: string, transactionId?: string) => void;
 }) {
   const [open, setOpen] = useState(!allDone);
-  const Chevron = open ? ChevronDown : ChevronRight;
 
   return (
     <div style={{ borderRadius: "8px", overflow: "hidden" }}>
@@ -691,7 +690,7 @@ function DetailStageSection({
           padding: "10px 12px", fontFamily: t.font,
         }}
       >
-        <Chevron size={14} color={t.textSecondary} strokeWidth={2} />
+        <Icon name={open ? "expand_more" : "chevron_right"} size={14} color={t.textSecondary} />
         <span style={{
           ...t.label, flex: 1, textAlign: "left",
           color: allDone ? t.success : t.text,

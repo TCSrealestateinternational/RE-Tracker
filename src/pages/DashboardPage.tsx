@@ -16,6 +16,7 @@ import { IncomeGoalBar } from "@/components/dashboard/IncomeGoalBar";
 import { CloseDateAlerts } from "@/components/dashboard/CloseDateAlerts";
 import { OneYearReminders } from "@/components/dashboard/OneYearReminders";
 import { DailyCheckInWidget } from "@/components/checkin/DailyCheckInWidget";
+import { Icon } from "@/components/shared/Icon";
 import { getWeekStart, todayStr } from "@/utils/dates";
 import { DEFAULT_WIDGET_PREFS } from "@/types";
 import { t, card } from "@/styles/theme";
@@ -63,10 +64,13 @@ export function DashboardPage() {
     <div style={{ display: "grid", gap: t.sectionGap }}>
       {/* Welcome section */}
       <div>
-        <h1 style={{ ...t.pageTitle, color: t.text, marginBottom: "4px" }}>
+        <span style={{ ...t.eyebrow, color: t.gold, display: "block", marginBottom: "8px" }}>
+          STRATEGIC OVERVIEW
+        </span>
+        <h1 style={{ ...t.pageTitle, color: t.text, marginBottom: "6px" }}>
           {getGreeting()}, {firstName}
         </h1>
-        <p style={{ ...t.body, color: t.textTertiary }}>
+        <p style={{ ...t.body, color: t.textTertiary, opacity: 0.8 }}>
           {activeClients} active clients · {followUpsDue} follow-up{followUpsDue !== 1 ? "s" : ""} due · {todayHours}h logged today
         </p>
       </div>
@@ -82,9 +86,12 @@ export function DashboardPage() {
           gap: "16px",
           padding: "14px 20px",
         }}>
-          <span style={{ ...t.body, color: t.text }}>
-            Install RE Tracker to your desktop for quick access.
-          </span>
+          <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+            <Icon name="download" size={18} color={t.teal} />
+            <span style={{ ...t.body, color: t.text }}>
+              Install RE Tracker to your desktop for quick access.
+            </span>
+          </div>
           <div style={{ display: "flex", gap: "8px", flexShrink: 0 }}>
             <button onClick={install} style={{
               padding: "8px 16px", background: t.teal, color: t.textInverse,

@@ -1,5 +1,5 @@
 import { useState, useEffect, type FormEvent } from "react";
-import { Plus, Save, X } from "lucide-react";
+import { Icon } from "@/components/shared/Icon";
 import { useTimeEntries } from "@/hooks/useTimeEntries";
 import { useClients } from "@/hooks/useClients";
 import { ACTIVITY_CATEGORIES, LEAD_SOURCES, type ActivityCategory, type LeadSource, type TimeEntry } from "@/types";
@@ -110,11 +110,11 @@ export function ManualEntry({ initial, onCancel, onSaved }: ManualEntryProps) {
         </label>
         <div className="manual-entry-actions" style={{ display: "flex", gap: "10px" }}>
           <button type="submit" style={{ ...btnPrimary, display: "flex", alignItems: "center", justifyContent: "center", gap: "8px" }}>
-            {isEditing ? <><Save size={16} strokeWidth={2} /> Save Changes</> : <><Plus size={16} strokeWidth={2} /> Add Entry</>}
+            {isEditing ? <><Icon name="save" size={16} /> Save Changes</> : <><Icon name="add" size={16} /> Add Entry</>}
           </button>
           {isEditing && onCancel && (
             <button type="button" onClick={onCancel} style={{ ...btnSecondary, display: "flex", alignItems: "center", justifyContent: "center", gap: "8px" }}>
-              <X size={16} strokeWidth={2} /> Cancel
+              <Icon name="close" size={16} /> Cancel
             </button>
           )}
         </div>

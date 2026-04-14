@@ -48,7 +48,7 @@ export function LoginForm() {
         padding: "40px",
       }}>
         <div style={{ marginBottom: "32px" }}>
-          <span style={{ ...t.label, color: t.textTertiary, display: "block", marginBottom: "4px" }}>
+          <span style={{ ...t.eyebrow, color: t.gold, display: "block", marginBottom: "8px" }}>
             Agent
           </span>
           <h1 style={{ ...t.pageTitle, color: t.text, margin: 0 }}>
@@ -138,7 +138,11 @@ export function LoginForm() {
             />
           </label>
 
-          <button type="submit" style={{ ...btnPrimary, width: "100%" }}>
+          <button type="submit" style={{
+            ...btnPrimary, width: "100%",
+            background: t.goldGradient,
+            border: "none",
+          }}>
             {isSignUp ? "Create Account" : "Sign In"}
           </button>
         </form>

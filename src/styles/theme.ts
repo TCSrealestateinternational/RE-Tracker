@@ -34,16 +34,28 @@ export const t = {
   cardShadow: "0 1px 3px rgba(0,0,0,0.04)",
   cardShadowHover: "0 8px 24px rgba(0,0,0,0.06)",
   heroShadow: "0 20px 40px rgba(21,30,22,0.04)",
+  editorialShadow: "0 10px 30px -10px rgba(28, 28, 25, 0.04)",
+  deepShadow: "0 32px 64px -12px rgba(28,28,25,0.04)",
   headerBlur: "rgba(245, 240, 235, 0.8)",
 
   // ── Spacing ──
   cardPadding: "24px",
-  cardRadius: "10px",
+  cardRadius: "12px",
   sectionGap: "28px",
+
+  // ── Gradients ──
+  goldGradient: "linear-gradient(135deg, #bc804d 0%, #daa870 100%)",
 
   // ── Typography scale ──
   font: "'Manrope', sans-serif",
-  pageTitle: { fontSize: "22px", fontWeight: 700, lineHeight: 1.3 },
+  fontHeadline: "'Newsreader', serif",
+  pageTitle: {
+    fontSize: "36px",
+    fontWeight: 400,
+    lineHeight: 1.2,
+    fontFamily: "'Newsreader', serif",
+    fontStyle: "italic" as const,
+  },
   sectionHeader: { fontSize: "16px", fontWeight: 600, lineHeight: 1.4 },
   body: { fontSize: "14px", fontWeight: 400, lineHeight: 1.55 },
   label: {
@@ -52,8 +64,27 @@ export const t = {
     letterSpacing: "0.04em",
     textTransform: "uppercase" as const,
   },
+  eyebrow: {
+    fontSize: "10px",
+    fontWeight: 700,
+    letterSpacing: "0.2em",
+    textTransform: "uppercase" as const,
+    fontFamily: "'Manrope', sans-serif",
+  },
+  microLabel: {
+    fontSize: "10px",
+    fontWeight: 600,
+    letterSpacing: "0.15em",
+    textTransform: "uppercase" as const,
+  },
   caption: { fontSize: "12px", fontWeight: 400, lineHeight: 1.4 },
-  stat: { fontSize: "28px", fontWeight: 700, lineHeight: 1.1 },
+  stat: {
+    fontSize: "36px",
+    fontWeight: 400,
+    lineHeight: 1.1,
+    fontFamily: "'Newsreader', serif",
+    fontStyle: "italic" as const,
+  },
   // ── Breakpoints ──
   breakpoints: { mobile: 768, tablet: 1024 },
 } as const;
@@ -64,8 +95,13 @@ export const card = {
   borderRadius: t.cardRadius,
   border: `1px solid ${t.border}`,
   padding: t.cardPadding,
-  boxShadow: t.cardShadow,
+  boxShadow: t.editorialShadow,
   transition: "box-shadow 0.2s, transform 0.2s",
+} as const;
+
+export const cardElevated = {
+  ...card,
+  boxShadow: t.deepShadow,
 } as const;
 
 export const inputBase = {

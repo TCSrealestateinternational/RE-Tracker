@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { Icon } from "@/components/shared/Icon";
 import { useChecklists } from "@/hooks/useChecklists";
 import { useClients } from "@/hooks/useClients";
 import { useDeals } from "@/hooks/useDeals";
@@ -30,7 +30,12 @@ export function ChecklistsPage() {
   return (
     <div style={{ display: "grid", gap: t.sectionGap }}>
       {!selected && (
-        <h1 style={{ ...t.pageTitle, color: t.text }}>Transaction Checklists</h1>
+        <div>
+          <span style={{ ...t.eyebrow, color: t.gold, display: "block", marginBottom: "8px" }}>
+            TRANSACTION MANAGEMENT
+          </span>
+          <h1 style={{ ...t.pageTitle, color: t.text }}>Checklists</h1>
+        </div>
       )}
 
       {selected && (
@@ -43,7 +48,7 @@ export function ChecklistsPage() {
             padding: "4px 0", alignSelf: "flex-start",
           }}
         >
-          <ChevronLeft size={16} strokeWidth={2} />
+          <Icon name="chevron_left" size={16} />
           Back to checklists
         </button>
       )}
@@ -98,10 +103,10 @@ export function ChecklistsPage() {
                         {client?.name ?? "Unknown"}
                       </h3>
                       <span style={{
-                        padding: "2px 8px", borderRadius: "4px", fontSize: "11px", fontWeight: 600,
+                        padding: "2px 8px", borderRadius: "20px", fontSize: "10px", fontWeight: 600,
                         background: isBuyer ? t.tealLight : t.goldLight,
                         color: isBuyer ? t.teal : t.gold,
-                        textTransform: "uppercase",
+                        textTransform: "uppercase", letterSpacing: "0.05em",
                       }}>
                         {cl.type}
                       </span>
@@ -113,16 +118,16 @@ export function ChecklistsPage() {
                       </span>
                     </div>
                     <div style={{
-                      height: "3px", background: t.tealLight, borderRadius: "2px", overflow: "hidden",
+                      height: "4px", background: t.tealLight, borderRadius: "2px", overflow: "hidden",
                     }}>
                       <div style={{
                         height: "100%", width: `${pct}%`,
-                        background: pct === 100 ? t.success : t.teal,
+                        background: pct === 100 ? t.success : t.goldGradient,
                         borderRadius: "2px", transition: "width 0.3s",
                       }} />
                     </div>
                   </div>
-                  <ChevronRight size={18} color={t.textTertiary} strokeWidth={2} />
+                  <Icon name="chevron_right" size={18} color={t.textTertiary} />
                 </button>
               );
             })}

@@ -1,4 +1,4 @@
-import { DollarSign, Clock, TrendingUp } from "lucide-react";
+import { Icon } from "@/components/shared/Icon";
 import { t, card } from "@/styles/theme";
 import type { Deal, TimeEntry } from "@/types";
 
@@ -23,30 +23,30 @@ export function RevenueStats({ deals, entries }: RevenueStatsProps) {
       <div className="hover-lift stat-card" style={{
         ...card, flex: 1, minWidth: "160px", padding: "32px",
         display: "flex", alignItems: "center", gap: "16px",
-        borderLeft: `3px solid ${t.teal}`, boxShadow: t.heroShadow,
+        borderLeft: `3px solid ${t.teal}`,
       }}>
-        <Clock size={20} color={t.teal} strokeWidth={1.5} />
+        <Icon name="schedule" size={22} color={t.teal} />
         <div>
-          <div style={{ ...t.stat, color: t.teal, fontSize: "24px" }}>{totalHours.toFixed(1)}h</div>
-          <div style={{ ...t.label, color: t.textTertiary, marginTop: "2px" }}>Total Hours</div>
+          <div style={{ ...t.stat, color: t.teal, fontSize: "28px" }}>{totalHours.toFixed(1)}h</div>
+          <div style={{ ...t.microLabel, color: t.textTertiary, marginTop: "4px" }}>Total Hours</div>
         </div>
       </div>
 
       <div className="hover-lift stat-card" style={{
         ...card, flex: 1, minWidth: "160px", padding: "32px",
         display: "flex", alignItems: "center", gap: "16px",
-        borderLeft: `3px solid ${t.gold}`, boxShadow: t.heroShadow,
+        borderLeft: `3px solid ${t.gold}`,
       }}>
-        <DollarSign size={20} color={t.gold} strokeWidth={1.5} />
+        <Icon name="payments" size={22} color={t.gold} />
         <div>
           <div className="stat-pair" style={{ display: "flex", gap: "20px", alignItems: "baseline" }}>
             <div>
-              <div style={{ ...t.stat, color: t.success, fontSize: "24px" }}>${closedGCI.toLocaleString()}</div>
-              <div style={{ ...t.label, color: t.textTertiary, marginTop: "2px" }}>Closed GCI</div>
+              <div style={{ ...t.stat, color: t.success, fontSize: "28px" }}>${closedGCI.toLocaleString()}</div>
+              <div style={{ ...t.microLabel, color: t.textTertiary, marginTop: "4px" }}>Closed GCI</div>
             </div>
             <div>
-              <div style={{ ...t.stat, color: t.gold, fontSize: "18px" }}>${prospectiveGCI.toLocaleString()}</div>
-              <div style={{ ...t.label, color: t.textTertiary, marginTop: "2px" }}>Prospective</div>
+              <div style={{ ...t.stat, color: t.gold, fontSize: "20px" }}>${prospectiveGCI.toLocaleString()}</div>
+              <div style={{ ...t.microLabel, color: t.textTertiary, marginTop: "4px" }}>Prospective</div>
             </div>
           </div>
         </div>
@@ -55,12 +55,12 @@ export function RevenueStats({ deals, entries }: RevenueStatsProps) {
       <div className="hover-lift stat-card" style={{
         ...card, flex: 1, minWidth: "160px", padding: "32px",
         display: "flex", alignItems: "center", gap: "16px",
-        borderLeft: `3px solid ${t.teal}`, boxShadow: t.heroShadow,
+        borderLeft: `3px solid ${t.teal}`,
       }}>
-        <TrendingUp size={20} color={t.teal} strokeWidth={1.5} />
+        <Icon name="trending_up" size={22} color={t.teal} />
         <div>
-          <div style={{ ...t.stat, color: t.teal, fontSize: "24px" }}>${revenuePerHour.toFixed(0)}</div>
-          <div style={{ ...t.label, color: t.textTertiary, marginTop: "2px" }}>Revenue / Hour</div>
+          <div style={{ ...t.stat, color: t.teal, fontSize: "28px" }}>${revenuePerHour.toFixed(0)}</div>
+          <div style={{ ...t.microLabel, color: t.textTertiary, marginTop: "4px" }}>Revenue / Hour</div>
         </div>
       </div>
     </div>

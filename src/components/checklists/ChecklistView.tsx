@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Bell, BellOff, ChevronDown, ChevronRight } from "lucide-react";
+import { Icon } from "@/components/shared/Icon";
 import type { TransactionChecklist } from "@/types";
 import { BUYER_CHECKLIST_TEMPLATE, BUYER_STAGES } from "@/constants/checklist-buyer";
 import { SELLER_CHECKLIST_TEMPLATE, SELLER_STAGES } from "@/constants/checklist-seller";
@@ -29,10 +29,10 @@ export function ChecklistView({ checklist, clientName, transactionId, onToggle, 
         <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
           <h3 style={{ ...t.sectionHeader, color: t.text }}>{clientName}</h3>
           <span style={{
-            padding: "2px 8px", borderRadius: "4px", fontSize: "11px", fontWeight: 600,
+            padding: "2px 8px", borderRadius: "20px", fontSize: "10px", fontWeight: 600,
             background: isBuyer ? t.tealLight : t.goldLight,
             color: isBuyer ? t.teal : t.gold,
-            textTransform: "uppercase",
+            textTransform: "uppercase", letterSpacing: "0.05em",
           }}>
             {checklist.type}
           </span>
@@ -46,12 +46,12 @@ export function ChecklistView({ checklist, clientName, transactionId, onToggle, 
       </div>
 
       <div style={{
-        height: "3px", background: t.tealLight, borderRadius: "2px",
+        height: "4px", background: t.tealLight, borderRadius: "2px",
         overflow: "hidden", marginBottom: "20px",
       }}>
         <div style={{
           height: "100%", width: `${pct}%`,
-          background: pct === 100 ? t.success : t.teal,
+          background: pct === 100 ? t.success : t.goldGradient,
           borderRadius: "2px", transition: "width 0.3s",
         }} />
       </div>
@@ -97,7 +97,6 @@ function StageSection({
 }) {
   const allDone = completed === items.length;
   const [open, setOpen] = useState(false);
-  const Chevron = open ? ChevronDown : ChevronRight;
 
   return (
     <div style={{ borderRadius: "8px", overflow: "hidden" }}>
@@ -109,7 +108,7 @@ function StageSection({
           padding: "10px 12px", fontFamily: t.font,
         }}
       >
-        <Chevron size={14} color={t.textSecondary} strokeWidth={2} />
+        <Icon name={open ? "expand_more" : "chevron_right"} size={14} color={t.textSecondary} />
         <span style={{
           ...t.label, flex: 1, textAlign: "left",
           color: allDone ? t.success : t.text,
@@ -173,7 +172,7 @@ function StageSection({
                       opacity: notifyClient ? 1 : 0.4,
                     }}
                   >
-                    {notifyClient ? <Bell size={14} strokeWidth={1.5} /> : <BellOff size={14} strokeWidth={1.5} />}
+                    <Icon name={notifyClient ? "notifications" : "notifications_off"} size={14} />
                   </button>
                 )}
               </label>

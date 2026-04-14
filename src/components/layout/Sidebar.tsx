@@ -1,20 +1,18 @@
-import {
-  LayoutDashboard, Clock, Users, Kanban, Gift, ClipboardCheck, Target, BarChart3, Settings, LogOut, HelpCircle,
-} from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { useTour } from "@/components/tour/useTour";
+import { Icon } from "@/components/shared/Icon";
 import { t } from "@/styles/theme";
 
 const NAV_ITEMS = [
-  { label: "Dashboard", path: "/", icon: LayoutDashboard },
-  { label: "Timer", path: "/timer", icon: Clock },
-  { label: "Clients", path: "/clients", icon: Users },
-  { label: "Pipeline", path: "/pipeline", icon: Kanban },
-  { label: "Referrals", path: "/referrals", icon: Gift },
-  { label: "Checklists", path: "/checklists", icon: ClipboardCheck },
-  { label: "Goals", path: "/goals", icon: Target },
-  { label: "Reports", path: "/reports", icon: BarChart3 },
-  { label: "Settings", path: "/settings", icon: Settings },
+  { label: "Dashboard", path: "/", icon: "dashboard" },
+  { label: "Timer", path: "/timer", icon: "timer" },
+  { label: "Clients", path: "/clients", icon: "group" },
+  { label: "Pipeline", path: "/pipeline", icon: "account_tree" },
+  { label: "Referrals", path: "/referrals", icon: "handshake" },
+  { label: "Checklists", path: "/checklists", icon: "checklist" },
+  { label: "Goals", path: "/goals", icon: "ads_click" },
+  { label: "Reports", path: "/reports", icon: "analytics" },
+  { label: "Settings", path: "/settings", icon: "settings" },
 ];
 
 interface SidebarProps {
@@ -27,6 +25,10 @@ interface SidebarProps {
 export function Sidebar({ activePath, onNavigate, open, onToggle }: SidebarProps) {
   const { user, signOut } = useAuth();
   const { startTour } = useTour();
+
+  const initials = user?.email
+    ? user.email.slice(0, 2).toUpperCase()
+    : "RE";
 
   return (
     <>
@@ -48,28 +50,58 @@ export function Sidebar({ activePath, onNavigate, open, onToggle }: SidebarProps
           padding: "28px 0",
         }}
       >
-        <div style={{ padding: "0 24px", marginBottom: "36px" }}>
+        {/* Brand */}
+        <div style={{ padding: "0 24px", marginBottom: "32px" }}>
           <span style={{
-            ...t.label,
-            color: t.textTertiary,
+            ...t.eyebrow,
+            color: t.gold,
             display: "block",
-            marginBottom: "2px",
+            marginBottom: "4px",
           }}>
             Agent
           </span>
           <span style={{
-            fontSize: "17px",
-            fontWeight: 700,
+            fontFamily: t.fontHeadline,
+            fontSize: "22px",
+            fontWeight: 400,
+            fontStyle: "italic",
             color: t.text,
             letterSpacing: "-0.01em",
           }}>
             RE Tracker
           </span>
         </div>
+
+        {/* User avatar */}
+        {user?.email && (
+          <div style={{
+            padding: "0 24px", marginBottom: "24px",
+            display: "flex", alignItems: "center", gap: "12px",
+          }}>
+            <div style={{
+              width: "36px", height: "36px", borderRadius: "50%",
+              background: t.teal, color: t.textInverse,
+              display: "flex", alignItems: "center", justifyContent: "center",
+              fontSize: "13px", fontWeight: 700, fontFamily: t.font,
+              flexShrink: 0,
+            }}>
+              {initials}
+            </div>
+            <span style={{
+              ...t.caption,
+              color: t.textTertiary,
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+              whiteSpace: "nowrap",
+            }}>
+              {user.email}
+            </span>
+          </div>
+        )}
+
         <nav data-tour="sidebar-nav" style={{ flex: 1 }}>
           {NAV_ITEMS.map((item) => {
             const active = activePath === item.path;
-            const Icon = item.icon;
             return (
               <button
                 key={item.path}
@@ -80,51 +112,46 @@ export function Sidebar({ activePath, onNavigate, open, onToggle }: SidebarProps
                 style={{
                   display: "flex",
                   alignItems: "center",
-                  gap: "10px",
+                  gap: "12px",
                   width: "100%",
-                  padding: "9px 24px",
+                  padding: "10px 24px",
                   background: active ? t.sidebarActive : "transparent",
                   border: "none",
+                  borderLeft: active ? `3px solid ${t.gold}` : "3px solid transparent",
                   color: active ? t.teal : t.textSecondary,
                   textAlign: "left",
                   fontSize: "14px",
                   fontWeight: active ? 600 : 400,
                   cursor: "pointer",
-                  transition: "background 0.12s, color 0.12s",
+                  transition: "background 0.12s, color 0.12s, transform 0.12s",
                   fontFamily: t.font,
                 }}
                 onMouseEnter={(e) => {
-                  if (!active) e.currentTarget.style.background = t.sidebarHover;
+                  if (!active) {
+                    e.currentTarget.style.background = t.sidebarHover;
+                    e.currentTarget.style.transform = "translateX(2px)";
+                  }
                 }}
                 onMouseLeave={(e) => {
-                  if (!active) e.currentTarget.style.background = "transparent";
+                  if (!active) {
+                    e.currentTarget.style.background = "transparent";
+                    e.currentTarget.style.transform = "translateX(0)";
+                  }
                 }}
               >
-                <Icon size={16} strokeWidth={active ? 2 : 1.5} />
+                <Icon name={item.icon} size={18} filled={active} />
                 {item.label}
               </button>
             );
           })}
         </nav>
         <div style={{ padding: "16px 24px", borderTop: `1px solid ${t.border}`, display: "flex", flexDirection: "column", gap: "4px" }}>
-          {user?.email && (
-            <span style={{
-              ...t.caption,
-              color: t.textTertiary,
-              padding: "4px 0 8px",
-              overflow: "hidden",
-              textOverflow: "ellipsis",
-              whiteSpace: "nowrap",
-            }}>
-              {user.email}
-            </span>
-          )}
           <button
             onClick={() => startTour()}
             style={{
               display: "flex",
               alignItems: "center",
-              gap: "10px",
+              gap: "12px",
               width: "100%",
               padding: "9px 0",
               background: "transparent",
@@ -139,7 +166,7 @@ export function Sidebar({ activePath, onNavigate, open, onToggle }: SidebarProps
             onMouseEnter={(e) => { e.currentTarget.style.color = t.text; }}
             onMouseLeave={(e) => { e.currentTarget.style.color = t.textTertiary; }}
           >
-            <HelpCircle size={16} strokeWidth={1.5} />
+            <Icon name="help" size={18} />
             Tour
           </button>
           <button
@@ -147,7 +174,7 @@ export function Sidebar({ activePath, onNavigate, open, onToggle }: SidebarProps
             style={{
               display: "flex",
               alignItems: "center",
-              gap: "10px",
+              gap: "12px",
               width: "100%",
               padding: "9px 0",
               background: "transparent",
@@ -162,7 +189,7 @@ export function Sidebar({ activePath, onNavigate, open, onToggle }: SidebarProps
             onMouseEnter={(e) => { e.currentTarget.style.color = t.text; }}
             onMouseLeave={(e) => { e.currentTarget.style.color = t.textTertiary; }}
           >
-            <LogOut size={16} strokeWidth={1.5} />
+            <Icon name="logout" size={18} />
             Sign out
           </button>
         </div>

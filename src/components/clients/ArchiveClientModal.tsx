@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Archive } from "lucide-react";
+import { Icon } from "@/components/shared/Icon";
 import { t, card, btnPrimary, btnSecondary } from "@/styles/theme";
 import type { Client } from "@/types";
 
@@ -42,7 +42,7 @@ export function ArchiveClientModal({ client, onClose, onConfirm }: ArchiveClient
         onClick={(e) => e.stopPropagation()}
       >
         <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "12px" }}>
-          <Archive size={18} color={t.textSecondary} strokeWidth={2} />
+          <Icon name="archive" size={18} color={t.textSecondary} />
           <h3 style={{ ...t.sectionHeader, color: t.text }}>
             Archive {client.name}?
           </h3>
@@ -102,7 +102,7 @@ export function ArchiveClientModal({ client, onClose, onConfirm }: ArchiveClient
               opacity: working ? 0.6 : 1,
             }}
           >
-            <Archive size={14} strokeWidth={2} />
+            <Icon name="archive" size={14} />
             {working ? "Archiving…" : "Archive"}
           </button>
         </div>

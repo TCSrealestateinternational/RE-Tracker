@@ -13,7 +13,12 @@ export function SettingsPage() {
 
   return (
     <div style={{ display: "grid", gap: t.sectionGap }}>
-      <h1 style={{ ...t.pageTitle, color: t.text }}>Settings</h1>
+      <div>
+        <span style={{ ...t.eyebrow, color: t.gold, display: "block", marginBottom: "8px" }}>
+          PREFERENCES
+        </span>
+        <h1 style={{ ...t.pageTitle, color: t.text }}>Settings</h1>
+      </div>
 
       <div style={card}>
         <h2 style={{ ...t.sectionHeader, color: t.text, marginBottom: "16px" }}>

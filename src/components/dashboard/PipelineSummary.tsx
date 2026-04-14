@@ -1,4 +1,4 @@
-import { Kanban } from "lucide-react";
+import { Icon } from "@/components/shared/Icon";
 import { DEAL_STAGES, type Deal, type DealStage } from "@/types";
 import { t, card } from "@/styles/theme";
 
@@ -19,10 +19,10 @@ export function PipelineSummary({ deals }: PipelineSummaryProps) {
   const totalPipeline = activePipeline.reduce((s, d) => s + d.projectedCommission, 0);
 
   return (
-    <div data-tour="pipeline-summary" style={{ ...card, boxShadow: t.heroShadow }}>
+    <div data-tour="pipeline-summary" style={card}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
         <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-          <Kanban size={16} color={t.textTertiary} strokeWidth={1.5} />
+          <Icon name="account_tree" size={18} color={t.textTertiary} />
           <h3 style={{ ...t.sectionHeader, color: t.text }}>Pipeline</h3>
         </div>
         <div style={{ textAlign: "right" }}>
@@ -36,10 +36,10 @@ export function PipelineSummary({ deals }: PipelineSummaryProps) {
           return (
             <div key={stage} className="hover-slide" style={{
               flex: 1, textAlign: "center", padding: "14px 8px",
-              background: t.bg, borderRadius: "8px",
+              background: t.bg, borderRadius: "10px",
             }}>
               <div style={{ ...t.stat, fontSize: "28px", color: STAGE_COLORS[stage] }}>{count}</div>
-              <div style={{ ...t.label, color: t.textTertiary, marginTop: "4px", fontSize: "10px" }}>{stage}</div>
+              <div style={{ ...t.microLabel, color: t.textTertiary, marginTop: "4px" }}>{stage}</div>
             </div>
           );
         })}

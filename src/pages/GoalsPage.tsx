@@ -10,7 +10,12 @@ export function GoalsPage() {
 
   return (
     <div style={{ display: "grid", gap: t.sectionGap }}>
-      <h1 style={{ ...t.pageTitle, color: t.text }}>Income Goals</h1>
+      <div>
+        <span style={{ ...t.eyebrow, color: t.gold, display: "block", marginBottom: "8px" }}>
+          FINANCIAL TARGETS
+        </span>
+        <h1 style={{ ...t.pageTitle, color: t.text }}>Income Goals</h1>
+      </div>
       <div data-tour="goal-setup" className={goal ? "inline-2col stack-mobile" : ""} style={{ display: "grid", gridTemplateColumns: goal ? "1fr 1fr" : "1fr", gap: "16px", alignItems: "start" }}>
         <IncomeGoalSetup goal={goal} onSave={saveGoal} />
         {goal && <PaceTracker goal={goal} deals={deals} />}

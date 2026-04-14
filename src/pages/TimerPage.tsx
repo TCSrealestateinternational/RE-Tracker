@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Trash2 } from "lucide-react";
+import { Icon } from "@/components/shared/Icon";
 import { LiveTimer } from "@/components/timer/LiveTimer";
 import { ManualEntry } from "@/components/timer/ManualEntry";
 import { useTimeEntries } from "@/hooks/useTimeEntries";
@@ -16,7 +16,12 @@ export function TimerPage() {
 
   return (
     <div style={{ display: "grid", gap: t.sectionGap }}>
-      <h1 style={{ ...t.pageTitle, color: t.text }}>Timer</h1>
+      <div>
+        <span style={{ ...t.eyebrow, color: t.gold, display: "block", marginBottom: "8px" }}>
+          TIME MANAGEMENT
+        </span>
+        <h1 style={{ ...t.pageTitle, color: t.text }}>Activity Timer</h1>
+      </div>
 
       {editing ? (
         <ManualEntry
@@ -44,7 +49,7 @@ export function TimerPage() {
               <tr>
                 {["Date", "Category", "Client", "Source", "Duration", "Note", ""].map((h) => (
                   <th key={h || "_actions"} style={{
-                    ...t.label, color: t.textTertiary, textAlign: h === "Duration" ? "right" : "left",
+                    ...t.microLabel, color: t.textTertiary, textAlign: h === "Duration" ? "right" : "left",
                     padding: "0 12px 10px 0", borderBottom: `1px solid ${t.border}`,
                   }}>
                     {h}
@@ -87,7 +92,7 @@ export function TimerPage() {
                         onMouseEnter={(ev) => (ev.currentTarget.style.color = t.rust)}
                         onMouseLeave={(ev) => (ev.currentTarget.style.color = t.textTertiary)}
                       >
-                        <Trash2 size={14} />
+                        <Icon name="delete" size={16} />
                       </button>
                     </td>
                   </tr>

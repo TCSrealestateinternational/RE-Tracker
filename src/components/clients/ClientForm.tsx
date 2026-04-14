@@ -1,5 +1,5 @@
 import { useState, type FormEvent, type CSSProperties } from "react";
-import { Plus, X } from "lucide-react";
+import { Icon } from "@/components/shared/Icon";
 import type { Client, ClientStatus, ClientStage, LeadSource, ContactPerson, Offer, OfferStatus, DriveLink } from "@/types";
 import { LEAD_SOURCES } from "@/types";
 import { t, card, inputBase, btnPrimary, btnSecondary } from "@/styles/theme";
@@ -245,7 +245,7 @@ export function ClientForm({ initial, onSubmit, onCancel }: ClientFormProps) {
               color: t.textTertiary, padding: "2px",
               display: "flex", alignItems: "center",
             }}>
-              <X size={14} strokeWidth={1.5} />
+              <Icon name="close" size={14} />
             </button>
           </div>
           <div className="grid-3col" style={{ marginBottom: 0 }}>
@@ -263,7 +263,7 @@ export function ClientForm({ initial, onSubmit, onCancel }: ClientFormProps) {
         ...btnSecondary, display: "flex", alignItems: "center", gap: "6px",
         marginBottom: "20px", padding: "8px 14px", fontSize: "13px",
       }}>
-        <Plus size={14} strokeWidth={2} />
+        <Icon name="add" size={14} />
         Add Spouse / Co-{isBuyer ? "Buyer" : "Seller"}
       </button>
 
@@ -340,7 +340,7 @@ export function ClientForm({ initial, onSubmit, onCancel }: ClientFormProps) {
                 ...btnSecondary, padding: "4px 10px", fontSize: "12px",
                 display: "flex", alignItems: "center", gap: "4px",
               }}>
-                <Plus size={12} strokeWidth={2} /> Add Reduction
+                <Icon name="add" size={12} /> Add Reduction
               </button>
             </div>
             {priceReductions.map((r, i) => (
@@ -356,7 +356,7 @@ export function ClientForm({ initial, onSubmit, onCancel }: ClientFormProps) {
                   background: "none", border: "none", cursor: "pointer",
                   color: t.textTertiary, padding: "4px", display: "flex", alignItems: "center",
                 }}>
-                  <X size={14} strokeWidth={1.5} />
+                  <Icon name="close" size={14} />
                 </button>
               </div>
             ))}
@@ -370,7 +370,7 @@ export function ClientForm({ initial, onSubmit, onCancel }: ClientFormProps) {
                 ...btnSecondary, padding: "4px 10px", fontSize: "12px",
                 display: "flex", alignItems: "center", gap: "4px",
               }}>
-                <Plus size={12} strokeWidth={2} /> Add Offer
+                <Icon name="add" size={12} /> Add Offer
               </button>
             </div>
             {offers.map((offer, i) => (
@@ -400,7 +400,7 @@ export function ClientForm({ initial, onSubmit, onCancel }: ClientFormProps) {
                   background: "none", border: "none", cursor: "pointer",
                   color: t.textTertiary, padding: "4px", display: "flex", alignItems: "center",
                 }}>
-                  <X size={14} strokeWidth={1.5} />
+                  <Icon name="close" size={14} />
                 </button>
               </div>
             ))}
@@ -469,7 +469,7 @@ export function ClientForm({ initial, onSubmit, onCancel }: ClientFormProps) {
             ...btnSecondary, padding: "4px 10px", fontSize: "12px",
             display: "flex", alignItems: "center", gap: "4px",
           }}>
-            <Plus size={12} strokeWidth={2} /> Add Link
+            <Icon name="add" size={12} /> Add Link
           </button>
         </div>
         {driveLinks.length === 0 && (
@@ -495,7 +495,7 @@ export function ClientForm({ initial, onSubmit, onCancel }: ClientFormProps) {
               background: "none", border: "none", cursor: "pointer",
               color: t.textTertiary, padding: "4px", display: "flex", alignItems: "center",
             }}>
-              <X size={14} strokeWidth={1.5} />
+              <Icon name="close" size={14} />
             </button>
           </div>
         ))}

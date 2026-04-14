@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { ChevronDown } from "lucide-react";
+import { Icon } from "@/components/shared/Icon";
 import { DEAL_STAGES, type Deal, type DealStage } from "@/types";
 import { DealCard } from "./DealCard";
 import { t } from "@/styles/theme";
@@ -46,7 +46,6 @@ export function KanbanBoard({ deals, onMove, onEdit, onDelete }: KanbanBoardProp
   const isMobile = useIsMobile();
   const [openStage, setOpenStage] = useState<DealStage | null>(null);
 
-  // Auto-open first stage with deals on mobile
   useEffect(() => {
     if (isMobile && openStage === null) {
       const first = DEAL_STAGES.find((s) => deals.some((d) => d.stage === s));
@@ -63,7 +62,7 @@ export function KanbanBoard({ deals, onMove, onEdit, onDelete }: KanbanBoardProp
           const isOpen = openStage === stage;
 
           return (
-            <div key={stage} style={{ background: t.bg, borderRadius: "10px", overflow: "hidden" }}>
+            <div key={stage} style={{ background: t.bg, borderRadius: "12px", overflow: "hidden" }}>
               <button
                 type="button"
                 onClick={() => setOpenStage(isOpen ? null : stage)}
@@ -74,7 +73,7 @@ export function KanbanBoard({ deals, onMove, onEdit, onDelete }: KanbanBoardProp
                 }}
               >
                 <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-                  <span style={{ ...t.label, color: t.textSecondary }}>{stage}</span>
+                  <span style={{ ...t.microLabel, color: t.textSecondary }}>{stage}</span>
                   <span style={{
                     ...t.caption, fontWeight: 600, color: t.textTertiary,
                     background: t.surface, padding: "2px 8px", borderRadius: "10px",
@@ -86,10 +85,11 @@ export function KanbanBoard({ deals, onMove, onEdit, onDelete }: KanbanBoardProp
                   <span style={{ ...t.caption, color: t.gold, fontWeight: 600 }}>
                     ${total.toLocaleString()}
                   </span>
-                  <ChevronDown
-                    size={16}
+                  <Icon
+                    name="expand_more"
+                    size={18}
+                    color={t.textTertiary}
                     style={{
-                      color: t.textTertiary,
                       transform: isOpen ? "rotate(180deg)" : "rotate(0deg)",
                       transition: "transform 0.2s",
                     }}
@@ -117,7 +117,6 @@ export function KanbanBoard({ deals, onMove, onEdit, onDelete }: KanbanBoardProp
     );
   }
 
-  // Desktop: existing grid layout
   return (
     <div className="kanban-scroll">
     <div style={{
@@ -132,7 +131,7 @@ export function KanbanBoard({ deals, onMove, onEdit, onDelete }: KanbanBoardProp
         return (
           <div key={stage} style={{
             background: t.bg,
-            borderRadius: "10px",
+            borderRadius: "12px",
             padding: "14px",
             display: "flex",
             flexDirection: "column",
@@ -141,12 +140,12 @@ export function KanbanBoard({ deals, onMove, onEdit, onDelete }: KanbanBoardProp
               display: "flex", justifyContent: "space-between", alignItems: "center",
               marginBottom: "14px",
             }}>
-              <span style={{ ...t.label, color: t.textSecondary }}>{stage}</span>
+              <span style={{ ...t.microLabel, color: t.textSecondary }}>{stage}</span>
               <span style={{
                 ...t.caption, fontWeight: 600,
                 color: t.textTertiary,
                 background: t.surface,
-                padding: "2px 8px", borderRadius: "10px",
+                padding: "2px 8px", borderRadius: "20px",
               }}>
                 {stageDeals.length}
               </span>

@@ -1,11 +1,11 @@
 import { useEffect, useRef } from "react";
-import { Archive, Trash2 } from "lucide-react";
+import { Icon } from "@/components/shared/Icon";
 import { t } from "@/styles/theme";
 import type { CSSProperties } from "react";
 
 export interface ContextMenuAction {
   label: string;
-  icon: typeof Archive;
+  iconName: string;
   color?: string;
   onClick: () => void;
 }
@@ -20,7 +20,6 @@ interface ContextMenuProps {
 export function ContextMenu({ x, y, actions, onClose }: ContextMenuProps) {
   const ref = useRef<HTMLDivElement>(null);
 
-  // Dismiss on outside click / scroll
   useEffect(() => {
     function handleClick(e: MouseEvent) {
       if (ref.current && !ref.current.contains(e.target as Node)) onClose();
@@ -36,7 +35,6 @@ export function ContextMenu({ x, y, actions, onClose }: ContextMenuProps) {
     };
   }, [onClose]);
 
-  // Smart positioning: flip if near edge
   const menuW = 180;
   const menuH = actions.length * 42 + 8;
   const left = x + menuW > window.innerWidth ? x - menuW : x;
@@ -45,7 +43,6 @@ export function ContextMenu({ x, y, actions, onClose }: ContextMenuProps) {
   return (
     <div ref={ref} style={{ ...styles.menu, left, top }}>
       {actions.map((action) => {
-        const Icon = action.icon;
         const color = action.color || t.text;
         return (
           <button
@@ -55,7 +52,7 @@ export function ContextMenu({ x, y, actions, onClose }: ContextMenuProps) {
             onMouseEnter={(e) => { e.currentTarget.style.background = t.bg; }}
             onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; }}
           >
-            <Icon size={15} strokeWidth={1.8} />
+            <Icon name={action.iconName} size={16} color={color} />
             {action.label}
           </button>
         );
@@ -63,8 +60,6 @@ export function ContextMenu({ x, y, actions, onClose }: ContextMenuProps) {
     </div>
   );
 }
-
-export { Archive, Trash2 };
 
 const styles: Record<string, CSSProperties> = {
   menu: {

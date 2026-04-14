@@ -1,4 +1,4 @@
-import { Bell } from "lucide-react";
+import { Icon } from "@/components/shared/Icon";
 import { t, card } from "@/styles/theme";
 import { todayStr, formatDate } from "@/utils/dates";
 import { isReminderDue } from "@/utils/reminders";
@@ -24,7 +24,7 @@ export function OneYearReminders({ clients, onOpenClient, onDismiss }: OneYearRe
   return (
     <div style={card}>
       <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "14px" }}>
-        <Bell size={16} color={t.gold} strokeWidth={2} />
+        <Icon name="notifications_active" size={18} color={t.gold} />
         <h3 style={{ ...t.sectionHeader, color: t.text }}>1-Year Reach-Outs</h3>
       </div>
       <div style={{ display: "grid", gap: "8px" }}>
