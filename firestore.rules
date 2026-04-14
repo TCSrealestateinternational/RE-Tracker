@@ -127,7 +127,8 @@ service cloud.firestore {
 
     // ── RE Tracker agent-only collections ──
     match /timeEntries/{docId} {
-      allow read, write: if isAuth() && request.auth.uid == resource.data.userId;
+      allow read: if isAuth() && request.auth.uid == resource.data.userId;
+      allow update, delete: if isAuth() && request.auth.uid == resource.data.userId;
       allow create: if isAuth() && request.auth.uid == request.resource.data.userId;
     }
 
@@ -135,7 +136,7 @@ service cloud.firestore {
       allow read: if isAuth()
         && (request.auth.uid == resource.data.userId
             || isLinkedClient(resource.data.userId));
-      allow write: if isAuth() && request.auth.uid == resource.data.userId;
+      allow update, delete: if isAuth() && request.auth.uid == resource.data.userId;
       allow create: if isAuth() && request.auth.uid == request.resource.data.userId;
     }
 
@@ -143,7 +144,7 @@ service cloud.firestore {
       allow read: if isAuth()
         && (request.auth.uid == resource.data.userId
             || isLinkedClient(resource.data.userId));
-      allow write: if isAuth() && request.auth.uid == resource.data.userId;
+      allow update, delete: if isAuth() && request.auth.uid == resource.data.userId;
       allow create: if isAuth() && request.auth.uid == request.resource.data.userId;
     }
 
@@ -151,22 +152,25 @@ service cloud.firestore {
       allow read: if isAuth()
         && (request.auth.uid == resource.data.userId
             || isLinkedClient(resource.data.userId));
-      allow write: if isAuth() && request.auth.uid == resource.data.userId;
+      allow update, delete: if isAuth() && request.auth.uid == resource.data.userId;
       allow create: if isAuth() && request.auth.uid == request.resource.data.userId;
     }
 
     match /dailyCheckIns/{docId} {
-      allow read, write: if isAuth() && request.auth.uid == resource.data.userId;
+      allow read: if isAuth() && request.auth.uid == resource.data.userId;
+      allow update, delete: if isAuth() && request.auth.uid == resource.data.userId;
       allow create: if isAuth() && request.auth.uid == request.resource.data.userId;
     }
 
     match /incomeGoals/{docId} {
-      allow read, write: if isAuth() && request.auth.uid == resource.data.userId;
+      allow read: if isAuth() && request.auth.uid == resource.data.userId;
+      allow update, delete: if isAuth() && request.auth.uid == resource.data.userId;
       allow create: if isAuth() && request.auth.uid == request.resource.data.userId;
     }
 
     match /referrals/{docId} {
-      allow read, write: if isAuth() && request.auth.uid == resource.data.userId;
+      allow read: if isAuth() && request.auth.uid == resource.data.userId;
+      allow update, delete: if isAuth() && request.auth.uid == resource.data.userId;
       allow create: if isAuth() && request.auth.uid == request.resource.data.userId;
     }
 
