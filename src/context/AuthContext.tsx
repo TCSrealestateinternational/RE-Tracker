@@ -16,6 +16,7 @@ interface AuthContextValue {
   user: User | null;
   profile: SharedUser | null;
   loading: boolean;
+  isAgent: boolean;
   signIn: (email: string, password: string) => Promise<void>;
   signUp: (email: string, password: string) => Promise<void>;
   signInWithGoogle: () => Promise<void>;
@@ -139,8 +140,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setProfile((prev) => prev ? { ...prev, ...data } : prev);
   }
 
+  const isAgent = profile?.roles?.includes("agent") ?? false;
+
   return (
-    <AuthContext.Provider value={{ user, profile, loading, signIn, signUp, signInWithGoogle, signOut, updateProfile }}>
+    <AuthContext.Provider value={{ user, profile, loading, isAgent, signIn, signUp, signInWithGoogle, signOut, updateProfile }}>
       {children}
     </AuthContext.Provider>
   );

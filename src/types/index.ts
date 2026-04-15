@@ -395,6 +395,28 @@ export interface NeighborhoodScores {
   commuteMinutes: number;
 }
 
+// ── Messaging ──
+export interface Conversation {
+  id: string;
+  agentId: string;
+  clientUserId: string;
+  brokerageId: string;
+  lastMessage: string;
+  lastMessageAt: number;
+  agentUnreadCount: number;
+  clientUnreadCount: number;
+  createdAt: number;
+}
+
+export interface Message {
+  id: string;
+  conversationId: string;
+  senderId: string;
+  senderRole: "agent" | "buyer" | "seller";
+  text: string;
+  createdAt: number;
+}
+
 // ── Closing Cost Estimator ──
 export type LoanType = "conventional" | "fha" | "va" | "usda";
 

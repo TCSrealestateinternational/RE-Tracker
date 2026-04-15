@@ -11,6 +11,7 @@ const NAV_ITEMS = [
   { label: "Pipeline", path: "/pipeline", icon: "account_tree" },
   { label: "Referrals", path: "/referrals", icon: "handshake" },
   { label: "Checklists", path: "/checklists", icon: "checklist" },
+  { label: "Messages", path: "/messages", icon: "chat" },
   { label: "Goals", path: "/goals", icon: "ads_click" },
   { label: "Reports", path: "/reports", icon: "analytics" },
   { label: "Settings", path: "/settings", icon: "settings" },
@@ -21,9 +22,10 @@ interface SidebarProps {
   onNavigate: (path: string) => void;
   open: boolean;
   onToggle: () => void;
+  unreadMessages?: number;
 }
 
-export function Sidebar({ activePath, onNavigate, open, onToggle }: SidebarProps) {
+export function Sidebar({ activePath, onNavigate, open, onToggle, unreadMessages = 0 }: SidebarProps) {
   const { user, signOut } = useAuth();
   const { startTour } = useTour();
 
@@ -114,6 +116,7 @@ export function Sidebar({ activePath, onNavigate, open, onToggle }: SidebarProps
         <nav data-tour="sidebar-nav" style={{ flex: 1 }}>
           {NAV_ITEMS.map((item) => {
             const active = activePath === item.path;
+            const isMessages = item.path === "/messages";
             return (
               <button
                 key={item.path}
@@ -122,38 +125,56 @@ export function Sidebar({ activePath, onNavigate, open, onToggle }: SidebarProps
                   onToggle();
                 }}
                 aria-current={active ? "page" : undefined}
+                aria-label={isMessages && unreadMessages > 0 ? `${item.label}, ${unreadMessages} unread` : undefined}
                 style={{
                   display: "flex",
                   alignItems: "center",
                   gap: "12px",
-                  width: "100%",
-                  padding: "10px 24px",
-                  background: active ? t.sidebarActive : "transparent",
+                  width: "calc(100% - 16px)",
+                  margin: "2px 8px",
+                  padding: "10px 16px",
+                  background: active ? t.primaryContainer : "transparent",
                   border: "none",
-                  borderLeft: active ? `3px solid ${t.gold}` : "3px solid transparent",
+                  borderRadius: "100px",
                   color: active ? t.teal : t.textSecondary,
                   textAlign: "left",
                   fontSize: "14px",
                   fontWeight: active ? 600 : 400,
                   cursor: "pointer",
-                  transition: "background 0.12s, color 0.12s, transform 0.12s",
+                  transition: "background 0.12s, color 0.12s",
                   fontFamily: t.font,
+                  position: "relative",
                 }}
                 onMouseEnter={(e) => {
                   if (!active) {
                     e.currentTarget.style.background = t.sidebarHover;
-                    e.currentTarget.style.transform = "translateX(2px)";
                   }
                 }}
                 onMouseLeave={(e) => {
                   if (!active) {
                     e.currentTarget.style.background = "transparent";
-                    e.currentTarget.style.transform = "translateX(0)";
                   }
                 }}
               >
                 <Icon name={item.icon} size={18} filled={active} />
-                {item.label}
+                <span style={{ flex: 1 }}>{item.label}</span>
+                {isMessages && unreadMessages > 0 && (
+                  <span style={{
+                    minWidth: "20px",
+                    height: "20px",
+                    borderRadius: "100px",
+                    background: t.rust,
+                    color: t.textInverse,
+                    fontSize: "11px",
+                    fontWeight: 700,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    padding: "0 6px",
+                  }}>
+                    {unreadMessages > 99 ? "99+" : unreadMessages}
+                  </span>
+                )}
               </button>
             );
           })}

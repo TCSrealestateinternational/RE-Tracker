@@ -149,8 +149,6 @@ export function LoginForm() {
 
           <button type="submit" style={{
             ...btnPrimary, width: "100%",
-            background: t.goldGradient,
-            border: "none",
           }}>
             {isSignUp ? "Create Account" : "Sign In"}
           </button>

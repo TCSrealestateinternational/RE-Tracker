@@ -37,7 +37,7 @@ export function CloseDateAlerts({ deals, onMoveDeal, onUpdateDeal }: CloseDateAl
         <div key={deal.id} style={{
           ...card,
           background: t.rustLight,
-          border: `1px solid rgba(157, 68, 42, 0.15)`,
+          border: `1px solid rgba(174, 64, 37, 0.15)`,
           padding: "16px",
         }}>
           <div style={{ marginBottom: "10px" }}>

@@ -1,25 +1,38 @@
 export const t = {
-  // ── Brand (used sparingly) ──
-  teal: "#0c414e",
-  tealLight: "rgba(12, 65, 78, 0.06)",
-  tealMuted: "rgba(12, 65, 78, 0.5)",
-  rust: "#9d442a",
-  rustLight: "rgba(157, 68, 42, 0.08)",
-  gold: "#9a6534",
-  goldLight: "rgba(188, 128, 77, 0.08)",
+  // ── Brand (MD3 forest green primary) ──
+  teal: "#4f6c4b",
+  tealLight: "rgba(79, 108, 75, 0.06)",
+  tealMuted: "rgba(79, 108, 75, 0.5)",
+  rust: "#ae4025",
+  rustLight: "rgba(174, 64, 37, 0.08)",
+  gold: "#6e6353",
+  goldLight: "rgba(110, 99, 83, 0.08)",
+
+  // ── MD3 Containers ──
+  primaryContainer: "#cbecc2",
+  primaryDim: "#3a5436",
+  secondary: "#536350",
+  secondaryContainer: "#d6e8d0",
+  tertiaryContainer: "#f5dfbc",
+  surfaceContainerLow: "#f7f3eb",
+  surfaceContainer: "#f1eee5",
+  surfaceContainerHigh: "#ebe8e0",
+  surfaceContainerHighest: "#e5e2da",
+  outline: "#73796e",
+  outlineVariant: "#c3c8bb",
 
   // ── Surfaces ──
-  bg: "#f5f0eb",           // warm cream — page background
-  surface: "#ffffff",       // card surface
-  surfaceHover: "#faf8f5",  // subtle hover
-  sidebar: "#f8f5f1",       // muted warm off-white
-  sidebarHover: "rgba(12, 65, 78, 0.04)",
-  sidebarActive: "rgba(12, 65, 78, 0.07)",
+  bg: "#fffbff",
+  surface: "#fffbff",
+  surfaceHover: "#f7f3eb",
+  sidebar: "#f1eee5",
+  sidebarHover: "rgba(79, 108, 75, 0.04)",
+  sidebarActive: "rgba(79, 108, 75, 0.07)",
 
   // ── Typography ──
-  text: "#1a1a1a",
-  textSecondary: "#514b47",
-  textTertiary: "#6e6864",
+  text: "#393831",
+  textSecondary: "#66645d",
+  textTertiary: "#828178",
   textInverse: "#ffffff",
 
   // ── Borders ──
@@ -36,27 +49,27 @@ export const t = {
   heroShadow: "0 20px 40px rgba(21,30,22,0.04)",
   editorialShadow: "0 10px 30px -10px rgba(28, 28, 25, 0.04)",
   deepShadow: "0 32px 64px -12px rgba(28,28,25,0.04)",
-  headerBlur: "rgba(245, 240, 235, 0.8)",
+  headerBlur: "rgba(255, 251, 255, 0.7)",
 
   // ── Focus ──
-  focusRing: "0 0 0 2px #ffffff, 0 0 0 4px #0c414e",
+  focusRing: "0 0 0 2px #ffffff, 0 0 0 4px #4f6c4b",
 
   // ── Spacing ──
   cardPadding: "24px",
-  cardRadius: "12px",
+  cardRadius: "16px",
   sectionGap: "28px",
 
   // ── Gradients ──
-  goldGradient: "linear-gradient(135deg, #9a6534 0%, #b8813a 100%)",
+  goldGradient: "linear-gradient(135deg, #4f6c4b 0%, #6a8a65 100%)",
 
   // ── Typography scale ──
   font: "'Manrope', sans-serif",
-  fontHeadline: "'Newsreader', serif",
+  fontHeadline: "'Noto Serif', serif",
   pageTitle: {
     fontSize: "36px",
     fontWeight: 400,
     lineHeight: 1.2,
-    fontFamily: "'Newsreader', serif",
+    fontFamily: "'Noto Serif', serif",
     fontStyle: "italic" as const,
   },
   sectionHeader: { fontSize: "16px", fontWeight: 600, lineHeight: 1.4 },
@@ -85,7 +98,7 @@ export const t = {
     fontSize: "36px",
     fontWeight: 400,
     lineHeight: 1.1,
-    fontFamily: "'Newsreader', serif",
+    fontFamily: "'Noto Serif', serif",
     fontStyle: "italic" as const,
   },
   // ── Breakpoints ──
@@ -110,7 +123,7 @@ export const cardElevated = {
 export const inputBase = {
   width: "100%",
   padding: "10px 12px",
-  borderRadius: "8px",
+  borderRadius: "12px",
   border: `1px solid ${t.borderMedium}`,
   fontSize: "14px",
   fontFamily: t.font,
@@ -125,7 +138,7 @@ export const btnPrimary = {
   background: t.teal,
   color: t.textInverse,
   border: "none",
-  borderRadius: "8px",
+  borderRadius: "12px",
   fontSize: "14px",
   fontWeight: 600,
   fontFamily: t.font,
@@ -137,7 +150,7 @@ export const btnSecondary = {
   background: "transparent",
   color: t.textSecondary,
   border: `1px solid ${t.borderMedium}`,
-  borderRadius: "8px",
+  borderRadius: "12px",
   fontSize: "14px",
   fontWeight: 500,
   fontFamily: t.font,

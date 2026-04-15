@@ -215,8 +215,8 @@ export function ClientViewPanel({ client, checklist, onToggleItem, transactionId
       {/* Header banner */}
       <div style={{
         ...card,
-        background: isBuyer ? "rgba(12, 65, 78, 0.04)" : "rgba(188, 128, 77, 0.04)",
-        border: `1px solid ${isBuyer ? "rgba(12, 65, 78, 0.12)" : "rgba(188, 128, 77, 0.12)"}`,
+        background: isBuyer ? "rgba(79, 108, 75, 0.04)" : "rgba(110, 99, 83, 0.04)",
+        border: `1px solid ${isBuyer ? "rgba(79, 108, 75, 0.12)" : "rgba(110, 99, 83, 0.12)"}`,
       }}>
         <div style={{
           display: "flex", alignItems: "center", gap: "8px", marginBottom: "4px",

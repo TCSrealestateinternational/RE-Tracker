@@ -38,7 +38,7 @@ function StreakDots({ checkIns }: { checkIns?: DailyCheckIn[] }) {
           <div key={date} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "4px" }}>
             <div style={{
               width: 24, height: 24, borderRadius: "50%",
-              background: done ? t.success : isFuture ? t.tealLight : "rgba(12, 65, 78, 0.08)",
+              background: done ? t.success : isFuture ? t.tealLight : "rgba(79, 108, 75, 0.08)",
               border: isToday ? `2px solid ${t.teal}` : "2px solid transparent",
               display: "flex", alignItems: "center", justifyContent: "center",
               transition: "background 0.2s",

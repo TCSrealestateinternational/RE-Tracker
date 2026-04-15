@@ -138,7 +138,7 @@ export function ClientDetail({ client, entries, checklist, deal, onToggleItem, o
                 display: "inline-flex", alignItems: "center", gap: "4px",
                 padding: "2px 8px", borderRadius: "4px",
                 fontSize: "11px", fontWeight: 700, letterSpacing: "0.03em", textTransform: "uppercase",
-                background: isBuyer ? "rgba(12, 65, 78, 0.10)" : "rgba(188, 128, 77, 0.12)",
+                background: isBuyer ? "rgba(79, 108, 75, 0.10)" : "rgba(110, 99, 83, 0.12)",
                 color: isBuyer ? t.teal : t.gold,
               }}>
                 <Icon name={isBuyer ? "home" : "description"} size={11} />
@@ -244,7 +244,7 @@ export function ClientDetail({ client, entries, checklist, deal, onToggleItem, o
 
         {portalError && (
           <div style={{
-            background: t.rustLight, border: `1px solid rgba(157, 68, 42, 0.15)`,
+            background: t.rustLight, border: `1px solid rgba(174, 64, 37, 0.15)`,
             borderRadius: "8px", padding: "10px 14px", marginBottom: "4px",
             ...t.caption, color: t.rust,
           }}>
@@ -576,8 +576,8 @@ export function ClientDetail({ client, entries, checklist, deal, onToggleItem, o
         <div role="tabpanel" id="tabpanel-client-dashboard" aria-labelledby="tab-client-dashboard">
           <div style={{
             ...card,
-            background: "rgba(12, 65, 78, 0.03)",
-            border: `1px solid rgba(12, 65, 78, 0.10)`,
+            background: "rgba(79, 108, 75, 0.03)",
+            border: `1px solid rgba(79, 108, 75, 0.10)`,
             display: "flex", alignItems: "center", gap: "10px",
           }}>
             <Icon name="visibility" size={16} color={t.teal} />

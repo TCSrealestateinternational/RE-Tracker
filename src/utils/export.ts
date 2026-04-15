@@ -22,9 +22,9 @@ export function exportPDF(title: string, headers: string[], rows: string[][]) {
     <html><head><title>${title}</title>
     <style>
       body { font-family: 'Manrope', Arial, sans-serif; padding: 20px; }
-      h1 { color: #0c414e; font-size: 18px; }
+      h1 { color: #4f6c4b; font-size: 18px; }
       table { border-collapse: collapse; width: 100%; margin-top: 12px; font-size: 13px; }
-      th { background: #0c414e; color: white; padding: 6px 8px; text-align: left; }
+      th { background: #4f6c4b; color: white; padding: 6px 8px; text-align: left; }
       td { padding: 4px 8px; border: 1px solid #ddd; }
       tr:nth-child(even) { background: #f9fafb; }
     </style></head><body>
@@ -102,30 +102,30 @@ export function exportClientPDF(client: Client) {
   }
 
   const driveLinksHtml = client.driveLinks?.length
-    ? `<h2 style="color:#0c414e;font-size:15px;margin-top:24px">Google Drive Links</h2>
+    ? `<h2 style="color:#4f6c4b;font-size:15px;margin-top:24px">Google Drive Links</h2>
        <ul style="padding-left:20px;font-size:13px">${client.driveLinks.map((l) => `<li><a href="${l.url}">${l.label || l.url}</a></li>`).join("")}</ul>`
     : "";
 
   const notesHtml = client.notes
-    ? `<h2 style="color:#0c414e;font-size:15px;margin-top:24px">Notes</h2>
+    ? `<h2 style="color:#4f6c4b;font-size:15px;margin-top:24px">Notes</h2>
        <p style="font-size:13px;white-space:pre-wrap">${client.notes}</p>`
     : "";
 
   const section = (title: string, rows: string) =>
-    rows.trim() ? `<h2 style="color:#0c414e;font-size:15px;margin-top:24px">${title}</h2>
+    rows.trim() ? `<h2 style="color:#4f6c4b;font-size:15px;margin-top:24px">${title}</h2>
     <table style="width:100%;border-collapse:collapse;font-size:13px;border:1px solid #e5e7eb;border-radius:6px"><tbody>${rows}</tbody></table>` : "";
 
   const html = `<html><head><title>${client.name} — RE Tracker</title>
   <style>
-    body { font-family: 'Manrope', Arial, sans-serif; padding: 28px; color: #1f2937; max-width: 700px; margin: 0 auto; }
-    h1 { color: #0c414e; font-size: 20px; margin-bottom: 2px; }
+    body { font-family: 'Manrope', Arial, sans-serif; padding: 28px; color: #393831; max-width: 700px; margin: 0 auto; }
+    h1 { color: #4f6c4b; font-size: 20px; margin-bottom: 2px; }
     h2 { margin-bottom: 8px; }
     table { border-radius: 6px; overflow: hidden; }
     tr:nth-child(even) { background: #f9fafb; }
     td { border-bottom: 1px solid #f3f4f6; }
     .badge { display: inline-block; padding: 2px 10px; border-radius: 4px; font-size: 11px; font-weight: 700; text-transform: uppercase; }
-    .buyer { background: rgba(12,65,78,0.1); color: #0c414e; }
-    .seller { background: rgba(188,128,77,0.12); color: #bc804d; }
+    .buyer { background: rgba(79,108,75,0.1); color: #4f6c4b; }
+    .seller { background: rgba(110,99,83,0.12); color: #6e6353; }
     @media print { body { padding: 0; } }
   </style></head><body>
   <h1>${client.name}</h1>

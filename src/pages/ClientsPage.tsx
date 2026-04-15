@@ -196,9 +196,9 @@ export function ClientsPage() {
     <>
       {firestoreError && (
         <div style={{
-          background: "rgba(157, 68, 42, 0.08)", border: "1px solid #9d442a",
-          borderRadius: "8px", padding: "12px 16px", marginBottom: "16px",
-          fontSize: "14px", color: "#9d442a",
+          background: "rgba(174, 64, 37, 0.08)", border: "1px solid #ae4025",
+          borderRadius: "12px", padding: "12px 16px", marginBottom: "16px",
+          fontSize: "14px", color: "#ae4025",
         }}>
           Firestore error: {firestoreError}
         </div>

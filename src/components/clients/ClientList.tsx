@@ -377,7 +377,7 @@ export function ClientList({ clients, onSelect, onClientView, onAdd, onDeleteCli
               This will <strong>permanently remove</strong> all data for this client — time entries, commission records, checklist progress, and notes. This cannot be undone.
             </p>
             <div style={{
-              background: t.goldLight, border: `1px solid rgba(188,128,77,0.2)`,
+              background: t.goldLight, border: `1px solid rgba(110,99,83,0.2)`,
               borderRadius: "8px", padding: "10px 14px", marginBottom: "16px",
               display: "flex", alignItems: "center", gap: "8px",
             }}>
@@ -552,7 +552,7 @@ function ClientRow({ client: c, today, showCheckbox, bulkMode, isSelected, onSel
               display: "inline-flex", alignItems: "center", gap: "4px",
               padding: "2px 8px", borderRadius: "4px",
               fontSize: "11px", fontWeight: 700, letterSpacing: "0.03em", textTransform: "uppercase",
-              background: c.status === "buyer" ? "rgba(12, 65, 78, 0.10)" : "rgba(188, 128, 77, 0.12)",
+              background: c.status === "buyer" ? "rgba(79, 108, 75, 0.10)" : "rgba(110, 99, 83, 0.12)",
               color: c.status === "buyer" ? t.teal : t.gold,
               flexShrink: 0,
             }}>

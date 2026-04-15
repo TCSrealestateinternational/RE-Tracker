@@ -79,7 +79,7 @@ export function DashboardPage() {
         <div className="wrap-row" style={{
           ...card,
           background: t.tealLight,
-          border: `1px solid rgba(12, 65, 78, 0.15)`,
+          border: `1px solid rgba(79, 108, 75, 0.15)`,
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",

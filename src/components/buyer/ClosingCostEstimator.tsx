@@ -158,7 +158,7 @@ export function ClosingCostEstimator({ defaultPurchasePrice, loanType: initialLo
       {/* Summary */}
       <div style={{
         background: t.goldLight, borderRadius: "8px", padding: "16px",
-        border: `1px solid rgba(154, 101, 52, 0.15)`,
+        border: `1px solid rgba(110, 99, 83, 0.15)`,
       }}>
         <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "8px" }}>
           <span style={{ ...t.body, color: t.textSecondary }}>Total Closing Costs</span>
@@ -168,7 +168,7 @@ export function ClosingCostEstimator({ defaultPurchasePrice, loanType: initialLo
           <span style={{ ...t.body, color: t.textSecondary }}>Down Payment</span>
           <span style={{ ...t.body, fontWeight: 600, color: t.text }}>{fmtDollars(Math.round(downPaymentAmount))}</span>
         </div>
-        <div style={{ borderTop: `1px solid rgba(154, 101, 52, 0.2)`, paddingTop: "8px", display: "flex", justifyContent: "space-between" }}>
+        <div style={{ borderTop: `1px solid rgba(110, 99, 83, 0.2)`, paddingTop: "8px", display: "flex", justifyContent: "space-between" }}>
           <span style={{ ...t.sectionHeader, color: t.text }}>Total Cash Needed</span>
           <span style={{ fontSize: "20px", fontWeight: 700, color: t.gold, fontFamily: t.fontHeadline, fontStyle: "italic" }}>
             {fmtDollars(Math.round(totalCashNeeded))}

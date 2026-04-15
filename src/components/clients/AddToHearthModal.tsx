@@ -224,7 +224,7 @@ const styles: Record<string, CSSProperties> = {
   },
   infoBox: {
     background: t.tealLight,
-    border: `1px solid rgba(12, 65, 78, 0.12)`,
+    border: `1px solid rgba(79, 108, 75, 0.12)`,
     borderRadius: "10px",
     padding: "16px",
     marginBottom: "16px",
@@ -242,7 +242,7 @@ const styles: Record<string, CSSProperties> = {
   },
   warningBox: {
     background: t.rustLight,
-    border: `1px solid rgba(157, 68, 42, 0.15)`,
+    border: `1px solid rgba(174, 64, 37, 0.15)`,
     borderRadius: "8px",
     padding: "10px 12px",
     marginBottom: "16px",
