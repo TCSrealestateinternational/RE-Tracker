@@ -26,9 +26,26 @@ export function AddToHearthModal({ client, onClose, onLinked }: AddToHearthModal
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState("");
+  const [alreadyExists, setAlreadyExists] = useState(false);
+  const [resending, setResending] = useState(false);
+  const [resent, setResent] = useState(false);
 
   const needsEmail = !client.email;
   const dialogRef = useFocusTrap<HTMLDivElement>({ onEscape: onClose });
+
+  async function handleResend() {
+    if (!client.email) return;
+    setResending(true);
+    try {
+      await sendPasswordResetEmail(auth, client.email);
+      setResent(true);
+    } catch (err) {
+      console.error("Resend failed:", err);
+      setError("Could not resend the invite. Please try again.");
+    } finally {
+      setResending(false);
+    }
+  }
 
   async function handleAdd() {
     if (!profile || !client.email) return;
@@ -102,7 +119,8 @@ export function AddToHearthModal({ client, onClose, onLinked }: AddToHearthModal
     } catch (err: unknown) {
       const raw = err instanceof Error ? err.message : "";
       if (raw.includes("email-already-in-use")) {
-        setError("This email already has a Hearth account. The client may already be in the portal.");
+        setAlreadyExists(true);
+        setError("This email already has a Hearth account.");
       } else if (raw.includes("invalid-email")) {
         setError("Please go back and enter a valid email address for this client.");
       } else if (raw.includes("network-request-failed")) {
@@ -186,6 +204,26 @@ export function AddToHearthModal({ client, onClose, onLinked }: AddToHearthModal
             {error && (
               <div style={styles.warningBox} role="alert" aria-live="polite">
                 <p style={{ ...t.caption, color: t.rust }}>{error}</p>
+                {alreadyExists && !resent && (
+                  <button
+                    onClick={handleResend}
+                    disabled={resending}
+                    style={{
+                      ...btnSecondary,
+                      marginTop: "10px",
+                      fontSize: "12px",
+                      padding: "6px 14px",
+                      opacity: resending ? 0.6 : 1,
+                    }}
+                  >
+                    {resending ? "Sending..." : "Resend Invite Email"}
+                  </button>
+                )}
+                {alreadyExists && resent && (
+                  <p style={{ ...t.caption, color: t.teal, marginTop: "8px", fontWeight: 600 }}>
+                    Invite resent to {client.email}
+                  </p>
+                )}
               </div>
             )}
 
