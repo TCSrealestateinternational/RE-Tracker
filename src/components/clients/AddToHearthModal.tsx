@@ -12,6 +12,7 @@ import { useAuth } from "@/context/AuthContext";
 import { t, btnPrimary, btnSecondary, card } from "@/styles/theme";
 import { useFocusTrap } from "@/hooks/useFocusTrap";
 import type { Client } from "@/types";
+import { PLAN_DEFAULTS } from "@/types";
 import type { CSSProperties } from "react";
 
 interface AddToHearthModalProps {
@@ -56,7 +57,14 @@ export function AddToHearthModal({ client, onClose, onLinked }: AddToHearthModal
         email: client.email,
         displayName: client.name,
         roles,
-        status: "pending",
+        status: "active",
+        subscription: {
+          plan: "hearth_only",
+          status: "active",
+          features: { ...PLAN_DEFAULTS.hearth_only },
+          trialEndsAt: null,
+          billingCycleEnd: null,
+        },
         createdAt: serverTimestamp(),
         lastLoginAt: serverTimestamp(),
       };

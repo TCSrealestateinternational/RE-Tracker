@@ -49,6 +49,21 @@ async function resolveProfile(u: User): Promise<SharedUser> {
       return { id: snap.id, ...data, subscription: upgraded };
     }
 
+    // Ensure client users have a subscription object (they may have been
+    // created via AddToHearthModal without one)
+    const isClientUser = data.roles?.some((r: string) => r === "buyer" || r === "seller" || r === "dual");
+    if (isClientUser && !data.subscription) {
+      const clientSub = {
+        plan: "hearth_only" as const,
+        status: "active" as const,
+        features: { ...PLAN_DEFAULTS.hearth_only },
+        trialEndsAt: null,
+        billingCycleEnd: null,
+      };
+      await setDoc(profileRef, { subscription: clientSub, status: "active" }, { merge: true });
+      return { id: snap.id, ...data, subscription: clientSub, status: "active" } as SharedUser;
+    }
+
     return { id: snap.id, ...data } as SharedUser;
   }
 
@@ -89,26 +104,74 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           const p = await resolveProfile(u);
           setProfile(p);
         } catch (err) {
-          console.warn("Profile resolution failed, defaulting to agent:", err);
-          const defaults = PLAN_DEFAULTS.full_platform;
-          setProfile({
-            id: u.uid,
-            email: u.email || "",
-            displayName: u.displayName || u.email?.split("@")[0] || "",
-            phone: "",
-            roles: ["agent"],
-            status: "active",
-            brokerageId: DEFAULT_BROKERAGE_ID,
-            subscription: {
-              plan: "full_platform",
+          console.warn("Profile resolution failed — attempting raw read:", err);
+          // Try a direct read to at least get the roles right
+          try {
+            const fallbackSnap = await getDoc(doc(db, "users", u.uid));
+            if (fallbackSnap.exists()) {
+              const data = fallbackSnap.data();
+              setProfile({
+                id: u.uid,
+                email: data.email || u.email || "",
+                displayName: data.displayName || u.displayName || "",
+                phone: data.phone || "",
+                roles: data.roles || ["agent"],
+                status: data.status || "active",
+                brokerageId: data.brokerageId || DEFAULT_BROKERAGE_ID,
+                subscription: data.subscription || {
+                  plan: "hearth_only",
+                  status: "active",
+                  features: { ...PLAN_DEFAULTS.hearth_only },
+                  trialEndsAt: null,
+                  billingCycleEnd: null,
+                },
+                createdAt: data.createdAt || Date.now(),
+                lastLoginAt: Date.now(),
+              } as SharedUser);
+            } else {
+              // No doc at all — genuinely new user, default to agent
+              const defaults = PLAN_DEFAULTS.full_platform;
+              setProfile({
+                id: u.uid,
+                email: u.email || "",
+                displayName: u.displayName || u.email?.split("@")[0] || "",
+                phone: "",
+                roles: ["agent"],
+                status: "active",
+                brokerageId: DEFAULT_BROKERAGE_ID,
+                subscription: {
+                  plan: "full_platform",
+                  status: "active",
+                  features: { ...defaults },
+                  trialEndsAt: null,
+                  billingCycleEnd: null,
+                },
+                createdAt: Date.now(),
+                lastLoginAt: Date.now(),
+              });
+            }
+          } catch {
+            // Total fallback — can't read Firestore at all
+            console.error("Cannot read user profile from Firestore");
+            setProfile({
+              id: u.uid,
+              email: u.email || "",
+              displayName: u.displayName || u.email?.split("@")[0] || "",
+              phone: "",
+              roles: ["agent"],
               status: "active",
-              features: { ...defaults },
-              trialEndsAt: null,
-              billingCycleEnd: null,
-            },
-            createdAt: Date.now(),
-            lastLoginAt: Date.now(),
-          });
+              brokerageId: DEFAULT_BROKERAGE_ID,
+              subscription: {
+                plan: "full_platform",
+                status: "active",
+                features: { ...PLAN_DEFAULTS.full_platform },
+                trialEndsAt: null,
+                billingCycleEnd: null,
+              },
+              createdAt: Date.now(),
+              lastLoginAt: Date.now(),
+            });
+          }
         }
       } else {
         setProfile(null);
