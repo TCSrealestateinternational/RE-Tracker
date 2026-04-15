@@ -7,7 +7,7 @@ import {
   signOut as firebaseSignOut,
   type User,
 } from "firebase/auth";
-import { doc, getDoc, setDoc, updateDoc } from "firebase/firestore";
+import { doc, getDoc, setDoc, updateDoc, collection, query, where, getDocs, limit } from "firebase/firestore";
 import { auth, db, googleProvider } from "@/lib/firebase";
 import type { SharedUser } from "@/types";
 import { PLAN_DEFAULTS } from "@/types";
@@ -67,7 +67,44 @@ async function resolveProfile(u: User): Promise<SharedUser> {
     return { id: snap.id, ...data } as SharedUser;
   }
 
-  // New user — create as agent with full_platform subscription
+  // No user doc — check if this UID is a client on an existing transaction
+  // (account may have been created via AddToHearthModal before Firestore rules were deployed)
+  try {
+    const txQ = query(
+      collection(db, "transactions"),
+      where("clientId", "==", u.uid),
+      limit(1),
+    );
+    const txSnap = await getDocs(txQ);
+    if (!txSnap.empty) {
+      const tx = txSnap.docs[0]!.data();
+      const clientRole = tx.type === "buying" ? "buyer" : "seller";
+      const clientProfile: Omit<SharedUser, "id"> = {
+        email: u.email || "",
+        displayName: u.displayName || u.email?.split("@")[0] || "",
+        phone: "",
+        roles: [clientRole as "buyer" | "seller"],
+        status: "active",
+        brokerageId: tx.brokerageId || DEFAULT_BROKERAGE_ID,
+        agentId: tx.agentId,
+        subscription: {
+          plan: "hearth_only",
+          status: "active",
+          features: { ...PLAN_DEFAULTS.hearth_only },
+          trialEndsAt: null,
+          billingCycleEnd: null,
+        },
+        createdAt: Date.now(),
+        lastLoginAt: Date.now(),
+      } as Omit<SharedUser, "id">;
+      await setDoc(profileRef, clientProfile);
+      return { id: u.uid, ...clientProfile } as SharedUser;
+    }
+  } catch {
+    // Transaction query failed — fall through to default agent creation
+  }
+
+  // Genuinely new user — create as agent with full_platform subscription
   const defaults = PLAN_DEFAULTS.full_platform;
   const newProfile: Omit<SharedUser, "id"> = {
     email: u.email || "",

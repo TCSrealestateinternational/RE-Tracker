@@ -5,7 +5,7 @@ import {
   updateProfile,
   signOut,
 } from "firebase/auth";
-import { doc, setDoc, serverTimestamp, addDoc, collection } from "firebase/firestore";
+import { doc, setDoc, serverTimestamp, addDoc, collection, query, where, getDocs } from "firebase/firestore";
 import { secondaryAuth } from "@/lib/firebase-secondary";
 import { auth, db } from "@/lib/firebase";
 import { useAuth } from "@/context/AuthContext";
@@ -45,6 +45,82 @@ export function AddToHearthModal({ client, onClose, onLinked }: AddToHearthModal
     } finally {
       setResending(false);
     }
+  }
+
+  async function handleExistingAccount() {
+    if (!profile || !client.email) return;
+    const brokerageId = profile.brokerageId;
+
+    // Find the existing user doc by email + brokerage
+    const userQ = query(
+      collection(db, "users"),
+      where("email", "==", client.email),
+      where("brokerageId", "==", brokerageId),
+    );
+    const userSnap = await getDocs(userQ);
+
+    if (!userSnap.empty) {
+      // User doc exists — link and offer resend
+      const existingUserId = userSnap.docs[0]!.id;
+      const existingData = userSnap.docs[0]!.data();
+
+      // Ensure the user doc has correct roles and subscription
+      const isBuyer = client.status === "buyer";
+      const needsRepair = !existingData.subscription || existingData.roles?.includes("agent");
+      if (needsRepair) {
+        await setDoc(doc(db, "users", existingUserId), {
+          roles: isBuyer ? ["buyer"] : ["seller"],
+          status: "active",
+          agentId: profile.id,
+          displayName: client.name,
+          subscription: {
+            plan: "hearth_only",
+            status: "active",
+            features: { ...PLAN_DEFAULTS.hearth_only },
+            trialEndsAt: null,
+            billingCycleEnd: null,
+          },
+        }, { merge: true });
+      }
+
+      // Ensure a transaction exists for this client
+      const txQ = query(
+        collection(db, "transactions"),
+        where("clientId", "==", existingUserId),
+        where("agentId", "==", profile.id),
+      );
+      const txSnap = await getDocs(txQ);
+      if (txSnap.empty) {
+        await addDoc(collection(db, "transactions"), {
+          brokerageId,
+          agentId: profile.id,
+          clientId: existingUserId,
+          type: isBuyer ? "buying" : "selling",
+          status: "active",
+          label: `${client.name} - ${isBuyer ? "Buying" : "Selling"}`,
+          createdAt: serverTimestamp(),
+          updatedAt: serverTimestamp(),
+        });
+      }
+
+      onLinked(existingUserId);
+
+      // Send invite email
+      try {
+        await sendPasswordResetEmail(auth, client.email);
+      } catch {
+        // Non-blocking
+      }
+
+      setSuccess(true);
+      return;
+    }
+
+    // No Firestore doc found — account was created before rules were deployed.
+    // Show resend option (the password reset will let them log in, and
+    // resolveProfile will handle creating their doc).
+    setAlreadyExists(true);
+    setError("This email already has a Hearth account but setup may be incomplete. Resend the invite to let them complete setup.");
   }
 
   async function handleAdd() {
@@ -119,8 +195,14 @@ export function AddToHearthModal({ client, onClose, onLinked }: AddToHearthModal
     } catch (err: unknown) {
       const raw = err instanceof Error ? err.message : "";
       if (raw.includes("email-already-in-use")) {
-        setAlreadyExists(true);
-        setError("This email already has a Hearth account.");
+        // Account exists — try to find & link the existing Firestore user doc
+        try {
+          await handleExistingAccount();
+        } catch (linkErr) {
+          console.error("Failed to link existing account:", linkErr);
+          setAlreadyExists(true);
+          setError("This email already has a Hearth account.");
+        }
       } else if (raw.includes("invalid-email")) {
         setError("Please go back and enter a valid email address for this client.");
       } else if (raw.includes("network-request-failed")) {
