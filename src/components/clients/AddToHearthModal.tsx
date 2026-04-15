@@ -11,9 +11,12 @@ import { auth, db } from "@/lib/firebase";
 import { useAuth } from "@/context/AuthContext";
 import { t, btnPrimary, btnSecondary, card } from "@/styles/theme";
 import { useFocusTrap } from "@/hooks/useFocusTrap";
-import type { Client } from "@/types";
+import { getDefaultPermissions, PERMISSION_LABELS } from "@/constants/permissionDefaults";
+import type { Client, SyncPermissions, SyncPermissionKey } from "@/types";
 import { PLAN_DEFAULTS } from "@/types";
 import type { CSSProperties } from "react";
+
+type WizardStep = "confirm" | "permissions" | "review";
 
 interface AddToHearthModalProps {
   client: Client;
@@ -30,8 +33,19 @@ export function AddToHearthModal({ client, onClose, onLinked }: AddToHearthModal
   const [resending, setResending] = useState(false);
   const [resent, setResent] = useState(false);
 
+  // Wizard state
+  const [step, setStep] = useState<WizardStep>("confirm");
+  const isBuyer = client.status === "buyer";
+  const [permissions, setPermissions] = useState<SyncPermissions>(
+    getDefaultPermissions(isBuyer ? "buyer" : "seller"),
+  );
+
   const needsEmail = !client.email;
   const dialogRef = useFocusTrap<HTMLDivElement>({ onEscape: onClose });
+
+  function togglePermission(key: SyncPermissionKey) {
+    setPermissions((prev) => ({ ...prev, [key]: !prev[key] }));
+  }
 
   async function handleResend() {
     if (!client.email) return;
@@ -47,11 +61,22 @@ export function AddToHearthModal({ client, onClose, onLinked }: AddToHearthModal
     }
   }
 
+  function buildPermissionData() {
+    return {
+      syncPermissions: permissions,
+      permissionHistory: [{
+        action: "invite_sent" as const,
+        timestamp: Date.now(),
+        changedBy: profile?.id || "",
+      }],
+      hearthPortalActive: true,
+    };
+  }
+
   async function handleExistingAccount() {
     if (!profile || !client.email) return;
     const brokerageId = profile.brokerageId;
 
-    // Find the existing user doc by email + brokerage
     const userQ = query(
       collection(db, "users"),
       where("email", "==", client.email),
@@ -60,12 +85,9 @@ export function AddToHearthModal({ client, onClose, onLinked }: AddToHearthModal
     const userSnap = await getDocs(userQ);
 
     if (!userSnap.empty) {
-      // User doc exists — link and offer resend
       const existingUserId = userSnap.docs[0]!.id;
       const existingData = userSnap.docs[0]!.data();
 
-      // Ensure the user doc has correct roles and subscription
-      const isBuyer = client.status === "buyer";
       const needsRepair = !existingData.subscription || existingData.roles?.includes("agent");
       if (needsRepair) {
         await setDoc(doc(db, "users", existingUserId), {
@@ -83,7 +105,6 @@ export function AddToHearthModal({ client, onClose, onLinked }: AddToHearthModal
         }, { merge: true });
       }
 
-      // Ensure a transaction exists for this client
       const txQ = query(
         collection(db, "transactions"),
         where("clientId", "==", existingUserId),
@@ -98,6 +119,7 @@ export function AddToHearthModal({ client, onClose, onLinked }: AddToHearthModal
           type: isBuyer ? "buying" : "selling",
           status: "active",
           label: `${client.name} - ${isBuyer ? "Buying" : "Selling"}`,
+          ...buildPermissionData(),
           createdAt: serverTimestamp(),
           updatedAt: serverTimestamp(),
         });
@@ -105,7 +127,6 @@ export function AddToHearthModal({ client, onClose, onLinked }: AddToHearthModal
 
       onLinked(existingUserId);
 
-      // Send invite email
       try {
         await sendPasswordResetEmail(auth, client.email);
       } catch {
@@ -116,9 +137,6 @@ export function AddToHearthModal({ client, onClose, onLinked }: AddToHearthModal
       return;
     }
 
-    // No Firestore doc found — account was created before rules were deployed.
-    // Show resend option (the password reset will let them log in, and
-    // resolveProfile will handle creating their doc).
     setAlreadyExists(true);
     setError("This email already has a Hearth account but setup may be incomplete. Resend the invite to let them complete setup.");
   }
@@ -131,7 +149,6 @@ export function AddToHearthModal({ client, onClose, onLinked }: AddToHearthModal
     try {
       const brokerageId = profile.brokerageId;
 
-      // 1. Create Firebase Auth account via secondary auth (doesn't log out agent)
       const placeholder = crypto.randomUUID() + "!Aa1";
       const cred = await createUserWithEmailAndPassword(
         secondaryAuth,
@@ -141,8 +158,6 @@ export function AddToHearthModal({ client, onClose, onLinked }: AddToHearthModal
 
       await updateProfile(cred.user, { displayName: client.name });
 
-      // 2. Create Hearth user doc in shared users collection
-      const isBuyer = client.status === "buyer";
       const roles = isBuyer ? ["buyer"] : ["seller"];
       const userData: Record<string, unknown> = {
         brokerageId,
@@ -165,7 +180,6 @@ export function AddToHearthModal({ client, onClose, onLinked }: AddToHearthModal
 
       await setDoc(doc(db, "users", cred.user.uid), userData);
 
-      // 3. Create Hearth transaction
       await addDoc(collection(db, "transactions"), {
         brokerageId,
         agentId: profile.id,
@@ -173,29 +187,25 @@ export function AddToHearthModal({ client, onClose, onLinked }: AddToHearthModal
         type: isBuyer ? "buying" : "selling",
         status: "active",
         label: `${client.name} - ${isBuyer ? "Buying" : "Selling"}`,
+        ...buildPermissionData(),
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp(),
       });
 
-      // 4. Sign out secondary auth
       await signOut(secondaryAuth);
 
-      // 5. Link the client in RE Tracker immediately (account created successfully)
       onLinked(cred.user.uid);
 
-      // 6. Send password reset email as invite (no actionCodeSettings — uses Firebase default)
       try {
         await sendPasswordResetEmail(auth, client.email);
       } catch (emailErr) {
         console.error("Invite email failed (account was still created):", emailErr);
-        // Don't block success — the account exists, agent can resend later
       }
 
       setSuccess(true);
     } catch (err: unknown) {
       const raw = err instanceof Error ? err.message : "";
       if (raw.includes("email-already-in-use")) {
-        // Account exists — try to find & link the existing Firestore user doc
         try {
           await handleExistingAccount();
         } catch (linkErr) {
@@ -216,6 +226,8 @@ export function AddToHearthModal({ client, onClose, onLinked }: AddToHearthModal
     }
   }
 
+  const permissionKeys = Object.keys(PERMISSION_LABELS) as SyncPermissionKey[];
+
   return (
     <div style={styles.overlay} onClick={onClose}>
       <div ref={dialogRef} role="dialog" aria-modal="true" aria-labelledby="hearth-modal-title" style={styles.modal} onClick={(e) => e.stopPropagation()}>
@@ -231,16 +243,41 @@ export function AddToHearthModal({ client, onClose, onLinked }: AddToHearthModal
             <p style={{ ...t.body, color: t.teal, fontWeight: 600, textAlign: "center" as const, marginBottom: "20px" }}>
               {client.email}
             </p>
-            <p style={{ ...t.caption, color: t.textSecondary, textAlign: "center" as const, marginBottom: "20px" }}>
+            <p style={{ ...t.caption, color: t.textSecondary, textAlign: "center" as const, marginBottom: "12px" }}>
               Once they set their password, they&apos;ll have access to their Hearth portal
               where they can view transaction progress, message you, and track their journey.
             </p>
-            <button onClick={onClose} style={{ ...btnPrimary, width: "100%" }}>
+            <div style={{ ...styles.infoBox, background: t.bg, border: `1px solid ${t.border}` }}>
+              <p style={{ ...t.caption, color: t.textSecondary, marginBottom: "4px", fontWeight: 600 }}>
+                Permissions set:
+              </p>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: "4px" }}>
+                {permissionKeys.map((key) => (
+                  <span key={key} style={{
+                    padding: "2px 8px", borderRadius: "4px", fontSize: "11px", fontWeight: 500,
+                    background: permissions[key] ? t.tealLight : t.rustLight,
+                    color: permissions[key] ? t.teal : t.rust,
+                  }}>
+                    {permissions[key] ? "+" : "-"} {PERMISSION_LABELS[key].label}
+                  </span>
+                ))}
+              </div>
+            </div>
+            <button onClick={onClose} style={{ ...btnPrimary, width: "100%", marginTop: "16px" }}>
               Done
             </button>
           </>
-        ) : (
+        ) : step === "confirm" ? (
           <>
+            {/* Step indicator */}
+            <div style={styles.stepIndicator}>
+              <StepDot active />
+              <div style={styles.stepLine} />
+              <StepDot active={false} />
+              <div style={styles.stepLine} />
+              <StepDot active={false} />
+            </div>
+
             <h2 id="hearth-modal-title" style={{ ...t.sectionHeader, color: t.text, marginBottom: "4px" }}>
               Also add to Hearth?
             </h2>
@@ -248,9 +285,7 @@ export function AddToHearthModal({ client, onClose, onLinked }: AddToHearthModal
               Give <strong>{client.name}</strong> access to their own client portal.
             </p>
 
-            {/* Explanation box */}
             <div style={styles.infoBox}>
-              <div style={{ fontSize: "18px", marginBottom: "8px" }}>&#x1f517;</div>
               <p style={{ ...t.body, color: t.text, fontWeight: 600, marginBottom: "6px" }}>
                 Linked accounts — no duplicate data
               </p>
@@ -262,7 +297,6 @@ export function AddToHearthModal({ client, onClose, onLinked }: AddToHearthModal
               </p>
             </div>
 
-            {/* What the client gets */}
             <div style={{ marginBottom: "16px" }}>
               <p style={{ ...t.caption, ...t.label, color: t.textSecondary, marginBottom: "8px" }}>
                 Your client will get:
@@ -270,7 +304,7 @@ export function AddToHearthModal({ client, onClose, onLinked }: AddToHearthModal
               <ul style={styles.featureList}>
                 <li>Transaction progress & milestones</li>
                 <li>Direct messaging with you</li>
-                <li>{client.status === "buyer" ? "Property tracking & finance calculator" : "Listing details & offer tracker"}</li>
+                <li>{isBuyer ? "Property tracking & finance calculator" : "Listing details & offer tracker"}</li>
                 <li>Guided checklist for their journey</li>
               </ul>
             </div>
@@ -314,21 +348,195 @@ export function AddToHearthModal({ client, onClose, onLinked }: AddToHearthModal
                 Not now
               </button>
               <button
-                onClick={handleAdd}
-                disabled={loading || needsEmail}
+                onClick={() => setStep("permissions")}
+                disabled={needsEmail}
                 style={{
                   ...btnPrimary,
-                  opacity: loading || needsEmail ? 0.6 : 1,
-                  cursor: loading || needsEmail ? "not-allowed" : "pointer",
+                  opacity: needsEmail ? 0.6 : 1,
+                  cursor: needsEmail ? "not-allowed" : "pointer",
                 }}
               >
-                {loading ? "Sending invite..." : "Add & Send Invite"}
+                Next: Set Permissions
+              </button>
+            </div>
+          </>
+        ) : step === "permissions" ? (
+          <>
+            <div style={styles.stepIndicator}>
+              <StepDot active />
+              <div style={styles.stepLine} />
+              <StepDot active />
+              <div style={styles.stepLine} />
+              <StepDot active={false} />
+            </div>
+
+            <h2 style={{ ...t.sectionHeader, color: t.text, marginBottom: "4px" }}>
+              Set Portal Permissions
+            </h2>
+            <p style={{ ...t.body, color: t.textSecondary, marginBottom: "16px" }}>
+              Control what <strong>{client.name}</strong> can see. You can change these later.
+            </p>
+
+            <div style={{ display: "grid", gap: "6px", marginBottom: "16px" }}>
+              {permissionKeys.map((key) => {
+                const info = PERMISSION_LABELS[key];
+                const enabled = permissions[key];
+                return (
+                  <button
+                    key={key}
+                    onClick={() => togglePermission(key)}
+                    style={{
+                      display: "flex", alignItems: "center", gap: "12px",
+                      padding: "10px 12px", borderRadius: "8px",
+                      background: enabled ? t.tealLight : t.bg,
+                      border: `1px solid ${enabled ? "rgba(79, 108, 75, 0.2)" : t.border}`,
+                      cursor: "pointer", textAlign: "left" as const,
+                      fontFamily: t.font, transition: "all 0.12s",
+                    }}
+                  >
+                    <div style={{
+                      width: "32px", height: "18px", borderRadius: "9px",
+                      background: enabled ? t.teal : t.textTertiary,
+                      position: "relative" as const, flexShrink: 0,
+                      transition: "background 0.12s",
+                    }}>
+                      <div style={{
+                        width: "14px", height: "14px", borderRadius: "50%",
+                        background: "#fff", position: "absolute" as const,
+                        top: "2px", left: enabled ? "16px" : "2px",
+                        transition: "left 0.12s",
+                      }} />
+                    </div>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <span style={{ ...t.body, color: t.text, fontWeight: 500, display: "block" }}>
+                        {info.label}
+                      </span>
+                      <span style={{ ...t.caption, color: t.textTertiary }}>
+                        {info.description}
+                      </span>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+
+            <button
+              onClick={() => setPermissions(getDefaultPermissions(isBuyer ? "buyer" : "seller"))}
+              style={{
+                ...btnSecondary, fontSize: "12px", padding: "6px 12px",
+                marginBottom: "16px",
+              }}
+            >
+              Reset to {isBuyer ? "Buyer" : "Seller"} Defaults
+            </button>
+
+            <div style={styles.actions}>
+              <button onClick={() => setStep("confirm")} style={btnSecondary}>
+                Back
+              </button>
+              <div style={{ display: "flex", gap: "8px" }}>
+                <button
+                  onClick={() => {
+                    setPermissions(getDefaultPermissions(isBuyer ? "buyer" : "seller"));
+                    handleAdd();
+                  }}
+                  style={{
+                    ...btnSecondary,
+                    fontSize: "13px",
+                  }}
+                >
+                  Skip & Use Defaults
+                </button>
+                <button onClick={() => setStep("review")} style={btnPrimary}>
+                  Next: Review
+                </button>
+              </div>
+            </div>
+          </>
+        ) : (
+          <>
+            <div style={styles.stepIndicator}>
+              <StepDot active />
+              <div style={styles.stepLine} />
+              <StepDot active />
+              <div style={styles.stepLine} />
+              <StepDot active />
+            </div>
+
+            <h2 style={{ ...t.sectionHeader, color: t.text, marginBottom: "4px" }}>
+              Review & Send
+            </h2>
+            <p style={{ ...t.body, color: t.textSecondary, marginBottom: "16px" }}>
+              Confirm the details for <strong>{client.name}</strong>&apos;s invite.
+            </p>
+
+            <div style={{ ...styles.infoBox, background: t.bg, border: `1px solid ${t.border}`, textAlign: "left" as const }}>
+              <div style={{ marginBottom: "12px" }}>
+                <span style={{ ...t.label, color: t.textSecondary }}>Client</span>
+                <p style={{ ...t.body, color: t.text, fontWeight: 500 }}>{client.name}</p>
+              </div>
+              <div style={{ marginBottom: "12px" }}>
+                <span style={{ ...t.label, color: t.textSecondary }}>Email</span>
+                <p style={{ ...t.body, color: t.teal }}>{client.email}</p>
+              </div>
+              <div style={{ marginBottom: "12px" }}>
+                <span style={{ ...t.label, color: t.textSecondary }}>Type</span>
+                <p style={{ ...t.body, color: t.text }}>{isBuyer ? "Buyer" : "Seller"}</p>
+              </div>
+              <div>
+                <span style={{ ...t.label, color: t.textSecondary, display: "block", marginBottom: "6px" }}>
+                  Permissions
+                </span>
+                <div style={{ display: "flex", flexWrap: "wrap", gap: "4px" }}>
+                  {permissionKeys.map((key) => (
+                    <span key={key} style={{
+                      padding: "2px 8px", borderRadius: "4px", fontSize: "11px", fontWeight: 500,
+                      background: permissions[key] ? t.tealLight : t.rustLight,
+                      color: permissions[key] ? t.teal : t.rust,
+                    }}>
+                      {permissions[key] ? "+" : "-"} {PERMISSION_LABELS[key].label}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {error && (
+              <div style={styles.warningBox} role="alert" aria-live="polite">
+                <p style={{ ...t.caption, color: t.rust }}>{error}</p>
+              </div>
+            )}
+
+            <div style={styles.actions}>
+              <button onClick={() => setStep("permissions")} style={btnSecondary}>
+                Back
+              </button>
+              <button
+                onClick={handleAdd}
+                disabled={loading}
+                style={{
+                  ...btnPrimary,
+                  opacity: loading ? 0.6 : 1,
+                  cursor: loading ? "not-allowed" : "pointer",
+                }}
+              >
+                {loading ? "Sending invite..." : "Send Invite"}
               </button>
             </div>
           </>
         )}
       </div>
     </div>
+  );
+}
+
+function StepDot({ active }: { active: boolean }) {
+  return (
+    <div style={{
+      width: "10px", height: "10px", borderRadius: "50%",
+      background: active ? t.teal : t.border,
+      transition: "background 0.15s",
+    }} />
   );
 }
 
@@ -345,10 +553,22 @@ const styles: Record<string, CSSProperties> = {
   },
   modal: {
     ...card,
-    maxWidth: "440px",
+    maxWidth: "480px",
     width: "100%",
     maxHeight: "90vh",
     overflowY: "auto" as const,
+  },
+  stepIndicator: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: "0px",
+    marginBottom: "20px",
+  },
+  stepLine: {
+    width: "40px",
+    height: "2px",
+    background: t.border,
   },
   infoBox: {
     background: t.tealLight,
@@ -390,7 +610,7 @@ const styles: Record<string, CSSProperties> = {
   },
   actions: {
     display: "flex",
-    justifyContent: "flex-end",
+    justifyContent: "space-between",
     gap: "8px",
   },
 };

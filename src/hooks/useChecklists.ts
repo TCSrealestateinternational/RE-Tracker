@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import {
-  collection, query, where, onSnapshot, addDoc, updateDoc, doc, setDoc,
+  collection, query, where, onSnapshot, addDoc, updateDoc, doc, setDoc, getDoc,
 } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useAuth } from "@/context/AuthContext";
@@ -63,17 +63,33 @@ export function useChecklists() {
     if (transactionId) {
       const mapping = getMilestoneMapping(checklist.type, key);
       if (mapping) {
-        const notifyClient = checklist.notifications?.[key] ?? mapping.defaultNotifyClient;
-        const milestoneRef = doc(db, "transactions", transactionId, "milestones", mapping.milestoneId);
-        await setDoc(milestoneRef, {
-          label: mapping.label,
-          stage: mapping.stage,
-          completed: newValue,
-          completedAt: newValue ? Date.now() : null,
-          completedBy: newValue ? user?.uid ?? null : null,
-          clientVisible: mapping.defaultClientVisible,
-          notifyClient: newValue ? notifyClient : false,
-        }, { merge: true });
+        // Check if milestones permission is enabled before syncing
+        let milestonesAllowed = true;
+        try {
+          const txDoc = await getDoc(doc(db, "transactions", transactionId));
+          if (txDoc.exists()) {
+            const txData = txDoc.data();
+            if (txData.syncPermissions && txData.syncPermissions.milestones === false) {
+              milestonesAllowed = false;
+            }
+          }
+        } catch {
+          // If we can't read, proceed with sync anyway
+        }
+
+        if (milestonesAllowed) {
+          const notifyClient = checklist.notifications?.[key] ?? mapping.defaultNotifyClient;
+          const milestoneRef = doc(db, "transactions", transactionId, "milestones", mapping.milestoneId);
+          await setDoc(milestoneRef, {
+            label: mapping.label,
+            stage: mapping.stage,
+            completed: newValue,
+            completedAt: newValue ? Date.now() : null,
+            completedBy: newValue ? user?.uid ?? null : null,
+            clientVisible: mapping.defaultClientVisible,
+            notifyClient: newValue ? notifyClient : false,
+          }, { merge: true });
+        }
       }
     }
   }

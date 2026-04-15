@@ -6,12 +6,15 @@ import { todayStr } from "@/utils/dates";
 import { exportClientPDF } from "@/utils/export";
 import { useLongPress } from "@/hooks/useLongPress";
 import { defaultReminderDate } from "@/utils/reminders";
+import { getAccessStatus, ACCESS_STATUS_CONFIG } from "@/utils/clientAccess";
 import { ContextMenu } from "./ContextMenu";
 import type { ContextMenuAction } from "./ContextMenu";
-import type { Client, ClientStage } from "@/types";
+import type { Client, ClientStage, SharedTransaction } from "@/types";
+import type { HearthAccessStatus } from "@/utils/clientAccess";
 
 interface ClientListProps {
   clients: Client[];
+  transactions?: SharedTransaction[];
   onSelect: (client: Client) => void;
   onClientView?: (client: Client) => void;
   onAdd: () => void;
@@ -36,8 +39,17 @@ function fmtDollars(n: number): string {
 
 type FolderKey = "closed" | "archived";
 
-export function ClientList({ clients, onSelect, onClientView, onAdd, onDeleteClients, onBulkUpdateStage, onArchiveClient, onUpdateClient }: ClientListProps) {
+export function ClientList({ clients, transactions, onSelect, onClientView, onAdd, onDeleteClients, onBulkUpdateStage, onArchiveClient, onUpdateClient }: ClientListProps) {
   const today = todayStr();
+
+  // Hearth access status filter
+  const [accessFilter, setAccessFilter] = useState<HearthAccessStatus | "all">("all");
+
+  function getClientTransaction(client: Client): SharedTransaction | undefined {
+    return transactions?.find(
+      (tx) => tx.reTrackerClientId === client.id || tx.clientId === client.hearthUserId,
+    );
+  }
 
   // Separate active vs folder clients
   const activeClients = clients.filter((c) => c.stage !== "closed" && c.stage !== "archived");
@@ -312,9 +324,38 @@ export function ClientList({ clients, onSelect, onClientView, onAdd, onDeleteCli
       {renderFolder("closed", "Closed", closedClients, t.success)}
       {renderFolder("archived", "Archived", archivedClients, t.textTertiary)}
 
+      {/* Hearth access filter */}
+      {transactions && transactions.length > 0 && (
+        <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "12px" }}>
+          <span style={{ ...t.caption, color: t.textTertiary }}>Hearth:</span>
+          {(["all", "active-sync", "invite-pending", "sync-paused", "no-access"] as const).map((f) => (
+            <button
+              key={f}
+              onClick={() => setAccessFilter(f)}
+              style={{
+                padding: "3px 10px", borderRadius: "6px", fontSize: "11px",
+                fontFamily: t.font, fontWeight: accessFilter === f ? 600 : 400,
+                background: accessFilter === f ? t.tealLight : "transparent",
+                color: accessFilter === f ? t.teal : t.textSecondary,
+                border: `1px solid ${accessFilter === f ? "rgba(79, 108, 75, 0.2)" : "transparent"}`,
+                cursor: "pointer",
+              }}
+            >
+              {f === "all" ? "All" : ACCESS_STATUS_CONFIG[f].label}
+            </button>
+          ))}
+        </div>
+      )}
+
       {/* Active clients */}
       <div data-tour="client-list" style={{ display: "grid", gap: "8px" }}>
-        {activeClients.map((c) => (
+        {activeClients
+          .filter((c) => {
+            if (accessFilter === "all") return true;
+            const tx = getClientTransaction(c);
+            return getAccessStatus(c, tx) === accessFilter;
+          })
+          .map((c) => (
           <ClientRow
             key={c.id}
             client={c}
@@ -326,6 +367,7 @@ export function ClientList({ clients, onSelect, onClientView, onAdd, onDeleteCli
             onClientView={onClientView}
             onToggleSelect={toggleSelect}
             onLongPress={openContextMenu}
+            transaction={getClientTransaction(c)}
           />
         ))}
         {clients.length === 0 && (
@@ -496,9 +538,10 @@ interface ClientRowProps {
   onClientView?: (c: Client) => void;
   onToggleSelect: (id: string) => void;
   onLongPress: (clientId: string, coords: { x: number; y: number }) => void;
+  transaction?: SharedTransaction;
 }
 
-function ClientRow({ client: c, today, showCheckbox, bulkMode, isSelected, onSelect, onClientView, onToggleSelect, onLongPress }: ClientRowProps) {
+function ClientRow({ client: c, today, showCheckbox, bulkMode, isSelected, onSelect, onClientView, onToggleSelect, onLongPress, transaction }: ClientRowProps) {
   const followUpDue = c.followUpDate != null && c.followUpDate <= today;
   const projected = getProjectedCommission(c);
 
@@ -562,6 +605,21 @@ function ClientRow({ client: c, today, showCheckbox, bulkMode, isSelected, onSel
             <span style={{ fontWeight: 600, fontSize: "14px", color: t.text, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
               {c.name}
             </span>
+            {c.hearthUserId && (() => {
+              const status = getAccessStatus(c, transaction);
+              const cfg = ACCESS_STATUS_CONFIG[status];
+              return (
+                <span style={{
+                  display: "inline-flex", alignItems: "center", gap: "3px",
+                  padding: "1px 6px", borderRadius: "4px",
+                  fontSize: "10px", fontWeight: 600,
+                  background: cfg.bgColor, color: cfg.color,
+                }}>
+                  <Icon name={cfg.iconName} size={9} />
+                  {cfg.label}
+                </span>
+              );
+            })()}
             {followUpDue && (
               <span style={{ display: "flex", alignItems: "center", gap: "3px" }}>
                 <Icon name="error" size={12} color={t.rust} />

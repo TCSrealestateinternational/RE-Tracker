@@ -300,6 +300,20 @@ export interface SharedUser {
   lastLoginAt: number;
 }
 
+// ── Sync Permissions ──
+export type SyncPermissionKey = "status" | "milestones" | "documents" | "property" | "messages" | "checklist" | "finance" | "offers";
+
+export type SyncPermissions = Record<SyncPermissionKey, boolean>;
+
+export interface PermissionChangeEntry {
+  action: "invite_sent" | "invite_accepted" | "permission_updated" | "sync_paused" | "sync_resumed";
+  timestamp: number;
+  changedBy: string; // userId
+  field?: SyncPermissionKey;
+  oldValue?: boolean;
+  newValue?: boolean;
+}
+
 // ── Shared Transaction (bridge between RE Tracker deals and Hearth) ──
 export type SharedTransactionStatus = "active" | "under-contract" | "closed" | "withdrawn";
 
@@ -314,6 +328,9 @@ export interface SharedTransaction {
   hearthPortalActive: boolean;
   reTrackerDealId: string;
   reTrackerClientId: string;
+  syncPermissions?: SyncPermissions;
+  permissionHistory?: PermissionChangeEntry[];
+  syncPausedAt?: number;
   archivedAt?: number;
   createdAt: number;
   updatedAt: number;

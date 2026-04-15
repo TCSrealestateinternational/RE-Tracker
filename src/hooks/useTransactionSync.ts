@@ -1,7 +1,7 @@
-import { collection, doc, setDoc, updateDoc } from "firebase/firestore";
+import { collection, doc, setDoc, updateDoc, arrayUnion, deleteField } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useAuth } from "@/context/AuthContext";
-import type { Deal, Client, SharedTransactionStatus } from "@/types";
+import type { Deal, Client, SharedTransactionStatus, SyncPermissions, SyncPermissionKey, PermissionChangeEntry } from "@/types";
 
 const DEAL_STAGE_TO_STATUS: Record<string, SharedTransactionStatus> = {
   "New Lead": "active",
@@ -69,5 +69,60 @@ export function useTransactionSync() {
     });
   }
 
-  return { syncDealToTransaction, activateHearthPortal, archiveTransaction };
+  async function updateSyncPermissions(
+    txId: string,
+    newPermissions: SyncPermissions,
+    changedBy: string,
+    changes: { field: SyncPermissionKey; oldValue: boolean; newValue: boolean }[],
+  ): Promise<void> {
+    const historyEntries: PermissionChangeEntry[] = changes.map((c) => ({
+      action: "permission_updated" as const,
+      timestamp: Date.now(),
+      changedBy,
+      field: c.field,
+      oldValue: c.oldValue,
+      newValue: c.newValue,
+    }));
+
+    await updateDoc(doc(db, "transactions", txId), {
+      syncPermissions: newPermissions,
+      permissionHistory: arrayUnion(...historyEntries),
+      updatedAt: Date.now(),
+    });
+  }
+
+  async function pauseSync(txId: string, agentId: string): Promise<void> {
+    const entry: PermissionChangeEntry = {
+      action: "sync_paused",
+      timestamp: Date.now(),
+      changedBy: agentId,
+    };
+    await updateDoc(doc(db, "transactions", txId), {
+      syncPausedAt: Date.now(),
+      permissionHistory: arrayUnion(entry),
+      updatedAt: Date.now(),
+    });
+  }
+
+  async function resumeSync(txId: string, agentId: string): Promise<void> {
+    const entry: PermissionChangeEntry = {
+      action: "sync_resumed",
+      timestamp: Date.now(),
+      changedBy: agentId,
+    };
+    await updateDoc(doc(db, "transactions", txId), {
+      syncPausedAt: deleteField(),
+      permissionHistory: arrayUnion(entry),
+      updatedAt: Date.now(),
+    });
+  }
+
+  return {
+    syncDealToTransaction,
+    activateHearthPortal,
+    archiveTransaction,
+    updateSyncPermissions,
+    pauseSync,
+    resumeSync,
+  };
 }

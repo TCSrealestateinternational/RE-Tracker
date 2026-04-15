@@ -79,9 +79,14 @@ service cloud.firestore {
       allow create: if isAuth()
         && request.auth.uid == request.resource.data.agentId;
       allow update: if isAuth() && (
-        resource.data.agentId == request.auth.uid ||
-        resource.data.clientId == request.auth.uid ||
-        (hasAgentRole() && belongsToBrokerage(resource.data.brokerageId))
+        // Agent or brokerage agent — full update access
+        (resource.data.agentId == request.auth.uid ||
+         (hasAgentRole() && belongsToBrokerage(resource.data.brokerageId)))
+        ||
+        // Client — can update, but NOT permission/sync fields
+        (resource.data.clientId == request.auth.uid
+         && !request.resource.data.diff(resource.data).affectedKeys()
+              .hasAny(['syncPermissions', 'permissionHistory', 'syncPausedAt']))
       );
       allow delete: if hasAgentRole()
         && belongsToBrokerage(resource.data.brokerageId);

@@ -6,6 +6,7 @@ import { useTimeEntries } from "@/hooks/useTimeEntries";
 import { useChecklists } from "@/hooks/useChecklists";
 import { useDeals } from "@/hooks/useDeals";
 import { useTransactionSync } from "@/hooks/useTransactionSync";
+import { useTransactions } from "@/hooks/useTransactions";
 import { useAuth } from "@/context/AuthContext";
 import { ClientList } from "@/components/clients/ClientList";
 import { ClientForm } from "@/components/clients/ClientForm";
@@ -24,6 +25,7 @@ export function ClientsPage() {
   const { createChecklist, getClientChecklist, toggleItem } = useChecklists();
   const { deals, updateDeal } = useDeals();
   const { syncDealToTransaction, archiveTransaction } = useTransactionSync();
+  const { transactions, getTransactionForClient } = useTransactions();
   const { profile } = useAuth();
   const [view, setView] = useState<View>("list");
   const [selected, setSelected] = useState<Client | null>(null);
@@ -155,6 +157,7 @@ export function ClientsPage() {
       createChecklist(selected.id, selected.status);
     }
     const deal = deals.find((d) => d.clientId === selected.id);
+    const clientTx = getTransactionForClient(selected.id);
     return (
       <>
         <ClientDetail
@@ -162,6 +165,7 @@ export function ClientsPage() {
           entries={entries}
           checklist={checklist}
           deal={deal}
+          transaction={clientTx}
           onToggleItem={toggleItem}
           onUpdateClient={updateClient}
           onEdit={() => setView("edit")}
@@ -205,6 +209,7 @@ export function ClientsPage() {
       )}
       <ClientList
         clients={clients}
+        transactions={transactions}
         onSelect={(c) => { setSelected(c); setDetailTab("overview"); setView("detail"); }}
         onClientView={(c) => { setSelected(c); setDetailTab("client-view"); setView("detail"); }}
         onAdd={() => setView("add")}

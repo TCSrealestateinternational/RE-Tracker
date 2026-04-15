@@ -4,10 +4,12 @@ import type { ChecklistTemplateItem } from "@/constants/checklist-buyer";
 import { t, card, btnPrimary } from "@/styles/theme";
 import { formatHours } from "@/utils/dates";
 import { exportClientPDF } from "@/utils/export";
-import type { Client, TimeEntry, TransactionChecklist, Deal } from "@/types";
+import { getAccessStatus, ACCESS_STATUS_CONFIG } from "@/utils/clientAccess";
+import type { Client, TimeEntry, TransactionChecklist, Deal, SharedTransaction } from "@/types";
 import { BUYER_CHECKLIST_TEMPLATE, BUYER_STAGES } from "@/constants/checklist-buyer";
 import { SELLER_CHECKLIST_TEMPLATE, SELLER_STAGES } from "@/constants/checklist-seller";
 import { ClientViewPanel } from "./ClientViewPanel";
+import { EditPermissionsModal } from "./EditPermissionsModal";
 import { useSubscription } from "@/hooks/useSubscription";
 import { useTransactionSync } from "@/hooks/useTransactionSync";
 import { useAuth } from "@/context/AuthContext";
@@ -23,6 +25,7 @@ interface ClientDetailProps {
   entries: TimeEntry[];
   checklist?: TransactionChecklist;
   deal?: Deal;
+  transaction?: SharedTransaction;
   onToggleItem: (checklistId: string, checklist: TransactionChecklist, key: string, transactionId?: string) => void;
   onUpdateClient: (id: string, data: Partial<Client>) => Promise<void>;
   onEdit: () => void;
@@ -45,13 +48,14 @@ function fmtDollars(n: number): string {
   return "$" + n.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 });
 }
 
-export function ClientDetail({ client, entries, checklist, deal, onToggleItem, onUpdateClient, onEdit, onArchive, onAddToHearth, onBack, initialTab = "overview" }: ClientDetailProps) {
+export function ClientDetail({ client, entries, checklist, deal, transaction, onToggleItem, onUpdateClient, onEdit, onArchive, onAddToHearth, onBack, initialTab = "overview" }: ClientDetailProps) {
   const [activeTab, setActiveTab] = useState<DetailTab>(initialTab);
   const { hasHearthPortal } = useSubscription();
   const { syncDealToTransaction, activateHearthPortal } = useTransactionSync();
   const { user } = useAuth();
   const [portalActivating, setPortalActivating] = useState(false);
   const [portalError, setPortalError] = useState("");
+  const [showPermissionsModal, setShowPermissionsModal] = useState(false);
   const transactionId = deal?.transactionId;
 
   async function handleActivatePortal() {
@@ -200,7 +204,28 @@ export function ClientDetail({ client, entries, checklist, deal, onToggleItem, o
                 {portalActivating ? "Activating..." : "Activate Hearth"}
               </button>
             )}
-            {hasHearthPortal && transactionId && (
+            {hasHearthPortal && transactionId && transaction && (() => {
+              const status = getAccessStatus(client, transaction);
+              const cfg = ACCESS_STATUS_CONFIG[status];
+              return (
+                <button
+                  onClick={() => setShowPermissionsModal(true)}
+                  style={{
+                    display: "flex", alignItems: "center", gap: "6px",
+                    padding: "8px 14px", fontSize: "13px", fontFamily: t.font,
+                    color: cfg.color, background: cfg.bgColor, borderRadius: "8px",
+                    border: "none", cursor: "pointer", fontWeight: 500,
+                    transition: "opacity 0.12s",
+                  }}
+                  title="Manage Hearth permissions"
+                >
+                  <Icon name={cfg.iconName} size={14} />
+                  {cfg.label}
+                  <Icon name="chevron_right" size={12} />
+                </button>
+              );
+            })()}
+            {hasHearthPortal && transactionId && !transaction && (
               <span style={{
                 display: "flex", alignItems: "center", gap: "6px",
                 padding: "8px 14px", fontSize: "13px", fontFamily: t.font,
@@ -592,6 +617,15 @@ export function ClientDetail({ client, entries, checklist, deal, onToggleItem, o
           </div>
           <ClientViewPanel client={client} checklist={checklist} transactionId={transactionId} />
         </div>
+      )}
+
+      {/* ── Edit Permissions Modal ── */}
+      {showPermissionsModal && transaction && (
+        <EditPermissionsModal
+          client={client}
+          transaction={transaction}
+          onClose={() => setShowPermissionsModal(false)}
+        />
       )}
     </div>
   );
