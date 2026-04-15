@@ -8,6 +8,7 @@ export function LoginForm() {
   const [password, setPassword] = useState("");
   const [isSignUp, setIsSignUp] = useState(false);
   const [error, setError] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
@@ -134,17 +135,44 @@ export function LoginForm() {
             <span style={{ ...t.label, color: t.textSecondary, display: "block", marginBottom: "6px" }}>
               Password
             </span>
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              aria-required="true"
-              aria-describedby={error ? "login-error" : undefined}
-              minLength={6}
-              placeholder="At least 6 characters"
-              style={inputBase}
-            />
+            <div style={{ position: "relative" }}>
+              <input
+                type={showPassword ? "text" : "password"}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                aria-required="true"
+                aria-describedby={error ? "login-error" : undefined}
+                minLength={6}
+                placeholder="At least 6 characters"
+                style={{ ...inputBase, paddingRight: "44px" }}
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                aria-label={showPassword ? "Hide password" : "Show password"}
+                style={{
+                  position: "absolute",
+                  right: "8px",
+                  top: "50%",
+                  transform: "translateY(-50%)",
+                  background: "none",
+                  border: "none",
+                  cursor: "pointer",
+                  padding: "4px",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  color: t.textTertiary,
+                  minWidth: "32px",
+                  minHeight: "32px",
+                }}
+              >
+                <span className="material-symbols-outlined" style={{ fontSize: "20px" }}>
+                  {showPassword ? "visibility_off" : "visibility"}
+                </span>
+              </button>
+            </div>
           </label>
 
           <button type="submit" style={{
