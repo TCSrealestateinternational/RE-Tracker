@@ -42,10 +42,13 @@ export function useReferrals() {
       createdAt: now,
       updatedAt: now,
     };
+    console.log("addReferral: uid =", user.uid, "payload =", JSON.stringify(payload));
     try {
-      await addDoc(collection(db, "referrals"), payload);
+      const ref = await addDoc(collection(db, "referrals"), payload);
+      console.log("addReferral: success, docId =", ref.id);
     } catch (err) {
-      console.error("addReferral failed:", { uid: user.uid, payload, err });
+      console.error("addReferral FAILED:", err);
+      console.error("addReferral context:", { uid: user.uid, email: user.email, payload });
       throw err;
     }
   }

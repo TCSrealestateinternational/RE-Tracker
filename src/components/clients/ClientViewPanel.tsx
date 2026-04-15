@@ -5,11 +5,15 @@ import type { Client, TransactionChecklist } from "@/types";
 import { BUYER_CHECKLIST_TEMPLATE, BUYER_STAGES } from "@/constants/checklist-buyer";
 import { SELLER_CHECKLIST_TEMPLATE, SELLER_STAGES } from "@/constants/checklist-seller";
 import type { ChecklistTemplateItem } from "@/constants/checklist-buyer";
+import { HomeWishList } from "@/components/buyer/HomeWishList";
+import { OfferStatusTracker } from "@/components/buyer/OfferStatusTracker";
+import { ClosingCostEstimator } from "@/components/buyer/ClosingCostEstimator";
 
 interface ClientViewPanelProps {
   client: Client;
   checklist?: TransactionChecklist;
   onToggleItem?: (checklistId: string, checklist: TransactionChecklist, key: string) => void;
+  transactionId?: string;
 }
 
 function fmtDollars(n: number): string {
@@ -193,7 +197,7 @@ function ViewStageSection({
   );
 }
 
-export function ClientViewPanel({ client, checklist, onToggleItem }: ClientViewPanelProps) {
+export function ClientViewPanel({ client, checklist, onToggleItem, transactionId }: ClientViewPanelProps) {
   const isBuyer = client.status === "buyer";
 
   const detailRow = (label: string, value: string | null | undefined) => {
@@ -435,6 +439,68 @@ export function ClientViewPanel({ client, checklist, onToggleItem }: ClientViewP
             <InteractiveChecklist checklist={checklist} onToggleItem={onToggleItem} />
           </CollapsibleSection>
         </div>
+      )}
+
+      {/* ── Buyer Feature Add-Ons ── */}
+      {isBuyer && (
+        <>
+          {transactionId && (
+            <div style={card}>
+              <CollapsibleSection title="Home Wish List">
+                <HomeWishList transactionId={transactionId} clientId={client.hearthUserId || client.id} />
+              </CollapsibleSection>
+            </div>
+          )}
+
+          {transactionId && (
+            <div style={card}>
+              <CollapsibleSection title="Offer Status">
+                <OfferStatusTracker transactionId={transactionId} />
+              </CollapsibleSection>
+            </div>
+          )}
+
+          <div style={card}>
+            <CollapsibleSection title="Closing Cost Estimator" defaultOpen={false}>
+              <ClosingCostEstimator
+                defaultPurchasePrice={client.preApprovalAmount || client.priceRange?.max || 300000}
+              />
+            </CollapsibleSection>
+          </div>
+
+          {client.driveLinks?.length > 0 && (
+            <div style={card}>
+              <CollapsibleSection title="Documents">
+                <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+                  {client.driveLinks.map((link, i) => (
+                    <a
+                      key={i}
+                      href={link.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      style={{
+                        display: "flex", alignItems: "center", gap: "10px",
+                        padding: "10px 14px", borderRadius: "8px",
+                        background: t.bg, textDecoration: "none",
+                        transition: "background 0.12s",
+                        ...t.body, color: t.teal,
+                      }}
+                      onMouseEnter={(e) => { e.currentTarget.style.background = t.tealLight; }}
+                      onMouseLeave={(e) => { e.currentTarget.style.background = t.bg; }}
+                    >
+                      <Icon name="folder_open" size={18} color={t.teal} />
+                      <div>
+                        <div style={{ fontWeight: 500 }}>{link.label || "Transaction Documents"}</div>
+                        <div style={{ ...t.caption, color: t.textTertiary }}>Open in Google Drive</div>
+                      </div>
+                      <Icon name="open_in_new" size={14} color={t.textTertiary} style={{ marginLeft: "auto" }} />
+                    </a>
+                  ))}
+                </div>
+              </CollapsibleSection>
+            </div>
+          )}
+        </>
       )}
     </div>
   );

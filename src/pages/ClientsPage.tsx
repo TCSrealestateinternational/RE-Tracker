@@ -166,9 +166,21 @@ export function ClientsPage() {
           onUpdateClient={updateClient}
           onEdit={() => setView("edit")}
           onArchive={() => setArchiveTarget(selected)}
+          onAddToHearth={hasHearthAccess && !selected.hearthUserId ? () => setHearthPromptClient(selected) : undefined}
           onBack={() => { setSelected(null); setView("list"); setDetailTab("overview"); }}
           initialTab={detailTab}
         />
+        {hearthPromptClient && (
+          <AddToHearthModal
+            client={hearthPromptClient}
+            onClose={() => setHearthPromptClient(null)}
+            onLinked={(hearthUserId) => {
+              updateClient(hearthPromptClient.id, { hearthUserId });
+              setSelected({ ...hearthPromptClient, hearthUserId });
+              setHearthPromptClient(null);
+            }}
+          />
+        )}
         {archiveTarget && (
           <ArchiveClientModal
             client={archiveTarget}

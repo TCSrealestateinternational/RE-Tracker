@@ -330,3 +330,77 @@ export interface Milestone {
   clientVisible: boolean;
   notifyClient: boolean;
 }
+
+// ── Offer Tracking ──
+export type TrackedOfferStatus =
+  | "draft"
+  | "submitted"
+  | "countered"
+  | "accepted"
+  | "rejected"
+  | "withdrawn"
+  | "expired";
+
+export interface OfferTimelineEvent {
+  status: TrackedOfferStatus;
+  timestamp: number;
+  note?: string;
+}
+
+export interface TrackedOffer {
+  id: string;
+  transactionId: string;
+  propertyAddress: string;
+  offerAmount: number;
+  status: TrackedOfferStatus;
+  submittedAt: number | null;
+  respondedAt: number | null;
+  counterAmount?: number;
+  notes: string;
+  timeline: OfferTimelineEvent[];
+  createdAt: number;
+  updatedAt: number;
+}
+
+// ── Home Wish List ──
+export type WishListPriority = "must-have" | "nice-to-have" | "dealbreaker";
+
+export interface WishListItem {
+  id: string;
+  text: string;
+  priority: WishListPriority;
+  sortOrder: number;
+  createdAt: number;
+}
+
+export interface WishListData {
+  items: WishListItem[];
+  updatedAt: number;
+}
+
+// ── Neighborhood Data (mock) ──
+export interface SchoolRating {
+  name: string;
+  type: "elementary" | "middle" | "high";
+  rating: number;
+  distance: string;
+}
+
+export interface NeighborhoodScores {
+  walkScore: number;
+  transitScore: number;
+  bikeScore: number;
+  schools: SchoolRating[];
+  crimeIndex: number;
+  commuteMinutes: number;
+}
+
+// ── Closing Cost Estimator ──
+export type LoanType = "conventional" | "fha" | "va" | "usda";
+
+export interface ClosingCostLineItem {
+  label: string;
+  amount: number;
+  isPercentage: boolean;
+  percentValue?: number;
+}

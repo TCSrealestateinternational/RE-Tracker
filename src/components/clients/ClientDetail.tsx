@@ -10,6 +10,11 @@ import { SELLER_CHECKLIST_TEMPLATE, SELLER_STAGES } from "@/constants/checklist-
 import { ClientViewPanel } from "./ClientViewPanel";
 import { useSubscription } from "@/hooks/useSubscription";
 import { useTransactionSync } from "@/hooks/useTransactionSync";
+import { useAuth } from "@/context/AuthContext";
+import { OfferStatusTracker } from "@/components/buyer/OfferStatusTracker";
+import { HomeWishList } from "@/components/buyer/HomeWishList";
+import { NeighborhoodData } from "@/components/buyer/NeighborhoodData";
+import { ClosingCostEstimator } from "@/components/buyer/ClosingCostEstimator";
 
 export type DetailTab = "overview" | "client-view" | "client-dashboard";
 
@@ -22,6 +27,7 @@ interface ClientDetailProps {
   onUpdateClient: (id: string, data: Partial<Client>) => Promise<void>;
   onEdit: () => void;
   onArchive?: () => void;
+  onAddToHearth?: () => void;
   onBack: () => void;
   initialTab?: DetailTab;
 }
@@ -39,10 +45,11 @@ function fmtDollars(n: number): string {
   return "$" + n.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 });
 }
 
-export function ClientDetail({ client, entries, checklist, deal, onToggleItem, onUpdateClient, onEdit, onArchive, onBack, initialTab = "overview" }: ClientDetailProps) {
+export function ClientDetail({ client, entries, checklist, deal, onToggleItem, onUpdateClient, onEdit, onArchive, onAddToHearth, onBack, initialTab = "overview" }: ClientDetailProps) {
   const [activeTab, setActiveTab] = useState<DetailTab>(initialTab);
   const { hasHearthPortal } = useSubscription();
   const { syncDealToTransaction, activateHearthPortal } = useTransactionSync();
+  const { user } = useAuth();
   const [portalActivating, setPortalActivating] = useState(false);
   const [portalError, setPortalError] = useState("");
   const transactionId = deal?.transactionId;
@@ -165,7 +172,20 @@ export function ClientDetail({ client, entries, checklist, deal, onToggleItem, o
             )}
           </div>
           <div className="detail-header-actions" style={{ display: "flex", gap: "8px", flexWrap: "wrap", flexShrink: 0 }}>
-            {hasHearthPortal && deal && !transactionId && (
+            {hasHearthPortal && !client.hearthUserId && onAddToHearth && (
+              <button
+                onClick={onAddToHearth}
+                style={{
+                  ...btnPrimary,
+                  display: "flex", alignItems: "center", gap: "6px",
+                  fontSize: "13px", padding: "8px 14px",
+                }}
+              >
+                <Icon name="local_fire_department" size={14} />
+                Add to Hearth
+              </button>
+            )}
+            {hasHearthPortal && client.hearthUserId && deal && !transactionId && (
               <button
                 onClick={handleActivatePortal}
                 disabled={portalActivating}
@@ -504,13 +524,50 @@ export function ClientDetail({ client, entries, checklist, deal, onToggleItem, o
               </div>
             </div>
           )}
+
+          {/* ── Buyer Feature Tools (Agent Side) ── */}
+          {isBuyer && (
+            <>
+              {transactionId && (
+                <div style={card}>
+                  <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "14px" }}>
+                    <Icon name="gavel" size={16} color={t.teal} />
+                    <h3 style={{ ...t.sectionHeader, color: t.text }}>Offer Tracker</h3>
+                  </div>
+                  <OfferStatusTracker transactionId={transactionId} agentId={user?.uid} />
+                </div>
+              )}
+
+              {transactionId && (
+                <div style={card}>
+                  <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "14px" }}>
+                    <Icon name="checklist" size={16} color={t.teal} />
+                    <h3 style={{ ...t.sectionHeader, color: t.text }}>Home Wish List</h3>
+                  </div>
+                  <HomeWishList transactionId={transactionId} clientId={client.hearthUserId || client.id} />
+                </div>
+              )}
+
+              {client.propertyAddress && (
+                <div style={card}>
+                  <NeighborhoodData address={client.propertyAddress} />
+                </div>
+              )}
+
+              <div style={card}>
+                <ClosingCostEstimator
+                  defaultPurchasePrice={client.preApprovalAmount || client.priceRange?.max || 300000}
+                />
+              </div>
+            </>
+          )}
         </div>
       )}
 
       {/* ── Client View Tab ── */}
       {activeTab === "client-view" && (
         <div role="tabpanel" id="tabpanel-client-view" aria-labelledby="tab-client-view">
-          <ClientViewPanel client={client} checklist={checklist} onToggleItem={onToggleItem} />
+          <ClientViewPanel client={client} checklist={checklist} onToggleItem={onToggleItem} transactionId={transactionId} />
         </div>
       )}
 
@@ -533,7 +590,7 @@ export function ClientDetail({ client, entries, checklist, deal, onToggleItem, o
               </span>
             </div>
           </div>
-          <ClientViewPanel client={client} checklist={checklist} />
+          <ClientViewPanel client={client} checklist={checklist} transactionId={transactionId} />
         </div>
       )}
     </div>
