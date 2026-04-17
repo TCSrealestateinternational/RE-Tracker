@@ -231,6 +231,47 @@ export interface Referral {
   updatedAt: number;
 }
 
+// ── Expenses ──
+export const EXPENSE_CATEGORIES = [
+  "Vehicle & Mileage",
+  "Marketing & Advertising",
+  "Licensing & Dues",
+  "Technology & Equipment",
+  "Education & Training",
+  "Home Office",
+  "Insurance",
+  "Client Meals & Gifts",
+  "Professional Services",
+  "Office & Desk Fees",
+  "Commission Splits",
+  "Retirement Contributions",
+  "Other",
+] as const;
+
+export type ExpenseCategory = (typeof EXPENSE_CATEGORIES)[number];
+
+export interface Expense {
+  id: string;
+  userId: string;
+  type: "expense" | "mileage";
+  date: string; // YYYY-MM-DD
+  description: string;
+  category: ExpenseCategory;
+  amount: number;
+  dealId: string | null;
+  clientId: string | null;
+  notes: string;
+  // Mileage-specific
+  miles: number | null;
+  mileageRate: number | null;
+  destination: string;
+  roundTrip: boolean;
+  // Receipt
+  hasReceipt: boolean;
+  createdAt: number;
+  updatedAt: number;
+}
+
 // ── Subscription System ──
 export type SubscriptionPlan = "hearth_only" | "tracker_only" | "full_platform" | "white_label";
 export type SubscriptionStatus = "active" | "trialing" | "suspended" | "cancelled";
@@ -272,6 +313,7 @@ export const DASHBOARD_WIDGETS = {
   weeklyHours:       "Weekly Hours",
   goalProgress:      "Goal Progress",
   oneYearReminders:  "1-Year Reach-Outs",
+  expenseSummary:    "Expense Summary",
 } as const;
 
 export type DashboardWidgetKey = keyof typeof DASHBOARD_WIDGETS;
@@ -281,6 +323,7 @@ export const DEFAULT_WIDGET_PREFS: DashboardWidgetPrefs = {
   closeDateAlerts: true, revenueStats: true, incomeGoalBar: true,
   pipelineSummary: true, followUpAlerts: true, dailyCheckIn: true,
   weeklyHours: true, goalProgress: true, oneYearReminders: true,
+  expenseSummary: true,
 };
 
 // ── Shared User (replaces UserProfile — matches Hearth's User type) ──

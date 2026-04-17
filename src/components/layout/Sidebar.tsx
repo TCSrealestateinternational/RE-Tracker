@@ -14,6 +14,7 @@ const NAV_ITEMS = [
   { label: "Messages", path: "/messages", icon: "chat" },
   { label: "Goals", path: "/goals", icon: "ads_click" },
   { label: "Reports", path: "/reports", icon: "analytics" },
+  { label: "Finances", path: "/finances", icon: "account_balance" },
   { label: "Settings", path: "/settings", icon: "settings" },
 ];
 

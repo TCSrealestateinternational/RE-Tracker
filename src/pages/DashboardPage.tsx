@@ -16,6 +16,8 @@ import { IncomeGoalBar } from "@/components/dashboard/IncomeGoalBar";
 import { CloseDateAlerts } from "@/components/dashboard/CloseDateAlerts";
 import { OneYearReminders } from "@/components/dashboard/OneYearReminders";
 import { DailyCheckInWidget } from "@/components/checkin/DailyCheckInWidget";
+import { ExpenseSummaryWidget } from "@/components/dashboard/ExpenseSummaryWidget";
+import { useExpenses } from "@/hooks/useExpenses";
 import { Icon } from "@/components/shared/Icon";
 import { getWeekStart, todayStr } from "@/utils/dates";
 import { DEFAULT_WIDGET_PREFS } from "@/types";
@@ -35,6 +37,7 @@ export function DashboardPage() {
   const { checkIns, todayCheckIn, getStreak, submitCheckIn } = useDailyCheckIns();
   const { goal } = useIncomeGoals();
   const { canInstall, install, dismiss } = useInstallPrompt();
+  const { totalExpenses, expensesByCategory } = useExpenses();
   const { profile } = useAuth();
   const navigate = useNavigate();
   const weekStart = useMemo(() => getWeekStart(), []);
@@ -163,6 +166,11 @@ export function DashboardPage() {
         {wp.goalProgress && (
           <div className="bento-full">
             <GoalProgress entries={entries} weekStart={weekStart} goals={{}} />
+          </div>
+        )}
+        {wp.expenseSummary && (
+          <div className="bento-full">
+            <ExpenseSummaryWidget totalExpenses={totalExpenses} expensesByCategory={expensesByCategory} />
           </div>
         )}
       </div>

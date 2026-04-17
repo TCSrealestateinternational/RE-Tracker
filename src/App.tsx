@@ -13,6 +13,7 @@ import { GoalsPage } from "@/pages/GoalsPage";
 import { ReportsPage } from "@/pages/ReportsPage";
 import { ReferralsPage } from "@/pages/ReferralsPage";
 import { SettingsPage } from "@/pages/SettingsPage";
+import { FinancesPage } from "@/pages/FinancesPage";
 import { AgentMessagesPage } from "@/pages/AgentMessagesPage";
 import { ClientHomePage } from "@/pages/client/ClientHomePage";
 import { ClientJourneyPage } from "@/pages/client/ClientJourneyPage";
@@ -33,6 +34,7 @@ function AgentApp() {
           <Route path="/messages" element={<AgentMessagesPage />} />
           <Route path="/goals" element={<GoalsPage />} />
           <Route path="/reports" element={<ReportsPage />} />
+          <Route path="/finances" element={<FinancesPage />} />
           <Route path="/settings" element={<SettingsPage />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
