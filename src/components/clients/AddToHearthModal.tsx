@@ -33,6 +33,9 @@ export function AddToHearthModal({ client, onClose, onLinked }: AddToHearthModal
   const [resending, setResending] = useState(false);
   const [resent, setResent] = useState(false);
 
+  // Tracks UID from a partially-completed previous attempt within this session
+  const [savedUid, setSavedUid] = useState<string | null>(null);
+
   // Wizard state
   const [step, setStep] = useState<WizardStep>("confirm");
   const isBuyer = client.status === "buyer";
@@ -73,58 +76,80 @@ export function AddToHearthModal({ client, onClose, onLinked }: AddToHearthModal
     };
   }
 
+  async function ensureFirestoreDocs(clientUid: string) {
+    if (!profile || !client.email) return;
+    const brokerageId = profile.brokerageId;
+
+    const roles = isBuyer ? ["buyer"] : ["seller"];
+    const userData: Record<string, unknown> = {
+      brokerageId,
+      agentId: profile.id,
+      email: client.email,
+      displayName: client.name,
+      roles,
+      status: "active",
+      subscription: {
+        plan: "hearth_only",
+        status: "active",
+        features: { ...PLAN_DEFAULTS.hearth_only },
+        trialEndsAt: null,
+        billingCycleEnd: null,
+      },
+    };
+    if (client.phone) userData.phone = client.phone;
+
+    await setDoc(doc(db, "users", clientUid), {
+      ...userData,
+      createdAt: serverTimestamp(),
+      lastLoginAt: serverTimestamp(),
+    }, { merge: true });
+
+    const txQ = query(
+      collection(db, "transactions"),
+      where("clientId", "==", clientUid),
+      where("agentId", "==", profile.id),
+    );
+    const txSnap = await getDocs(txQ);
+
+    if (txSnap.empty) {
+      await addDoc(collection(db, "transactions"), {
+        brokerageId,
+        agentId: profile.id,
+        clientId: clientUid,
+        type: isBuyer ? "buying" : "selling",
+        status: "active",
+        label: `${client.name} - ${isBuyer ? "Buying" : "Selling"}`,
+        ...buildPermissionData(),
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
+      });
+    }
+  }
+
   async function handleExistingAccount() {
     if (!profile || !client.email) return;
     const brokerageId = profile.brokerageId;
 
-    const userQ = query(
-      collection(db, "users"),
-      where("email", "==", client.email),
-      where("brokerageId", "==", brokerageId),
-    );
-    const userSnap = await getDocs(userQ);
-
-    if (!userSnap.empty) {
-      const existingUserId = userSnap.docs[0]!.id;
-      const existingData = userSnap.docs[0]!.data();
-
-      const needsRepair = !existingData.subscription || existingData.roles?.includes("agent");
-      if (needsRepair) {
-        await setDoc(doc(db, "users", existingUserId), {
-          roles: isBuyer ? ["buyer"] : ["seller"],
-          status: "active",
-          agentId: profile.id,
-          displayName: client.name,
-          subscription: {
-            plan: "hearth_only",
-            status: "active",
-            features: { ...PLAN_DEFAULTS.hearth_only },
-            trialEndsAt: null,
-            billingCycleEnd: null,
-          },
-        }, { merge: true });
-      }
-
-      const txQ = query(
-        collection(db, "transactions"),
-        where("clientId", "==", existingUserId),
-        where("agentId", "==", profile.id),
+    // Try to find the existing Firestore user doc
+    let existingUserId: string | null = null;
+    try {
+      const userQ = query(
+        collection(db, "users"),
+        where("email", "==", client.email),
+        where("brokerageId", "==", brokerageId),
       );
-      const txSnap = await getDocs(txQ);
-      if (txSnap.empty) {
-        await addDoc(collection(db, "transactions"), {
-          brokerageId,
-          agentId: profile.id,
-          clientId: existingUserId,
-          type: isBuyer ? "buying" : "selling",
-          status: "active",
-          label: `${client.name} - ${isBuyer ? "Buying" : "Selling"}`,
-          ...buildPermissionData(),
-          createdAt: serverTimestamp(),
-          updatedAt: serverTimestamp(),
-        });
+      const userSnap = await getDocs(userQ);
+      if (!userSnap.empty) {
+        existingUserId = userSnap.docs[0]!.id;
       }
+    } catch (queryErr) {
+      // Compound query may fail (missing composite index or permission issue)
+      console.warn("User lookup query failed:", queryErr);
+    }
 
+    if (existingUserId) {
+      // Found the Firestore user — repair & link
+      await ensureFirestoreDocs(existingUserId);
       onLinked(existingUserId);
 
       try {
@@ -137,8 +162,57 @@ export function AddToHearthModal({ client, onClose, onLinked }: AddToHearthModal
       return;
     }
 
+    // Email exists in Firebase Auth but no Firestore user doc found.
+    // This is an orphaned Auth account from a previous failed invite attempt.
+    // Send a password reset email so the account is recoverable.
+    try {
+      await sendPasswordResetEmail(auth, client.email);
+    } catch {
+      // Non-blocking
+    }
+
     setAlreadyExists(true);
-    setError("This email already has a Hearth account but setup may be incomplete. Resend the invite to let them complete setup.");
+    setError(
+      "A previous invite for this email was only partially completed — " +
+      "the account exists but isn\u2019t fully set up. We\u2019ve sent a password reset email. " +
+      "Click \u201CRetry Setup\u201D below to finish linking this client."
+    );
+  }
+
+  async function handleRetrySetup() {
+    if (!profile || !client.email) return;
+    setError("");
+    setLoading(true);
+
+    try {
+      // Sign into secondaryAuth to get the orphaned user's UID
+      // We can't sign in (don't know the password), so we create a fresh
+      // password-reset flow. But first, try to find the UID via Firestore.
+      // If the user already has a hearthUserId saved, use that directly.
+      const knownUid = savedUid || client.hearthUserId;
+      if (knownUid) {
+        await ensureFirestoreDocs(knownUid);
+        onLinked(knownUid);
+        try { await sendPasswordResetEmail(auth, client.email); } catch { /* non-blocking */ }
+        setSuccess(true);
+        return;
+      }
+
+      // No saved UID — the orphaned Auth user's UID is unknown.
+      // Delete via secondary auth isn't possible without signing in.
+      // Best we can do: tell the agent to delete the orphan from Firebase Console.
+      setError(
+        "We couldn\u2019t recover the incomplete account automatically. " +
+        "Please go to Firebase Console \u2192 Authentication \u2192 Users, " +
+        "search for \"" + client.email + "\", delete that entry, " +
+        "then come back and try Send Invite again."
+      );
+    } catch (err) {
+      console.error("Retry setup failed:", err);
+      setError("Recovery failed. Please try again.");
+    } finally {
+      setLoading(false);
+    }
   }
 
   async function handleAdd() {
@@ -147,54 +221,29 @@ export function AddToHearthModal({ client, onClose, onLinked }: AddToHearthModal
     setLoading(true);
 
     try {
-      const brokerageId = profile.brokerageId;
+      // If we already have the UID (from a partial attempt), skip Auth creation
+      let clientUid = savedUid || client.hearthUserId;
 
-      const placeholder = crypto.randomUUID() + "!Aa1";
-      const cred = await createUserWithEmailAndPassword(
-        secondaryAuth,
-        client.email,
-        placeholder
-      );
+      if (!clientUid) {
+        const placeholder = crypto.randomUUID() + "!Aa1";
+        const cred = await createUserWithEmailAndPassword(
+          secondaryAuth,
+          client.email,
+          placeholder
+        );
+        clientUid = cred.user.uid;
 
-      await updateProfile(cred.user, { displayName: client.name });
+        await updateProfile(cred.user, { displayName: client.name });
+        await signOut(secondaryAuth);
 
-      const roles = isBuyer ? ["buyer"] : ["seller"];
-      const userData: Record<string, unknown> = {
-        brokerageId,
-        agentId: profile.id,
-        email: client.email,
-        displayName: client.name,
-        roles,
-        status: "active",
-        subscription: {
-          plan: "hearth_only",
-          status: "active",
-          features: { ...PLAN_DEFAULTS.hearth_only },
-          trialEndsAt: null,
-          billingCycleEnd: null,
-        },
-        createdAt: serverTimestamp(),
-        lastLoginAt: serverTimestamp(),
-      };
-      if (client.phone) userData.phone = client.phone;
+        // Persist the UID immediately so retries can recover
+        setSavedUid(clientUid);
+      }
 
-      await setDoc(doc(db, "users", cred.user.uid), userData);
+      // Create/update Firestore user doc & transaction (idempotent)
+      await ensureFirestoreDocs(clientUid);
 
-      await addDoc(collection(db, "transactions"), {
-        brokerageId,
-        agentId: profile.id,
-        clientId: cred.user.uid,
-        type: isBuyer ? "buying" : "selling",
-        status: "active",
-        label: `${client.name} - ${isBuyer ? "Buying" : "Selling"}`,
-        ...buildPermissionData(),
-        createdAt: serverTimestamp(),
-        updatedAt: serverTimestamp(),
-      });
-
-      await signOut(secondaryAuth);
-
-      onLinked(cred.user.uid);
+      onLinked(clientUid);
 
       try {
         await sendPasswordResetEmail(auth, client.email);
@@ -211,7 +260,7 @@ export function AddToHearthModal({ client, onClose, onLinked }: AddToHearthModal
         } catch (linkErr) {
           console.error("Failed to link existing account:", linkErr);
           setAlreadyExists(true);
-          setError("This email already has a Hearth account.");
+          setError("Could not link this email. See console for details.");
         }
       } else if (raw.includes("invalid-email")) {
         setError("Please go back and enter a valid email address for this client.");
@@ -320,25 +369,40 @@ export function AddToHearthModal({ client, onClose, onLinked }: AddToHearthModal
             {error && (
               <div style={styles.warningBox} role="alert" aria-live="polite">
                 <p style={{ ...t.caption, color: t.rust }}>{error}</p>
-                {alreadyExists && !resent && (
-                  <button
-                    onClick={handleResend}
-                    disabled={resending}
-                    style={{
-                      ...btnSecondary,
-                      marginTop: "10px",
-                      fontSize: "12px",
-                      padding: "6px 14px",
-                      opacity: resending ? 0.6 : 1,
-                    }}
-                  >
-                    {resending ? "Sending..." : "Resend Invite Email"}
-                  </button>
-                )}
-                {alreadyExists && resent && (
-                  <p style={{ ...t.caption, color: t.teal, marginTop: "8px", fontWeight: 600 }}>
-                    Invite resent to {client.email}
-                  </p>
+                {alreadyExists && (
+                  <div style={{ display: "flex", gap: "8px", marginTop: "10px", flexWrap: "wrap" }}>
+                    <button
+                      onClick={handleRetrySetup}
+                      disabled={loading}
+                      style={{
+                        ...btnPrimary,
+                        fontSize: "12px",
+                        padding: "6px 14px",
+                        opacity: loading ? 0.6 : 1,
+                      }}
+                    >
+                      {loading ? "Retrying..." : "Retry Setup"}
+                    </button>
+                    {!resent && (
+                      <button
+                        onClick={handleResend}
+                        disabled={resending}
+                        style={{
+                          ...btnSecondary,
+                          fontSize: "12px",
+                          padding: "6px 14px",
+                          opacity: resending ? 0.6 : 1,
+                        }}
+                      >
+                        {resending ? "Sending..." : "Resend Invite Email"}
+                      </button>
+                    )}
+                    {resent && (
+                      <p style={{ ...t.caption, color: t.teal, fontWeight: 600, alignSelf: "center" }}>
+                        Invite resent
+                      </p>
+                    )}
+                  </div>
                 )}
               </div>
             )}
