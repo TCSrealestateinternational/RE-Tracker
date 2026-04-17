@@ -17,6 +17,7 @@ import { OfferStatusTracker } from "@/components/buyer/OfferStatusTracker";
 import { HomeWishList } from "@/components/buyer/HomeWishList";
 import { NeighborhoodData } from "@/components/buyer/NeighborhoodData";
 import { ClosingCostEstimator } from "@/components/buyer/ClosingCostEstimator";
+import { MilestoneManager } from "./MilestoneManager";
 
 export type DetailTab = "overview" | "client-view" | "client-dashboard";
 
@@ -548,6 +549,14 @@ export function ClientDetail({ client, entries, checklist, deal, transaction, on
                 })}
               </div>
             </div>
+          )}
+
+          {/* ── Milestones (Hearth-synced) ── */}
+          {transactionId && (
+            <MilestoneManager
+              transactionId={transactionId}
+              clientType={isBuyer ? "buyer" : "seller"}
+            />
           )}
 
           {/* ── Buyer Feature Tools (Agent Side) ── */}

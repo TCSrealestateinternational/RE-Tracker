@@ -1,3 +1,53 @@
+// ── Brand Tokens & Brokerage ──
+export interface BrandTokens {
+  primary: string;
+  primaryLight: string;
+  secondary: string;
+  cta: string;
+  ctaHover: string;
+  background: string;
+  surface: string;
+  textPrimary: string;
+  textSecondary: string;
+  border: string;
+  success: string;
+  warning: string;
+  error: string;
+  surfaceContainer?: string;
+  surfaceContainerHigh?: string;
+}
+
+export const defaultBrandTokens: BrandTokens = {
+  primary: "#2F5233",
+  primaryLight: "#E8F5E9",
+  secondary: "#1A3C5E",
+  cta: "#C8A96E",
+  ctaHover: "#B8994E",
+  background: "#FAFAF5",
+  surface: "#FFFFFF",
+  textPrimary: "#1A1A1A",
+  textSecondary: "#5A5A5A",
+  border: "#E0E0E0",
+  success: "#2F7A4F",
+  warning: "#D4A843",
+  error: "#C0392B",
+};
+
+export interface Brokerage {
+  id: string;
+  slug: string;
+  name: string;
+  agentName: string;
+  agentTitle: string;
+  agentEmail: string;
+  agentPhone: string;
+  licenseNumber: string;
+  logoUrl: string;
+  brandTokens: BrandTokens;
+  driveFolderUrl?: string;
+  createdAt: number;
+}
+
 // ── Activity Categories ──
 export const ACTIVITY_CATEGORIES = [
   "Lead Gen",
@@ -455,26 +505,27 @@ export interface NeighborhoodScores {
   commuteMinutes: number;
 }
 
-// ── Messaging ──
-export interface Conversation {
+// ── Messaging (flat model — shared with Hearth) ──
+export interface Message {
   id: string;
-  agentId: string;
-  clientUserId: string;
   brokerageId: string;
-  lastMessage: string;
-  lastMessageAt: number;
-  agentUnreadCount: number;
-  clientUnreadCount: number;
+  threadId: string;        // = clientId
+  senderId: string;
+  senderName: string;
+  senderRole: "agent" | "client";
+  text: string;
+  fileUrl?: string;
+  fileName?: string;
+  readAt?: number;
   createdAt: number;
 }
 
-export interface Message {
-  id: string;
-  conversationId: string;
-  senderId: string;
-  senderRole: "agent" | "buyer" | "seller";
-  text: string;
-  createdAt: number;
+export interface Thread {
+  id: string;              // = clientId / threadId
+  clientName: string;
+  lastMessage: string;
+  lastMessageAt: number;
+  unreadCount: number;
 }
 
 // ── Closing Cost Estimator ──

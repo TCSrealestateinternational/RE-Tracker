@@ -5,7 +5,7 @@ import {
   updateProfile,
   signOut,
 } from "firebase/auth";
-import { doc, setDoc, serverTimestamp, addDoc, collection, query, where, getDocs } from "firebase/firestore";
+import { doc, setDoc, serverTimestamp, addDoc, collection, query, where, getDocs, writeBatch } from "firebase/firestore";
 import { secondaryAuth } from "@/lib/firebase-secondary";
 import { auth, db } from "@/lib/firebase";
 import { useAuth } from "@/context/AuthContext";
@@ -14,6 +14,7 @@ import { useFocusTrap } from "@/hooks/useFocusTrap";
 import { getDefaultPermissions, PERMISSION_LABELS } from "@/constants/permissionDefaults";
 import type { Client, SyncPermissions, SyncPermissionKey } from "@/types";
 import { PLAN_DEFAULTS } from "@/types";
+import { BUYER_MILESTONE_MAP, SELLER_MILESTONE_MAP } from "@/constants/milestoneMap";
 import type { CSSProperties } from "react";
 
 type WizardStep = "confirm" | "permissions" | "review";
@@ -83,11 +84,12 @@ export function AddToHearthModal({ client, onClose, onLinked }: AddToHearthModal
     const roles = isBuyer ? ["buyer"] : ["seller"];
     const userData: Record<string, unknown> = {
       brokerageId,
+      brokerageIds: [brokerageId],
       agentId: profile.id,
       email: client.email,
       displayName: client.name,
       roles,
-      status: "active",
+      status: "pending",
       subscription: {
         plan: "hearth_only",
         status: "active",
@@ -112,7 +114,7 @@ export function AddToHearthModal({ client, onClose, onLinked }: AddToHearthModal
     const txSnap = await getDocs(txQ);
 
     if (txSnap.empty) {
-      await addDoc(collection(db, "transactions"), {
+      const txRef = await addDoc(collection(db, "transactions"), {
         brokerageId,
         agentId: profile.id,
         clientId: clientUid,
@@ -123,6 +125,23 @@ export function AddToHearthModal({ client, onClose, onLinked }: AddToHearthModal
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp(),
       });
+
+      // Seed milestones from milestone map
+      const map = isBuyer ? BUYER_MILESTONE_MAP : SELLER_MILESTONE_MAP;
+      const batch = writeBatch(db);
+      for (const mapping of Object.values(map)) {
+        const mRef = doc(collection(db, "transactions", txRef.id, "milestones"));
+        batch.set(mRef, {
+          label: mapping.label,
+          stage: mapping.stage,
+          completed: false,
+          completedAt: null,
+          completedBy: null,
+          clientVisible: mapping.defaultClientVisible,
+          notifyClient: mapping.defaultNotifyClient,
+        });
+      }
+      await batch.commit();
     }
   }
 

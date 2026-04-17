@@ -22,11 +22,15 @@ interface AuthContextValue {
   signInWithGoogle: () => Promise<void>;
   signOut: () => Promise<void>;
   updateProfile: (data: Partial<Pick<SharedUser, "displayName" | "phone" | "dashboardWidgets">>) => Promise<void>;
+  refreshProfile: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
 const DEFAULT_BROKERAGE_ID = import.meta.env.VITE_DEFAULT_BROKERAGE_ID || "life-built-in-kentucky";
+
+// New agents get an empty brokerageId — BrokerageSetupModal prompts them to create one
+const EMPTY_BROKERAGE_ID = "";
 
 async function resolveProfile(u: User): Promise<SharedUser> {
   const profileRef = doc(db, "users", u.uid);
@@ -105,6 +109,7 @@ async function resolveProfile(u: User): Promise<SharedUser> {
   }
 
   // Genuinely new user — create as agent with full_platform subscription
+  // brokerageId is empty; BrokerageSetupModal will prompt them to create one
   const defaults = PLAN_DEFAULTS.full_platform;
   const newProfile: Omit<SharedUser, "id"> = {
     email: u.email || "",
@@ -112,7 +117,7 @@ async function resolveProfile(u: User): Promise<SharedUser> {
     phone: "",
     roles: ["agent"],
     status: "active",
-    brokerageId: DEFAULT_BROKERAGE_ID,
+    brokerageId: EMPTY_BROKERAGE_ID,
     subscription: {
       plan: "full_platform",
       status: "active",
@@ -175,7 +180,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 phone: "",
                 roles: ["agent"],
                 status: "active",
-                brokerageId: DEFAULT_BROKERAGE_ID,
+                brokerageId: EMPTY_BROKERAGE_ID,
                 subscription: {
                   plan: "full_platform",
                   status: "active",
@@ -197,7 +202,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
               phone: "",
               roles: ["agent"],
               status: "active",
-              brokerageId: DEFAULT_BROKERAGE_ID,
+              brokerageId: EMPTY_BROKERAGE_ID,
               subscription: {
                 plan: "full_platform",
                 status: "active",
@@ -240,10 +245,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setProfile((prev) => prev ? { ...prev, ...data } : prev);
   }
 
+  async function refreshProfile() {
+    if (!user) return;
+    try {
+      const p = await resolveProfile(user);
+      setProfile(p);
+    } catch (err) {
+      console.warn("refreshProfile failed:", err);
+    }
+  }
+
   const isAgent = profile?.roles?.includes("agent") ?? false;
 
   return (
-    <AuthContext.Provider value={{ user, profile, loading, isAgent, signIn, signUp, signInWithGoogle, signOut, updateProfile }}>
+    <AuthContext.Provider value={{ user, profile, loading, isAgent, signIn, signUp, signInWithGoogle, signOut, updateProfile, refreshProfile }}>
       {children}
     </AuthContext.Provider>
   );

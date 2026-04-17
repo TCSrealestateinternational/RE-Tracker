@@ -1,9 +1,11 @@
+import { useState } from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "@/context/AuthContext";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { Layout } from "@/components/layout/Layout";
 import { ClientLayout } from "@/components/layout/ClientLayout";
 import { TourProvider } from "@/components/tour/TourProvider";
+import { BrokerageSetupModal } from "@/components/onboarding/BrokerageSetupModal";
 import { DashboardPage } from "@/pages/DashboardPage";
 import { TimerPage } from "@/pages/TimerPage";
 import { ClientsPage } from "@/pages/ClientsPage";
@@ -58,7 +60,14 @@ function ClientApp() {
 }
 
 function RoleRouter() {
-  const { isAgent } = useAuth();
+  const { isAgent, profile } = useAuth();
+  const [brokerageSetupDone, setBrokerageSetupDone] = useState(false);
+
+  // Agent with no brokerage → show setup modal
+  if (isAgent && !profile?.brokerageId && !brokerageSetupDone) {
+    return <BrokerageSetupModal onComplete={() => setBrokerageSetupDone(true)} />;
+  }
+
   return isAgent ? <AgentApp /> : <ClientApp />;
 }
 
