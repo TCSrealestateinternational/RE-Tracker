@@ -33,6 +33,7 @@ export function AddToHearthModal({ client, onClose, onLinked }: AddToHearthModal
   const [alreadyExists, setAlreadyExists] = useState(false);
   const [resending, setResending] = useState(false);
   const [resent, setResent] = useState(false);
+  const [emailFailed, setEmailFailed] = useState(false);
 
   // Tracks UID from a partially-completed previous attempt within this session
   const [savedUid, setSavedUid] = useState<string | null>(null);
@@ -51,11 +52,16 @@ export function AddToHearthModal({ client, onClose, onLinked }: AddToHearthModal
     setPermissions((prev) => ({ ...prev, [key]: !prev[key] }));
   }
 
+  const actionCodeSettings = {
+    url: "https://hearthapp.vercel.app/login",
+    handleCodeInApp: false,
+  };
+
   async function handleResend() {
     if (!client.email) return;
     setResending(true);
     try {
-      await sendPasswordResetEmail(auth, client.email);
+      await sendPasswordResetEmail(auth, client.email, actionCodeSettings);
       setResent(true);
     } catch (err) {
       console.error("Resend failed:", err);
@@ -172,7 +178,7 @@ export function AddToHearthModal({ client, onClose, onLinked }: AddToHearthModal
       onLinked(existingUserId);
 
       try {
-        await sendPasswordResetEmail(auth, client.email);
+        await sendPasswordResetEmail(auth, client.email, actionCodeSettings);
       } catch {
         // Non-blocking
       }
@@ -185,7 +191,7 @@ export function AddToHearthModal({ client, onClose, onLinked }: AddToHearthModal
     // This is an orphaned Auth account from a previous failed invite attempt.
     // Send a password reset email so the account is recoverable.
     try {
-      await sendPasswordResetEmail(auth, client.email);
+      await sendPasswordResetEmail(auth, client.email, actionCodeSettings);
     } catch {
       // Non-blocking
     }
@@ -212,7 +218,7 @@ export function AddToHearthModal({ client, onClose, onLinked }: AddToHearthModal
       if (knownUid) {
         await ensureFirestoreDocs(knownUid);
         onLinked(knownUid);
-        try { await sendPasswordResetEmail(auth, client.email); } catch { /* non-blocking */ }
+        try { await sendPasswordResetEmail(auth, client.email, actionCodeSettings); } catch { /* non-blocking */ }
         setSuccess(true);
         return;
       }
@@ -265,9 +271,10 @@ export function AddToHearthModal({ client, onClose, onLinked }: AddToHearthModal
       onLinked(clientUid);
 
       try {
-        await sendPasswordResetEmail(auth, client.email);
+        await sendPasswordResetEmail(auth, client.email, actionCodeSettings);
       } catch (emailErr) {
-        console.error("Invite email failed (account was still created):", emailErr);
+        console.error("Invite email failed:", emailErr);
+        setEmailFailed(true);
       }
 
       setSuccess(true);
@@ -303,14 +310,36 @@ export function AddToHearthModal({ client, onClose, onLinked }: AddToHearthModal
           <>
             <div style={styles.successIcon}>&#10003;</div>
             <h2 id="hearth-modal-title" style={{ ...t.sectionHeader, color: t.text, textAlign: "center" as const, marginBottom: "8px" }}>
-              Invite Sent!
+              {emailFailed ? "Account Created" : "Invite Sent!"}
             </h2>
-            <p style={{ ...t.body, color: t.textSecondary, textAlign: "center" as const, marginBottom: "8px" }}>
-              A setup email has been sent to:
-            </p>
-            <p style={{ ...t.body, color: t.teal, fontWeight: 600, textAlign: "center" as const, marginBottom: "20px" }}>
-              {client.email}
-            </p>
+            {emailFailed ? (
+              <div style={{ ...styles.warningBox, marginBottom: "16px", textAlign: "center" as const }}>
+                <p style={{ ...t.caption, color: t.rust, marginBottom: "8px" }}>
+                  Account created, but the invite email may not have sent. You can resend it below.
+                </p>
+                <button
+                  onClick={handleResend}
+                  disabled={resending || resent}
+                  style={{
+                    ...btnSecondary,
+                    fontSize: "12px",
+                    padding: "6px 14px",
+                    opacity: resending ? 0.6 : 1,
+                  }}
+                >
+                  {resending ? "Sending..." : resent ? "Invite Resent" : "Resend Invite Email"}
+                </button>
+              </div>
+            ) : (
+              <>
+                <p style={{ ...t.body, color: t.textSecondary, textAlign: "center" as const, marginBottom: "8px" }}>
+                  A setup email has been sent to:
+                </p>
+                <p style={{ ...t.body, color: t.teal, fontWeight: 600, textAlign: "center" as const, marginBottom: "20px" }}>
+                  {client.email}
+                </p>
+              </>
+            )}
             <p style={{ ...t.caption, color: t.textSecondary, textAlign: "center" as const, marginBottom: "12px" }}>
               Once they set their password, they&apos;ll have access to their Hearth portal
               where they can view transaction progress, message you, and track their journey.

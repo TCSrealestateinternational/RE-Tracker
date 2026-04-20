@@ -5,13 +5,12 @@ import { MessageInput } from "./MessageInput";
 import { t } from "@/styles/theme";
 
 interface MessageThreadProps {
-  conversationId: string;
+  threadId: string;
   currentUserId: string;
-  currentUserRole: string;
 }
 
-export function MessageThread({ conversationId, currentUserId }: MessageThreadProps) {
-  const { messages, loading, sendMessage, markRead } = useMessages(conversationId);
+export function MessageThread({ threadId, currentUserId }: MessageThreadProps) {
+  const { messages, loading, sendMessage, markRead } = useMessages(threadId);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   // Scroll to bottom on new messages
@@ -24,7 +23,7 @@ export function MessageThread({ conversationId, currentUserId }: MessageThreadPr
   // Mark messages as read when viewing
   useEffect(() => {
     markRead();
-  }, [conversationId, messages.length, markRead]);
+  }, [threadId, messages.length, markRead]);
 
   if (loading) {
     return (

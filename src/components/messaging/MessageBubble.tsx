@@ -6,12 +6,13 @@ interface MessageBubbleProps {
   isMine: boolean;
 }
 
-function formatTime(ts: number): string {
-  return new Date(ts).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
+function formatTime(ts: number | { seconds?: number }): string {
+  const ms = typeof ts === "number" ? ts : (ts?.seconds ? ts.seconds * 1000 : 0);
+  return new Date(ms).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
 }
 
 export function MessageBubble({ message, isMine }: MessageBubbleProps) {
-  const senderLabel = message.senderRole === "agent" ? "Agent" : "You";
+  const senderLabel = isMine ? "You" : (message.senderName || (message.senderRole === "agent" ? "Agent" : "Client"));
   const timeStr = formatTime(message.createdAt);
 
   return (

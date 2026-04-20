@@ -1,9 +1,11 @@
 import { useState, useRef } from "react";
+import { sendPasswordResetEmail } from "firebase/auth";
 import { Icon } from "@/components/shared/Icon";
 import type { ChecklistTemplateItem } from "@/constants/checklist-buyer";
 import { t, card, btnPrimary } from "@/styles/theme";
 import { formatHours } from "@/utils/dates";
 import { exportClientPDF } from "@/utils/export";
+import { auth } from "@/lib/firebase";
 import { getAccessStatus, ACCESS_STATUS_CONFIG } from "@/utils/clientAccess";
 import type { Client, TimeEntry, TransactionChecklist, Deal, SharedTransaction } from "@/types";
 import { BUYER_CHECKLIST_TEMPLATE, BUYER_STAGES } from "@/constants/checklist-buyer";
@@ -57,7 +59,27 @@ export function ClientDetail({ client, entries, checklist, deal, transaction, on
   const [portalActivating, setPortalActivating] = useState(false);
   const [portalError, setPortalError] = useState("");
   const [showPermissionsModal, setShowPermissionsModal] = useState(false);
+  const [resending, setResending] = useState(false);
+  const [resendStatus, setResendStatus] = useState<"" | "sent" | "failed">("");
   const transactionId = deal?.transactionId;
+
+  async function handleResendInvite() {
+    if (!client.email || resending) return;
+    setResending(true);
+    setResendStatus("");
+    try {
+      await sendPasswordResetEmail(auth, client.email, {
+        url: "https://hearthapp.vercel.app/login",
+        handleCodeInApp: false,
+      });
+      setResendStatus("sent");
+    } catch (err) {
+      console.error("Resend invite failed:", err);
+      setResendStatus("failed");
+    } finally {
+      setResending(false);
+    }
+  }
 
   async function handleActivatePortal() {
     if (!deal || portalActivating) return;
@@ -188,6 +210,25 @@ export function ClientDetail({ client, entries, checklist, deal, transaction, on
               >
                 <Icon name="local_fire_department" size={14} />
                 Add to Hearth
+              </button>
+            )}
+            {hasHearthPortal && client.hearthUserId && client.email && (
+              <button
+                onClick={handleResendInvite}
+                disabled={resending}
+                style={{
+                  display: "flex", alignItems: "center", gap: "6px",
+                  padding: "8px 14px", background: "transparent",
+                  border: `1px solid ${resendStatus === "sent" ? t.success : t.border}`,
+                  borderRadius: "8px", cursor: resending ? "not-allowed" : "pointer",
+                  fontSize: "13px", fontFamily: t.font,
+                  color: resendStatus === "sent" ? t.success : resendStatus === "failed" ? t.rust : t.textSecondary,
+                  opacity: resending ? 0.6 : 1,
+                  transition: "all 0.15s",
+                }}
+              >
+                <Icon name="send" size={14} />
+                {resending ? "Sending..." : resendStatus === "sent" ? "Invite Resent" : resendStatus === "failed" ? "Failed — Retry" : "Resend Invite"}
               </button>
             )}
             {hasHearthPortal && client.hearthUserId && deal && !transactionId && (

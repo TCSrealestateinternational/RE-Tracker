@@ -1,9 +1,18 @@
 import { useState } from "react";
+import {
+  verifyBeforeUpdateEmail,
+  reauthenticateWithCredential,
+  EmailAuthProvider,
+  GoogleAuthProvider,
+  reauthenticateWithPopup,
+} from "firebase/auth";
+import { doc, updateDoc } from "firebase/firestore";
+import { db } from "@/lib/firebase";
 import { useAuth } from "@/context/AuthContext";
 import { useBrokerage } from "@/hooks/useBrokerage";
 import { DASHBOARD_WIDGETS, DEFAULT_WIDGET_PREFS } from "@/types";
 import type { DashboardWidgetKey, DashboardWidgetPrefs } from "@/types";
-import { t, card, inputBase, btnPrimary } from "@/styles/theme";
+import { t, card, inputBase, btnPrimary, btnSecondary } from "@/styles/theme";
 
 export function SettingsPage() {
   const { profile, updateProfile } = useAuth();
@@ -22,6 +31,8 @@ export function SettingsPage() {
         </span>
         <h1 style={{ ...t.pageTitle, color: t.text }}>Settings</h1>
       </div>
+
+      <ProfileCard />
 
       <div style={card}>
         <h2 style={{ ...t.sectionHeader, color: t.text, marginBottom: "16px" }}>
@@ -90,6 +101,237 @@ export function SettingsPage() {
           onSave={updateBrokerage}
         />
       )}
+    </div>
+  );
+}
+
+function ProfileCard() {
+  const { user, profile, updateProfile } = useAuth();
+  const [displayName, setDisplayName] = useState(profile?.displayName ?? "");
+  const [phone, setPhone] = useState(profile?.phone ?? "");
+  const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
+
+  // Email change state
+  const [showEmailChange, setShowEmailChange] = useState(false);
+  const [newEmail, setNewEmail] = useState("");
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [emailStatus, setEmailStatus] = useState<{ type: "success" | "error"; message: string } | null>(null);
+  const [emailSaving, setEmailSaving] = useState(false);
+
+  const isGoogleUser = user?.providerData.some((p) => p.providerId === "google.com") ?? false;
+  const isPasswordUser = user?.providerData.some((p) => p.providerId === "password") ?? false;
+
+  async function handleSaveProfile() {
+    setSaving(true);
+    setSaved(false);
+    await updateProfile({
+      displayName: displayName.trim(),
+      phone: phone.trim(),
+    });
+    setSaving(false);
+    setSaved(true);
+    setTimeout(() => setSaved(false), 2000);
+  }
+
+  async function handleEmailChange(e: React.FormEvent) {
+    e.preventDefault();
+    if (!user || !newEmail.trim()) return;
+
+    setEmailSaving(true);
+    setEmailStatus(null);
+
+    try {
+      // Re-authenticate first
+      if (isPasswordUser) {
+        if (!currentPassword) {
+          setEmailStatus({ type: "error", message: "Please enter your current password." });
+          setEmailSaving(false);
+          return;
+        }
+        const credential = EmailAuthProvider.credential(user.email!, currentPassword);
+        await reauthenticateWithCredential(user, credential);
+      } else if (isGoogleUser) {
+        await reauthenticateWithPopup(user, new GoogleAuthProvider());
+      }
+
+      // Send verification to new email
+      await verifyBeforeUpdateEmail(user, newEmail.trim());
+
+      // Update the email in Firestore too (will reflect after verification)
+      await updateDoc(doc(db, "users", user.uid), { pendingEmail: newEmail.trim() });
+
+      setEmailStatus({
+        type: "success",
+        message: `Verification email sent to ${newEmail.trim()}. Check your inbox and click the link to confirm the change.`,
+      });
+      setNewEmail("");
+      setCurrentPassword("");
+      setShowEmailChange(false);
+    } catch (err: unknown) {
+      const code = (err as { code?: string }).code;
+      if (code === "auth/wrong-password" || code === "auth/invalid-credential") {
+        setEmailStatus({ type: "error", message: "Incorrect password. Please try again." });
+      } else if (code === "auth/email-already-in-use") {
+        setEmailStatus({ type: "error", message: "That email is already associated with another account." });
+      } else if (code === "auth/invalid-email") {
+        setEmailStatus({ type: "error", message: "Please enter a valid email address." });
+      } else if (code === "auth/too-many-requests") {
+        setEmailStatus({ type: "error", message: "Too many attempts. Please wait a few minutes and try again." });
+      } else {
+        setEmailStatus({ type: "error", message: err instanceof Error ? err.message : "Failed to update email." });
+      }
+    } finally {
+      setEmailSaving(false);
+    }
+  }
+
+  const labelStyle = {
+    display: "block" as const,
+    marginBottom: "6px",
+    ...t.label,
+    color: t.textSecondary,
+  };
+
+  return (
+    <div style={card}>
+      <h2 style={{ ...t.sectionHeader, color: t.text, marginBottom: "16px" }}>Profile</h2>
+
+      <div style={{ display: "grid", gap: "14px", marginBottom: "16px" }}>
+        <div>
+          <label style={labelStyle}>Display Name</label>
+          <input
+            type="text"
+            value={displayName}
+            onChange={(e) => setDisplayName(e.target.value)}
+            placeholder="Your name"
+            style={inputBase}
+          />
+        </div>
+        <div>
+          <label style={labelStyle}>Phone</label>
+          <input
+            type="tel"
+            value={phone}
+            onChange={(e) => setPhone(e.target.value)}
+            placeholder="Optional"
+            style={inputBase}
+          />
+        </div>
+        <div>
+          <label style={labelStyle}>Email</label>
+          <div style={{
+            display: "flex",
+            alignItems: "center",
+            gap: "12px",
+          }}>
+            <span style={{ ...t.body, color: t.text }}>{user?.email ?? "—"}</span>
+            <button
+              type="button"
+              onClick={() => { setShowEmailChange(!showEmailChange); setEmailStatus(null); }}
+              style={{
+                ...btnSecondary,
+                padding: "4px 12px",
+                fontSize: "12px",
+              }}
+            >
+              {showEmailChange ? "Cancel" : "Change"}
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Email change form */}
+      {showEmailChange && (
+        <form
+          onSubmit={handleEmailChange}
+          style={{
+            background: t.surfaceContainer,
+            borderRadius: "10px",
+            padding: "16px",
+            marginBottom: "16px",
+            display: "grid",
+            gap: "12px",
+          }}
+        >
+          <div>
+            <label style={labelStyle}>New Email Address</label>
+            <input
+              type="email"
+              value={newEmail}
+              onChange={(e) => setNewEmail(e.target.value)}
+              placeholder="new@example.com"
+              required
+              style={inputBase}
+              autoFocus
+            />
+          </div>
+          {isPasswordUser && (
+            <div>
+              <label style={labelStyle}>Current Password</label>
+              <input
+                type="password"
+                value={currentPassword}
+                onChange={(e) => setCurrentPassword(e.target.value)}
+                placeholder="Required to verify your identity"
+                required
+                style={inputBase}
+              />
+            </div>
+          )}
+          {isGoogleUser && !isPasswordUser && (
+            <p style={{ ...t.caption, color: t.textTertiary }}>
+              You'll be prompted to re-authenticate with Google.
+            </p>
+          )}
+          <button
+            type="submit"
+            disabled={emailSaving || !newEmail.trim()}
+            style={{
+              ...btnPrimary,
+              opacity: emailSaving || !newEmail.trim() ? 0.6 : 1,
+              cursor: emailSaving || !newEmail.trim() ? "not-allowed" : "pointer",
+              justifySelf: "start",
+            }}
+          >
+            {emailSaving ? "Sending verification..." : "Send Verification Email"}
+          </button>
+        </form>
+      )}
+
+      {/* Email change status message */}
+      {emailStatus && (
+        <div
+          role="alert"
+          style={{
+            background: emailStatus.type === "success" ? t.tealLight : t.rustLight,
+            color: emailStatus.type === "success" ? t.teal : t.rust,
+            padding: "12px 16px",
+            borderRadius: "8px",
+            marginBottom: "16px",
+            ...t.caption,
+          }}
+        >
+          {emailStatus.message}
+        </div>
+      )}
+
+      <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+        <button
+          onClick={handleSaveProfile}
+          disabled={saving}
+          style={{
+            ...btnPrimary,
+            opacity: saving ? 0.6 : 1,
+            cursor: saving ? "not-allowed" : "pointer",
+          }}
+        >
+          {saving ? "Saving..." : "Save Profile"}
+        </button>
+        {saved && (
+          <span style={{ ...t.caption, color: t.success, fontWeight: 600 }}>Saved</span>
+        )}
+      </div>
     </div>
   );
 }

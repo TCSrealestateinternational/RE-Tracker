@@ -1,6 +1,7 @@
-import { collection, doc, setDoc, updateDoc, arrayUnion, deleteField } from "firebase/firestore";
+import { collection, doc, setDoc, updateDoc, arrayUnion, deleteField, serverTimestamp } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useAuth } from "@/context/AuthContext";
+import { getDefaultPermissions } from "@/constants/permissionDefaults";
 import type { Deal, Client, SharedTransactionStatus, SyncPermissions, SyncPermissionKey, PermissionChangeEntry } from "@/types";
 
 const DEAL_STAGE_TO_STATUS: Record<string, SharedTransactionStatus> = {
@@ -23,32 +24,41 @@ export function useTransactionSync() {
     const brokerageId = profile.brokerageId;
     const txId = deal.transactionId || doc(collection(db, "transactions")).id;
     const txRef = doc(db, "transactions", txId);
-    const now = Date.now();
 
+    const txType = client.status === "buyer" ? "buying" : "selling" as const;
     const txData = {
       brokerageId,
       clientId: client.id,
       agentId: user.uid,
-      type: client.status === "buyer" ? "buying" : "selling" as const,
+      type: txType,
       status: DEAL_STAGE_TO_STATUS[deal.stage] || "active",
       label: `${client.name} — ${client.status === "buyer" ? "Buyer" : "Seller"}`,
       hearthPortalActive: false,
       reTrackerDealId: deal.id,
       reTrackerClientId: client.id,
-      updatedAt: now,
+      updatedAt: serverTimestamp(),
     };
 
     if (deal.transactionId) {
       await updateDoc(txRef, txData);
     } else {
-      await setDoc(txRef, { ...txData, createdAt: now });
+      await setDoc(txRef, {
+        ...txData,
+        syncPermissions: getDefaultPermissions(client.status === "buyer" ? "buyer" : "seller"),
+        permissionHistory: [{
+          action: "invite_sent" as const,
+          timestamp: Date.now(),
+          changedBy: user.uid,
+        }],
+        createdAt: serverTimestamp(),
+      });
     }
 
     // Back-link the deal to this transaction if not already linked
     if (!deal.transactionId) {
       await updateDoc(doc(db, "deals", deal.id), {
         transactionId: txId,
-        updatedAt: now,
+        updatedAt: serverTimestamp(),
       });
     }
 
@@ -58,14 +68,14 @@ export function useTransactionSync() {
   async function activateHearthPortal(transactionId: string): Promise<void> {
     await updateDoc(doc(db, "transactions", transactionId), {
       hearthPortalActive: true,
-      updatedAt: Date.now(),
+      updatedAt: serverTimestamp(),
     });
   }
 
   async function archiveTransaction(transactionId: string): Promise<void> {
     await updateDoc(doc(db, "transactions", transactionId), {
-      archivedAt: Date.now(),
-      updatedAt: Date.now(),
+      archivedAt: serverTimestamp(),
+      updatedAt: serverTimestamp(),
     });
   }
 
@@ -87,7 +97,7 @@ export function useTransactionSync() {
     await updateDoc(doc(db, "transactions", txId), {
       syncPermissions: newPermissions,
       permissionHistory: arrayUnion(...historyEntries),
-      updatedAt: Date.now(),
+      updatedAt: serverTimestamp(),
     });
   }
 
@@ -100,7 +110,7 @@ export function useTransactionSync() {
     await updateDoc(doc(db, "transactions", txId), {
       syncPausedAt: Date.now(),
       permissionHistory: arrayUnion(entry),
-      updatedAt: Date.now(),
+      updatedAt: serverTimestamp(),
     });
   }
 
@@ -113,7 +123,7 @@ export function useTransactionSync() {
     await updateDoc(doc(db, "transactions", txId), {
       syncPausedAt: deleteField(),
       permissionHistory: arrayUnion(entry),
-      updatedAt: Date.now(),
+      updatedAt: serverTimestamp(),
     });
   }
 

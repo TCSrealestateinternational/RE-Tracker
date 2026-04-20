@@ -17,7 +17,11 @@ service cloud.firestore {
     }
 
     function belongsToBrokerage(brokerageId) {
-      return isAuth() && getUserData().brokerageId == brokerageId;
+      let ud = getUserData();
+      return isAuth() && (
+        ud.brokerageId == brokerageId ||
+        brokerageId in ud.get('brokerageIds', [])
+      );
     }
 
     function isOwner(userId) {
@@ -50,7 +54,10 @@ service cloud.firestore {
     match /users/{userId} {
       allow read: if isAuth() && (
         request.auth.uid == userId ||
-        (hasAgentRole() && resource.data.brokerageId == getUserData().brokerageId)
+        (hasAgentRole() && (
+          resource.data.brokerageId == getUserData().brokerageId ||
+          getUserData().brokerageId in resource.data.get('brokerageIds', [])
+        ))
       );
       allow create: if isAuth() && (
         request.auth.uid == userId ||
@@ -58,7 +65,11 @@ service cloud.firestore {
       );
       allow update: if isAuth() && (
         request.auth.uid == userId ||
-        request.auth.uid == resource.data.agentId
+        request.auth.uid == resource.data.agentId ||
+        (hasAgentRole() && (
+          resource.data.brokerageId == getUserData().brokerageId ||
+          getUserData().brokerageId in resource.data.get('brokerageIds', [])
+        ))
       );
     }
 
@@ -76,8 +87,10 @@ service cloud.firestore {
         resource.data.agentId == request.auth.uid ||
         (hasAgentRole() && belongsToBrokerage(resource.data.brokerageId))
       );
-      allow create: if isAuth()
-        && request.auth.uid == request.resource.data.agentId;
+      allow create: if isAuth() && (
+        request.auth.uid == request.resource.data.agentId ||
+        request.auth.uid == request.resource.data.clientId
+      );
       allow update: if isAuth() && (
         // Agent or brokerage agent — full update access
         (resource.data.agentId == request.auth.uid ||
@@ -149,7 +162,10 @@ service cloud.firestore {
             || request.auth.token.email == resource.data.clientEmail);
       allow create: if isAuth()
         && request.auth.uid == request.resource.data.agentId;
-      allow update: if isAuth();
+      // Only the owning agent, or the invited client (matched by email), can update
+      allow update: if isAuth()
+        && (request.auth.uid == resource.data.agentId
+            || request.auth.token.email == resource.data.clientEmail);
     }
 
     // ── RE Tracker agent-only collections ──

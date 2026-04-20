@@ -7,11 +7,9 @@ import { t, card } from "@/styles/theme";
 import { useState } from "react";
 
 export function ClientMessagesPage() {
-  const { user, profile } = useAuth();
-  const { conversations, loading } = useConversations();
-  const [activeConversationId, setActiveConversationId] = useState<string | null>(null);
-
-  const activeConversation = conversations.find((c) => c.id === activeConversationId);
+  const { user } = useAuth();
+  const { threads, loading } = useConversations();
+  const [activeThreadId, setActiveThreadId] = useState<string | null>(null);
 
   if (loading) {
     return (
@@ -21,7 +19,7 @@ export function ClientMessagesPage() {
     );
   }
 
-  if (activeConversationId && activeConversation) {
+  if (activeThreadId) {
     return (
       <div style={{ display: "grid", gap: "0px", height: "calc(100vh - 180px)" }}>
         <div style={{
@@ -31,7 +29,7 @@ export function ClientMessagesPage() {
           padding: "12px 0",
         }}>
           <button
-            onClick={() => setActiveConversationId(null)}
+            onClick={() => setActiveThreadId(null)}
             aria-label="Back to conversations"
             style={{
               background: "none",
@@ -54,15 +52,14 @@ export function ClientMessagesPage() {
           </h2>
         </div>
         <MessageThread
-          conversationId={activeConversationId}
+          threadId={activeThreadId}
           currentUserId={user?.uid || ""}
-          currentUserRole={profile?.roles?.[0] || "buyer"}
         />
       </div>
     );
   }
 
-  if (conversations.length === 0) {
+  if (threads.length === 0) {
     return (
       <div style={{ display: "grid", gap: "20px" }}>
         <h1 style={{ ...t.pageTitle, color: t.text }}>Messages</h1>
@@ -80,9 +77,8 @@ export function ClientMessagesPage() {
     <div style={{ display: "grid", gap: "20px" }}>
       <h1 style={{ ...t.pageTitle, color: t.text }}>Messages</h1>
       <ConversationList
-        conversations={conversations}
-        currentUserId={user?.uid || ""}
-        onSelect={(id) => setActiveConversationId(id)}
+        threads={threads}
+        onSelect={(id) => setActiveThreadId(id)}
       />
     </div>
   );

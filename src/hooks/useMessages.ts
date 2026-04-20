@@ -2,13 +2,13 @@ import { useState, useEffect, useCallback } from "react";
 import {
   collection,
   query,
+  where,
   orderBy,
   onSnapshot,
   addDoc,
-  doc,
   updateDoc,
-  setDoc,
-  increment,
+  doc,
+  serverTimestamp,
 } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useAuth } from "@/context/AuthContext";
@@ -21,20 +21,22 @@ interface UseMessagesReturn {
   markRead: () => Promise<void>;
 }
 
-export function useMessages(conversationId: string | null): UseMessagesReturn {
+export function useMessages(threadId: string | null): UseMessagesReturn {
   const { user, profile, isAgent } = useAuth();
   const [messages, setMessages] = useState<Message[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!conversationId) {
+    if (!threadId || !profile) {
       setMessages([]);
       setLoading(false);
       return;
     }
 
     const q = query(
-      collection(db, "conversations", conversationId, "messages"),
+      collection(db, "messages"),
+      where("brokerageId", "==", profile.brokerageId),
+      where("threadId", "==", threadId),
       orderBy("createdAt", "asc"),
     );
 
@@ -48,59 +50,35 @@ export function useMessages(conversationId: string | null): UseMessagesReturn {
     });
 
     return unsub;
-  }, [conversationId]);
+  }, [threadId, profile]);
 
   const sendMessage = useCallback(async (text: string) => {
-    if (!conversationId || !user || !profile || !text.trim()) return;
+    if (!threadId || !user || !profile || !text.trim()) return;
 
-    const senderRole = isAgent ? "agent" : (profile.roles?.[0] || "buyer") as "agent" | "buyer" | "seller";
-
-    // Add message to subcollection
-    await addDoc(collection(db, "conversations", conversationId, "messages"), {
-      conversationId,
+    await addDoc(collection(db, "messages"), {
+      brokerageId: profile.brokerageId,
+      threadId,
       senderId: user.uid,
-      senderRole,
+      senderName: profile.displayName || profile.email || "Unknown",
+      senderRole: isAgent ? "agent" : "client",
       text: text.trim(),
-      createdAt: Date.now(),
+      createdAt: serverTimestamp(),
     });
-
-    // Update conversation metadata
-    const unreadField = isAgent ? "clientUnreadCount" : "agentUnreadCount";
-    await updateDoc(doc(db, "conversations", conversationId), {
-      lastMessage: text.trim().slice(0, 100),
-      lastMessageAt: Date.now(),
-      [unreadField]: increment(1),
-    });
-  }, [conversationId, user, profile, isAgent]);
+  }, [threadId, user, profile, isAgent]);
 
   const markRead = useCallback(async () => {
-    if (!conversationId || !user) return;
+    if (!threadId || !user) return;
 
-    const unreadField = isAgent ? "agentUnreadCount" : "clientUnreadCount";
-    await updateDoc(doc(db, "conversations", conversationId), {
-      [unreadField]: 0,
-    });
-  }, [conversationId, user, isAgent]);
+    // Mark all unread messages in this thread that weren't sent by current user
+    const unread = messages.filter(
+      (m) => m.senderId !== user.uid && !m.readAt,
+    );
+    await Promise.all(
+      unread.map((m) =>
+        updateDoc(doc(db, "messages", m.id), { readAt: serverTimestamp() }),
+      ),
+    );
+  }, [threadId, user, messages]);
 
   return { messages, loading, sendMessage, markRead };
-}
-
-// Create a new conversation between agent and client
-export async function createConversation(
-  agentId: string,
-  clientUserId: string,
-  brokerageId: string,
-): Promise<string> {
-  const convRef = doc(collection(db, "conversations"));
-  await setDoc(convRef, {
-    agentId,
-    clientUserId,
-    brokerageId,
-    lastMessage: "",
-    lastMessageAt: Date.now(),
-    agentUnreadCount: 0,
-    clientUnreadCount: 0,
-    createdAt: Date.now(),
-  });
-  return convRef.id;
 }

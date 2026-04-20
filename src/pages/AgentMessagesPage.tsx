@@ -8,8 +8,8 @@ import { t, card } from "@/styles/theme";
 
 export function AgentMessagesPage() {
   const { user } = useAuth();
-  const { conversations, loading } = useConversations();
-  const [activeConversationId, setActiveConversationId] = useState<string | null>(null);
+  const { threads, loading } = useConversations();
+  const [activeThreadId, setActiveThreadId] = useState<string | null>(null);
 
   return (
     <div style={{ display: "grid", gap: t.sectionGap }}>
@@ -27,20 +27,17 @@ export function AgentMessagesPage() {
       ) : (
         <div style={{
           display: "grid",
-          gridTemplateColumns: activeConversationId ? "320px 1fr" : "1fr",
+          gridTemplateColumns: activeThreadId ? "320px 1fr" : "1fr",
           gap: "20px",
           minHeight: "500px",
         }}>
-          {/* Conversation list */}
-          <div style={{
-            ...(activeConversationId ? {} : {}),
-          }}>
+          {/* Thread list */}
+          <div>
             <ConversationList
-              conversations={conversations}
-              currentUserId={user?.uid || ""}
-              onSelect={(id) => setActiveConversationId(id)}
+              threads={threads}
+              onSelect={(id) => setActiveThreadId(id)}
             />
-            {conversations.length === 0 && (
+            {threads.length === 0 && (
               <div style={{ ...card, textAlign: "center", padding: "32px" }}>
                 <Icon name="chat" size={32} color={t.textTertiary} />
                 <p style={{ ...t.body, color: t.textTertiary, marginTop: "12px" }}>
@@ -51,7 +48,7 @@ export function AgentMessagesPage() {
           </div>
 
           {/* Thread panel */}
-          {activeConversationId && (
+          {activeThreadId && (
             <div style={{
               ...card,
               padding: "0 20px",
@@ -67,7 +64,7 @@ export function AgentMessagesPage() {
                 borderBottom: `1px solid ${t.border}`,
               }}>
                 <button
-                  onClick={() => setActiveConversationId(null)}
+                  onClick={() => setActiveThreadId(null)}
                   aria-label="Close conversation"
                   style={{
                     background: "none",
@@ -85,9 +82,8 @@ export function AgentMessagesPage() {
                 </h2>
               </div>
               <MessageThread
-                conversationId={activeConversationId}
+                threadId={activeThreadId}
                 currentUserId={user?.uid || ""}
-                currentUserRole="agent"
               />
             </div>
           )}

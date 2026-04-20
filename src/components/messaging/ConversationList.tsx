@@ -1,11 +1,10 @@
 import { Icon } from "@/components/shared/Icon";
 import { t, card } from "@/styles/theme";
-import type { Conversation } from "@/types";
+import type { Thread } from "@/types";
 
 interface ConversationListProps {
-  conversations: Conversation[];
-  currentUserId: string;
-  onSelect: (conversationId: string) => void;
+  threads: Thread[];
+  onSelect: (threadId: string) => void;
 }
 
 function timeAgo(ts: number): string {
@@ -20,17 +19,16 @@ function timeAgo(ts: number): string {
   return new Date(ts).toLocaleDateString();
 }
 
-export function ConversationList({ conversations, currentUserId, onSelect }: ConversationListProps) {
+export function ConversationList({ threads, onSelect }: ConversationListProps) {
   return (
     <div style={{ display: "grid", gap: "8px" }} role="list" aria-label="Conversations">
-      {conversations.map((conv) => {
-        const isAgent = conv.agentId === currentUserId;
-        const unread = isAgent ? conv.agentUnreadCount : conv.clientUnreadCount;
+      {threads.map((thread) => {
+        const unread = thread.unreadCount;
         return (
           <button
-            key={conv.id}
+            key={thread.id}
             role="listitem"
-            onClick={() => onSelect(conv.id)}
+            onClick={() => onSelect(thread.id)}
             style={{
               ...card,
               display: "flex",
@@ -61,7 +59,7 @@ export function ConversationList({ conversations, currentUserId, onSelect }: Con
               fontWeight: 700,
               flexShrink: 0,
             }}>
-              <Icon name={isAgent ? "person" : "support_agent"} size={18} />
+              <Icon name="person" size={18} />
             </div>
 
             {/* Content */}
@@ -75,10 +73,10 @@ export function ConversationList({ conversations, currentUserId, onSelect }: Con
                   textOverflow: "ellipsis",
                   whiteSpace: "nowrap",
                 }}>
-                  {isAgent ? "Client" : "Your Agent"}
+                  {thread.clientName}
                 </span>
                 <span style={{ ...t.caption, color: t.textTertiary, flexShrink: 0 }}>
-                  {conv.lastMessageAt ? timeAgo(conv.lastMessageAt) : ""}
+                  {thread.lastMessageAt ? timeAgo(thread.lastMessageAt) : ""}
                 </span>
               </div>
               <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
@@ -91,7 +89,7 @@ export function ConversationList({ conversations, currentUserId, onSelect }: Con
                   whiteSpace: "nowrap",
                   flex: 1,
                 }}>
-                  {conv.lastMessage || "No messages yet"}
+                  {thread.lastMessage || "No messages yet"}
                 </span>
                 {unread > 0 && (
                   <span
