@@ -69,9 +69,15 @@ export function BrokerageSetupModal({ onComplete }: BrokerageSetupModalProps) {
       await refreshProfile();
 
       onComplete();
-    } catch (err) {
+    } catch (err: unknown) {
       console.error("Brokerage setup failed:", err);
-      setError("Failed to create brokerage. Please try again.");
+      const code = (err as { code?: string })?.code || "";
+      const msg = err instanceof Error ? err.message : String(err);
+      if (code === "permission-denied") {
+        setError("Firestore permission denied — your user profile may be missing the agent role. Check the browser console for details.");
+      } else {
+        setError(`Failed to create brokerage: ${code || msg}`);
+      }
     } finally {
       setLoading(false);
     }

@@ -1,6 +1,34 @@
 import { useState, type FormEvent } from "react";
+import { sendPasswordResetEmail } from "firebase/auth";
+import { auth } from "@/lib/firebase";
 import { useAuth } from "@/context/AuthContext";
 import { t, card, inputBase, btnPrimary, btnSecondary } from "@/styles/theme";
+
+function friendlyAuthError(err: unknown): { message: string; code: string } {
+  const raw = err instanceof Error ? err.message : String(err);
+  if (raw.includes("email-already-in-use")) {
+    return {
+      code: "email-already-in-use",
+      message: "An account with this email already exists. Try signing in instead, or reset your password below.",
+    };
+  }
+  if (raw.includes("invalid-credential") || raw.includes("wrong-password") || raw.includes("user-not-found")) {
+    return { code: "bad-credentials", message: "Invalid email or password. Please try again." };
+  }
+  if (raw.includes("invalid-email")) {
+    return { code: "invalid-email", message: "Please enter a valid email address." };
+  }
+  if (raw.includes("weak-password")) {
+    return { code: "weak-password", message: "Password must be at least 6 characters." };
+  }
+  if (raw.includes("too-many-requests")) {
+    return { code: "too-many-requests", message: "Too many attempts. Please wait a moment and try again." };
+  }
+  if (raw.includes("network-request-failed")) {
+    return { code: "network", message: "Network error. Please check your connection." };
+  }
+  return { code: "unknown", message: "Authentication failed. Please try again." };
+}
 
 export function LoginForm() {
   const { signIn, signUp, signInWithGoogle } = useAuth();
@@ -8,11 +36,16 @@ export function LoginForm() {
   const [password, setPassword] = useState("");
   const [isSignUp, setIsSignUp] = useState(false);
   const [error, setError] = useState("");
+  const [errorCode, setErrorCode] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [resetSent, setResetSent] = useState(false);
+  const [resetLoading, setResetLoading] = useState(false);
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
     setError("");
+    setErrorCode("");
+    setResetSent(false);
     try {
       if (isSignUp) {
         await signUp(email, password);
@@ -20,16 +53,42 @@ export function LoginForm() {
         await signIn(email, password);
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Authentication failed");
+      const { message, code } = friendlyAuthError(err);
+      setError(message);
+      setErrorCode(code);
     }
   }
 
   async function handleGoogle() {
     setError("");
+    setErrorCode("");
     try {
       await signInWithGoogle();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Google sign-in failed");
+      const { message, code } = friendlyAuthError(err);
+      setError(message);
+      setErrorCode(code);
+    }
+  }
+
+  async function handleForgotPassword() {
+    if (!email.trim()) {
+      setError("Enter your email address above, then click Forgot Password.");
+      setErrorCode("need-email");
+      return;
+    }
+    setResetLoading(true);
+    setError("");
+    setErrorCode("");
+    try {
+      await sendPasswordResetEmail(auth, email.trim());
+      setResetSent(true);
+    } catch (err) {
+      const { message, code } = friendlyAuthError(err);
+      setError(message);
+      setErrorCode(code);
+    } finally {
+      setResetLoading(false);
     }
   }
 
@@ -62,6 +121,23 @@ export function LoginForm() {
           </p>
         </div>
 
+        {resetSent && (
+          <div
+            role="status"
+            aria-live="polite"
+            style={{
+              background: t.tealLight,
+              color: t.teal,
+              padding: "12px 16px",
+              borderRadius: "8px",
+              marginBottom: "20px",
+              ...t.caption,
+            }}
+          >
+            Password reset email sent to <strong>{email}</strong>. Check your inbox.
+          </div>
+        )}
+
         {error && (
           <div
             id="login-error"
@@ -77,6 +153,34 @@ export function LoginForm() {
             }}
           >
             {error}
+            {errorCode === "email-already-in-use" && (
+              <div style={{ display: "flex", gap: "8px", marginTop: "10px", flexWrap: "wrap" }}>
+                <button
+                  type="button"
+                  onClick={() => { setIsSignUp(false); setError(""); setErrorCode(""); }}
+                  style={{
+                    ...btnSecondary,
+                    fontSize: "12px",
+                    padding: "6px 14px",
+                  }}
+                >
+                  Switch to Sign In
+                </button>
+                <button
+                  type="button"
+                  onClick={handleForgotPassword}
+                  disabled={resetLoading}
+                  style={{
+                    ...btnSecondary,
+                    fontSize: "12px",
+                    padding: "6px 14px",
+                    opacity: resetLoading ? 0.6 : 1,
+                  }}
+                >
+                  {resetLoading ? "Sending..." : "Send Password Reset"}
+                </button>
+              </div>
+            )}
           </div>
         )}
 
@@ -131,7 +235,7 @@ export function LoginForm() {
             />
           </label>
 
-          <label style={{ display: "block", marginBottom: "28px" }}>
+          <label style={{ display: "block", marginBottom: "8px" }}>
             <span style={{ ...t.label, color: t.textSecondary, display: "block", marginBottom: "6px" }}>
               Password
             </span>
@@ -174,6 +278,31 @@ export function LoginForm() {
               </button>
             </div>
           </label>
+
+          {!isSignUp && (
+            <div style={{ textAlign: "right" as const, marginBottom: "20px" }}>
+              <button
+                type="button"
+                onClick={handleForgotPassword}
+                disabled={resetLoading}
+                style={{
+                  background: "none",
+                  border: "none",
+                  color: t.teal,
+                  cursor: resetLoading ? "not-allowed" : "pointer",
+                  padding: 0,
+                  fontSize: "12px",
+                  fontFamily: t.font,
+                  fontWeight: 500,
+                  opacity: resetLoading ? 0.6 : 1,
+                }}
+              >
+                {resetLoading ? "Sending..." : "Forgot password?"}
+              </button>
+            </div>
+          )}
+
+          {isSignUp && <div style={{ marginBottom: "20px" }} />}
 
           <button type="submit" style={{
             ...btnPrimary, width: "100%",

@@ -60,11 +60,18 @@ function ClientApp() {
 }
 
 function RoleRouter() {
-  const { isAgent, profile } = useAuth();
+  const { isAgent, profile, profileError } = useAuth();
   const [brokerageSetupDone, setBrokerageSetupDone] = useState(false);
 
-  // Agent with no brokerage → show setup modal
-  if (isAgent && !profile?.brokerageId && !brokerageSetupDone) {
+  // Only show brokerage setup for genuinely new agents (not error fallbacks).
+  // If the profile loaded from an error path, the empty brokerageId is fake —
+  // don't block the user with a modal they may not need.
+  const isGenuinelyNew = isAgent
+    && !profile?.brokerageId
+    && !brokerageSetupDone
+    && !profileError;
+
+  if (isGenuinelyNew) {
     return <BrokerageSetupModal onComplete={() => setBrokerageSetupDone(true)} />;
   }
 

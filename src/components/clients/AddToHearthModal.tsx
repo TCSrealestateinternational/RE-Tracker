@@ -154,6 +154,10 @@ export function AddToHearthModal({ client, onClose, onLinked }: AddToHearthModal
   async function handleExistingAccount() {
     if (!profile || !client.email) return;
     const brokerageId = profile.brokerageId;
+    if (!brokerageId) {
+      setError("Your brokerage isn\u2019t set up yet. Please refresh the page and try again.");
+      return;
+    }
 
     // Try to find the existing Firestore user doc
     let existingUserId: string | null = null;
@@ -242,6 +246,13 @@ export function AddToHearthModal({ client, onClose, onLinked }: AddToHearthModal
 
   async function handleAdd() {
     if (!profile || !client.email) return;
+    if (!profile.brokerageId) {
+      setError(
+        "Your brokerage isn\u2019t set up yet. Please go to Settings or refresh the page, " +
+        "then try again. If this keeps happening, sign out and back in."
+      );
+      return;
+    }
     setError("");
     setLoading(true);
 

@@ -17,6 +17,7 @@ interface AuthContextValue {
   profile: SharedUser | null;
   loading: boolean;
   isAgent: boolean;
+  profileError: boolean;
   signIn: (email: string, password: string) => Promise<void>;
   signUp: (email: string, password: string) => Promise<void>;
   signInWithGoogle: () => Promise<void>;
@@ -137,16 +138,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<SharedUser | null>(null);
   const [loading, setLoading] = useState(true);
+  const [profileError, setProfileError] = useState(false);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (u) => {
       setUser(u);
       if (u) {
+        setProfileError(false);
         try {
           const p = await resolveProfile(u);
           setProfile(p);
         } catch (err) {
           console.warn("Profile resolution failed — attempting raw read:", err);
+          setProfileError(true);
           // Try a direct read to at least get the roles right
           try {
             const fallbackSnap = await getDoc(doc(db, "users", u.uid));
@@ -171,7 +175,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 lastLoginAt: Date.now(),
               } as SharedUser);
             } else {
-              // No doc at all — genuinely new user, default to agent
+              // No doc at all and resolveProfile failed — use default brokerage
+              // so we don't block the user with a setup modal they can't complete
               const defaults = PLAN_DEFAULTS.full_platform;
               setProfile({
                 id: u.uid,
@@ -180,7 +185,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 phone: "",
                 roles: ["agent"],
                 status: "active",
-                brokerageId: EMPTY_BROKERAGE_ID,
+                brokerageId: DEFAULT_BROKERAGE_ID,
                 subscription: {
                   plan: "full_platform",
                   status: "active",
@@ -202,7 +207,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
               phone: "",
               roles: ["agent"],
               status: "active",
-              brokerageId: EMPTY_BROKERAGE_ID,
+              brokerageId: DEFAULT_BROKERAGE_ID,
               subscription: {
                 plan: "full_platform",
                 status: "active",
@@ -217,6 +222,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
       } else {
         setProfile(null);
+        setProfileError(false);
       }
       setLoading(false);
     });
@@ -250,6 +256,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       const p = await resolveProfile(user);
       setProfile(p);
+      setProfileError(false);
     } catch (err) {
       console.warn("refreshProfile failed:", err);
     }
@@ -258,7 +265,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const isAgent = profile?.roles?.includes("agent") ?? false;
 
   return (
-    <AuthContext.Provider value={{ user, profile, loading, isAgent, signIn, signUp, signInWithGoogle, signOut, updateProfile, refreshProfile }}>
+    <AuthContext.Provider value={{ user, profile, loading, isAgent, profileError, signIn, signUp, signInWithGoogle, signOut, updateProfile, refreshProfile }}>
       {children}
     </AuthContext.Provider>
   );
