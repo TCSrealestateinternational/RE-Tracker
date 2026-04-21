@@ -185,6 +185,7 @@ export const DEAL_STAGES = [
   "New Lead",
   "Active",
   "Under Contract",
+  "Released",
   "Closed",
   "Lost",
 ] as const;

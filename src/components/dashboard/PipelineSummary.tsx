@@ -10,6 +10,7 @@ const STAGE_COLORS: Record<DealStage, string> = {
   "New Lead": t.teal,
   "Active": t.gold,
   "Under Contract": "#7c6ca8",
+  "Released": "#6a9fb5",
   "Closed": t.success,
   "Lost": t.rust,
 };
