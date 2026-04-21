@@ -71,9 +71,9 @@ export function AddToHearthModal({ client, onClose, onLinked }: AddToHearthModal
     }
   }
 
-  function buildPermissionData() {
+  function buildPermissionData(overridePerms?: SyncPermissions) {
     return {
-      syncPermissions: permissions,
+      syncPermissions: overridePerms || permissions,
       permissionHistory: [{
         action: "invite_sent" as const,
         timestamp: Date.now(),
@@ -83,7 +83,7 @@ export function AddToHearthModal({ client, onClose, onLinked }: AddToHearthModal
     };
   }
 
-  async function ensureFirestoreDocs(clientUid: string) {
+  async function ensureFirestoreDocs(clientUid: string, reTrackerClientId: string, overridePerms?: SyncPermissions) {
     if (!profile || !client.email) return;
     const brokerageId = profile.brokerageId;
 
@@ -124,10 +124,11 @@ export function AddToHearthModal({ client, onClose, onLinked }: AddToHearthModal
         brokerageId,
         agentId: profile.id,
         clientId: clientUid,
+        reTrackerClientId,
         type: isBuyer ? "buying" : "selling",
         status: "active",
         label: `${client.name} - ${isBuyer ? "Buying" : "Selling"}`,
-        ...buildPermissionData(),
+        ...buildPermissionData(overridePerms),
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp(),
       });
@@ -178,7 +179,7 @@ export function AddToHearthModal({ client, onClose, onLinked }: AddToHearthModal
 
     if (existingUserId) {
       // Found the Firestore user — repair & link
-      await ensureFirestoreDocs(existingUserId);
+      await ensureFirestoreDocs(existingUserId, client.id);
       onLinked(existingUserId);
 
       try {
@@ -220,7 +221,7 @@ export function AddToHearthModal({ client, onClose, onLinked }: AddToHearthModal
       // If the user already has a hearthUserId saved, use that directly.
       const knownUid = savedUid || client.hearthUserId;
       if (knownUid) {
-        await ensureFirestoreDocs(knownUid);
+        await ensureFirestoreDocs(knownUid, client.id);
         onLinked(knownUid);
         try { await sendPasswordResetEmail(auth, client.email, actionCodeSettings); } catch { /* non-blocking */ }
         setSuccess(true);
@@ -244,7 +245,7 @@ export function AddToHearthModal({ client, onClose, onLinked }: AddToHearthModal
     }
   }
 
-  async function handleAdd() {
+  async function handleAdd(overridePerms?: SyncPermissions) {
     if (!profile || !client.email) return;
     if (!profile.brokerageId) {
       setError(
@@ -277,7 +278,7 @@ export function AddToHearthModal({ client, onClose, onLinked }: AddToHearthModal
       }
 
       // Create/update Firestore user doc & transaction (idempotent)
-      await ensureFirestoreDocs(clientUid);
+      await ensureFirestoreDocs(clientUid, client.id, overridePerms);
 
       onLinked(clientUid);
 
@@ -560,8 +561,9 @@ export function AddToHearthModal({ client, onClose, onLinked }: AddToHearthModal
               <div style={{ display: "flex", gap: "8px" }}>
                 <button
                   onClick={() => {
-                    setPermissions(getDefaultPermissions(isBuyer ? "buyer" : "seller"));
-                    handleAdd();
+                    const defaults = getDefaultPermissions(isBuyer ? "buyer" : "seller");
+                    setPermissions(defaults);
+                    handleAdd(defaults);
                   }}
                   style={{
                     ...btnSecondary,
@@ -635,7 +637,7 @@ export function AddToHearthModal({ client, onClose, onLinked }: AddToHearthModal
                 Back
               </button>
               <button
-                onClick={handleAdd}
+                onClick={() => handleAdd()}
                 disabled={loading}
                 style={{
                   ...btnPrimary,

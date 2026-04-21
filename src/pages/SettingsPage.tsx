@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import {
   verifyBeforeUpdateEmail,
   reauthenticateWithCredential,
@@ -10,6 +10,7 @@ import { doc, updateDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useAuth } from "@/context/AuthContext";
 import { useBrokerage } from "@/hooks/useBrokerage";
+import { uploadBrokerageLogo } from "@/lib/storage";
 import { DASHBOARD_WIDGETS, DEFAULT_WIDGET_PREFS } from "@/types";
 import type { DashboardWidgetKey, DashboardWidgetPrefs } from "@/types";
 import { t, card, inputBase, btnPrimary, btnSecondary } from "@/styles/theme";
@@ -341,7 +342,7 @@ function BrokerageCard({
   loading,
   onSave,
 }: {
-  brokerage: { name: string; agentTitle: string; licenseNumber: string; agentPhone: string } | null;
+  brokerage: { id?: string; name: string; agentTitle: string; licenseNumber: string; agentPhone: string; logoUrl?: string } | null;
   loading: boolean;
   onSave: (data: Record<string, string>) => Promise<void>;
 }) {
@@ -351,6 +352,9 @@ function BrokerageCard({
   const [phone, setPhone] = useState(brokerage?.agentPhone ?? "");
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [logoError, setLogoError] = useState("");
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Sync local state when brokerage loads
   if (!loading && brokerage && !name && brokerage.name) {
@@ -358,6 +362,33 @@ function BrokerageCard({
     setAgentTitle(brokerage.agentTitle);
     setLicense(brokerage.licenseNumber);
     setPhone(brokerage.agentPhone);
+  }
+
+  async function handleLogoUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file || !brokerage?.id) return;
+
+    if (!file.type.startsWith("image/")) {
+      setLogoError("Please select an image file.");
+      return;
+    }
+    if (file.size > 2 * 1024 * 1024) {
+      setLogoError("Image must be under 2 MB.");
+      return;
+    }
+
+    setLogoError("");
+    setUploading(true);
+    try {
+      const downloadUrl = await uploadBrokerageLogo(brokerage.id, file);
+      await onSave({ logoUrl: downloadUrl });
+    } catch (err) {
+      console.error("Logo upload failed:", err);
+      setLogoError("Upload failed. Please try again.");
+    } finally {
+      setUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
   }
 
   async function handleSave() {
@@ -393,6 +424,57 @@ function BrokerageCard({
   return (
     <div style={card}>
       <h2 style={{ ...t.sectionHeader, color: t.text, marginBottom: "16px" }}>Brokerage</h2>
+
+      {/* Logo upload */}
+      <div style={{ marginBottom: "16px" }}>
+        <label style={labelStyle}>Logo</label>
+        <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
+          {brokerage?.logoUrl ? (
+            <img
+              src={brokerage.logoUrl}
+              alt="Brokerage logo"
+              style={{ width: "64px", height: "64px", objectFit: "contain", borderRadius: "8px", border: `1px solid ${t.border}` }}
+            />
+          ) : (
+            <div style={{
+              width: "64px", height: "64px", borderRadius: "8px",
+              border: `1px dashed ${t.border}`, display: "flex",
+              alignItems: "center", justifyContent: "center",
+              color: t.textTertiary, fontSize: "12px",
+            }}>
+              No logo
+            </div>
+          )}
+          <div>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              onChange={handleLogoUpload}
+              style={{ display: "none" }}
+            />
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={uploading}
+              style={{
+                ...btnSecondary,
+                fontSize: "13px",
+                padding: "6px 14px",
+                opacity: uploading ? 0.6 : 1,
+              }}
+            >
+              {uploading ? "Uploading..." : "Upload Logo"}
+            </button>
+            <p style={{ ...t.caption, color: t.textTertiary, marginTop: "4px" }}>
+              Max 2 MB. PNG or JPG recommended.
+            </p>
+          </div>
+        </div>
+        {logoError && (
+          <p style={{ ...t.caption, color: t.rust, marginTop: "6px" }}>{logoError}</p>
+        )}
+      </div>
 
       <div style={{ display: "grid", gap: "14px", marginBottom: "16px" }}>
         <div>

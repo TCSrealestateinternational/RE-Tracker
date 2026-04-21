@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import {
-  collection, query, where, onSnapshot, addDoc, updateDoc, deleteDoc, deleteField, doc,
+  collection, query, where, onSnapshot, addDoc, updateDoc, deleteDoc, deleteField, doc, getDocs,
 } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useAuth } from "@/context/AuthContext";
@@ -56,6 +56,16 @@ export function useClients() {
   }
 
   async function deleteClient(id: string) {
+    // Cascade: delete related records from all collections that reference this client
+    const related = ["deals", "timeEntries", "checklists", "expenses"];
+    await Promise.all(
+      related.map(async (col) => {
+        const q = query(collection(db, col), where("clientId", "==", id));
+        const snap = await getDocs(q);
+        await Promise.all(snap.docs.map((d) => deleteDoc(d.ref)));
+      })
+    );
+    // Finally delete the client document itself
     await deleteDoc(doc(db, "clients", id));
   }
 

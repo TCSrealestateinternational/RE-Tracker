@@ -1,10 +1,11 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { doc, setDoc, updateDoc, collection, query, where, getDocs, limit } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useAuth } from "@/context/AuthContext";
 import { slugify } from "@/lib/slugify";
+import { uploadBrokerageLogo } from "@/lib/storage";
 import { defaultBrandTokens } from "@/types";
-import { t, card, btnPrimary, inputBase } from "@/styles/theme";
+import { t, card, btnPrimary, btnSecondary, inputBase } from "@/styles/theme";
 import type { CSSProperties } from "react";
 
 interface BrokerageSetupModalProps {
@@ -12,11 +13,15 @@ interface BrokerageSetupModalProps {
 }
 
 export function BrokerageSetupModal({ onComplete }: BrokerageSetupModalProps) {
-  const { user, profile, updateProfile, refreshProfile } = useAuth();
+  const { user, profile, updateProfile, refreshProfile, signOut } = useAuth();
+  const [displayName, setDisplayName] = useState(profile?.displayName || "");
   const [brokerageName, setBrokerageName] = useState("");
   const [agentTitle, setAgentTitle] = useState("Real Estate Agent");
   const [licenseNumber, setLicenseNumber] = useState("");
   const [phone, setPhone] = useState(profile?.phone || "");
+  const [logoFile, setLogoFile] = useState<File | null>(null);
+  const [logoPreview, setLogoPreview] = useState<string>("");
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -48,10 +53,12 @@ export function BrokerageSetupModal({ onComplete }: BrokerageSetupModalProps) {
       const brokerageRef = doc(collection(db, "brokerages"));
       const brokerageId = brokerageRef.id;
 
+      const agentName = displayName.trim() || profile.displayName || "";
+
       await setDoc(brokerageRef, {
         name: brokerageName.trim(),
         slug,
-        agentName: profile.displayName || "",
+        agentName,
         agentTitle: agentTitle.trim(),
         agentEmail: profile.email || "",
         agentPhone: phone.trim(),
@@ -61,11 +68,24 @@ export function BrokerageSetupModal({ onComplete }: BrokerageSetupModalProps) {
         createdAt: Date.now(),
       });
 
+      // Upload logo if one was selected
+      if (logoFile) {
+        try {
+          const logoUrl = await uploadBrokerageLogo(brokerageId, logoFile);
+          await updateDoc(brokerageRef, { logoUrl });
+        } catch (logoErr) {
+          console.warn("Logo upload failed (non-blocking):", logoErr);
+        }
+      }
+
       // Update agent's user doc with new brokerageId
       await updateDoc(doc(db, "users", user.uid), { brokerageId });
 
       // Update local profile state — refresh to pick up new brokerageId
-      if (phone.trim()) await updateProfile({ phone: phone.trim() });
+      const profileUpdates: Record<string, string> = {};
+      if (agentName) profileUpdates.displayName = agentName;
+      if (phone.trim()) profileUpdates.phone = phone.trim();
+      if (Object.keys(profileUpdates).length) await updateProfile(profileUpdates as Parameters<typeof updateProfile>[0]);
       await refreshProfile();
 
       onComplete();
@@ -106,6 +126,19 @@ export function BrokerageSetupModal({ onComplete }: BrokerageSetupModalProps) {
         <form onSubmit={handleSubmit}>
           <div style={{ display: "grid", gap: "16px", marginBottom: "20px" }}>
             <div>
+              <label style={styles.label}>Your Name *</label>
+              <input
+                type="text"
+                value={displayName}
+                onChange={(e) => setDisplayName(e.target.value)}
+                placeholder="e.g. Toni Schafer"
+                style={inputBase}
+                required
+                autoFocus
+              />
+            </div>
+
+            <div>
               <label style={styles.label}>Brokerage Name *</label>
               <input
                 type="text"
@@ -114,7 +147,6 @@ export function BrokerageSetupModal({ onComplete }: BrokerageSetupModalProps) {
                 placeholder="e.g. Life Built in Kentucky"
                 style={inputBase}
                 required
-                autoFocus
               />
             </div>
 
@@ -150,6 +182,61 @@ export function BrokerageSetupModal({ onComplete }: BrokerageSetupModalProps) {
                 style={inputBase}
               />
             </div>
+
+            <div>
+              <label style={styles.label}>Logo (optional)</label>
+              <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+                {logoPreview ? (
+                  <img
+                    src={logoPreview}
+                    alt="Logo preview"
+                    style={{ width: "48px", height: "48px", objectFit: "contain", borderRadius: "6px", border: `1px solid ${t.border}` }}
+                  />
+                ) : (
+                  <div style={{
+                    width: "48px", height: "48px", borderRadius: "6px",
+                    border: `1px dashed ${t.border}`, display: "flex",
+                    alignItems: "center", justifyContent: "center",
+                    color: t.textTertiary, fontSize: "11px",
+                  }}>
+                    None
+                  </div>
+                )}
+                <div>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (!file) return;
+                      if (!file.type.startsWith("image/")) {
+                        setError("Please select an image file.");
+                        return;
+                      }
+                      if (file.size > 2 * 1024 * 1024) {
+                        setError("Image must be under 2 MB.");
+                        return;
+                      }
+                      setLogoFile(file);
+                      setLogoPreview(URL.createObjectURL(file));
+                      setError("");
+                    }}
+                    style={{ display: "none" }}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => fileInputRef.current?.click()}
+                    style={{ ...btnSecondary, fontSize: "12px", padding: "5px 12px" }}
+                  >
+                    {logoFile ? "Change" : "Choose File"}
+                  </button>
+                  <p style={{ ...t.caption, color: t.textTertiary, marginTop: "2px", fontSize: "11px" }}>
+                    Max 2 MB
+                  </p>
+                </div>
+              </div>
+            </div>
           </div>
 
           {error && (
@@ -166,17 +253,35 @@ export function BrokerageSetupModal({ onComplete }: BrokerageSetupModalProps) {
 
           <button
             type="submit"
-            disabled={loading || !brokerageName.trim()}
+            disabled={loading || !brokerageName.trim() || !displayName.trim()}
             style={{
               ...btnPrimary,
               width: "100%",
-              opacity: loading || !brokerageName.trim() ? 0.6 : 1,
-              cursor: loading || !brokerageName.trim() ? "not-allowed" : "pointer",
+              opacity: loading || !brokerageName.trim() || !displayName.trim() ? 0.6 : 1,
+              cursor: loading || !brokerageName.trim() || !displayName.trim() ? "not-allowed" : "pointer",
             }}
           >
             {loading ? "Creating..." : "Create Brokerage"}
           </button>
         </form>
+
+        <button
+          type="button"
+          onClick={signOut}
+          style={{
+            background: "none",
+            border: "none",
+            color: t.textTertiary,
+            fontSize: "13px",
+            cursor: "pointer",
+            padding: "8px 0 0",
+            width: "100%",
+            textAlign: "center" as const,
+            fontFamily: t.font,
+          }}
+        >
+          Sign out
+        </button>
       </div>
     </div>
   );

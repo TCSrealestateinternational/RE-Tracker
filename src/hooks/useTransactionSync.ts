@@ -28,7 +28,7 @@ export function useTransactionSync() {
     const txType = client.status === "buyer" ? "buying" : "selling" as const;
     const txData = {
       brokerageId,
-      clientId: client.id,
+      clientId: client.hearthUserId || client.id,
       agentId: user.uid,
       type: txType,
       status: DEAL_STAGE_TO_STATUS[deal.stage] || "active",
