@@ -160,6 +160,22 @@ export function AddToHearthModal({ client, onClose, onLinked }: AddToHearthModal
       return;
     }
 
+    // Check if we already have the UID saved on the client record from a
+    // previous partial attempt (persisted early in handleAdd).
+    if (client.hearthUserId) {
+      await ensureFirestoreDocs(client.hearthUserId, client.id);
+      onLinked(client.hearthUserId);
+
+      try {
+        await sendPasswordResetEmail(auth, client.email, actionCodeSettings);
+      } catch {
+        // Non-blocking
+      }
+
+      setSuccess(true);
+      return;
+    }
+
     // Try to find the existing Firestore user doc
     let existingUserId: string | null = null;
     try {
@@ -175,6 +191,22 @@ export function AddToHearthModal({ client, onClose, onLinked }: AddToHearthModal
     } catch (queryErr) {
       // Compound query may fail (missing composite index or permission issue)
       console.warn("User lookup query failed:", queryErr);
+    }
+
+    // Fallback: search by email only (different brokerage or missing brokerageId)
+    if (!existingUserId) {
+      try {
+        const emailQ = query(
+          collection(db, "users"),
+          where("email", "==", client.email),
+        );
+        const emailSnap = await getDocs(emailQ);
+        if (!emailSnap.empty) {
+          existingUserId = emailSnap.docs[0]!.id;
+        }
+      } catch {
+        // Non-critical fallback
+      }
     }
 
     if (existingUserId) {
@@ -273,8 +305,11 @@ export function AddToHearthModal({ client, onClose, onLinked }: AddToHearthModal
         await updateProfile(cred.user, { displayName: client.name });
         await signOut(secondaryAuth);
 
-        // Persist the UID immediately so retries can recover
+        // Persist the UID immediately so retries can recover — even if the
+        // modal is closed or Firestore doc creation fails, we can still
+        // link this client on the next attempt.
         setSavedUid(clientUid);
+        await setDoc(doc(db, "clients", client.id), { hearthUserId: clientUid }, { merge: true });
       }
 
       // Create/update Firestore user doc & transaction (idempotent)
@@ -629,6 +664,41 @@ export function AddToHearthModal({ client, onClose, onLinked }: AddToHearthModal
             {error && (
               <div style={styles.warningBox} role="alert" aria-live="polite">
                 <p style={{ ...t.caption, color: t.rust }}>{error}</p>
+                {alreadyExists && (
+                  <div style={{ display: "flex", gap: "8px", marginTop: "10px", flexWrap: "wrap" }}>
+                    <button
+                      onClick={handleRetrySetup}
+                      disabled={loading}
+                      style={{
+                        ...btnPrimary,
+                        fontSize: "12px",
+                        padding: "6px 14px",
+                        opacity: loading ? 0.6 : 1,
+                      }}
+                    >
+                      {loading ? "Retrying..." : "Retry Setup"}
+                    </button>
+                    {!resent && (
+                      <button
+                        onClick={handleResend}
+                        disabled={resending}
+                        style={{
+                          ...btnSecondary,
+                          fontSize: "12px",
+                          padding: "6px 14px",
+                          opacity: resending ? 0.6 : 1,
+                        }}
+                      >
+                        {resending ? "Sending..." : "Resend Invite Email"}
+                      </button>
+                    )}
+                    {resent && (
+                      <p style={{ ...t.caption, color: t.teal, fontWeight: 600, alignSelf: "center" }}>
+                        Invite resent
+                      </p>
+                    )}
+                  </div>
+                )}
               </div>
             )}
 
