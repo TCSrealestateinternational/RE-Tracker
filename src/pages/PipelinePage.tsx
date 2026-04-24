@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Icon } from "@/components/shared/Icon";
 import { useDeals } from "@/hooks/useDeals";
 import { useClients } from "@/hooks/useClients";
+import { useTimeEntries } from "@/hooks/useTimeEntries";
 import { useTransactionSync } from "@/hooks/useTransactionSync";
 import { KanbanBoard } from "@/components/deals/KanbanBoard";
 import { AccordionPipeline } from "@/components/deals/AccordionPipeline";
@@ -14,6 +15,7 @@ type PipelineView = "kanban" | "list";
 export function PipelinePage() {
   const { deals, addDeal, updateDeal, moveDeal, removeDeal } = useDeals();
   const { clients } = useClients();
+  const { entries } = useTimeEntries();
   const { syncDealToTransaction } = useTransactionSync();
   const [showForm, setShowForm] = useState(false);
   const [editing, setEditing] = useState<Deal | null>(null);
@@ -85,9 +87,9 @@ export function PipelinePage() {
       </div>
       <div data-tour="kanban-board">
         {view === "kanban" ? (
-          <KanbanBoard deals={deals} onMove={moveDeal} onEdit={setEditing} onDelete={removeDeal} />
+          <KanbanBoard deals={deals} onMove={moveDeal} onEdit={setEditing} onDelete={removeDeal} timeEntries={entries} />
         ) : (
-          <AccordionPipeline deals={deals} onMove={moveDeal} onEdit={setEditing} onDelete={removeDeal} />
+          <AccordionPipeline deals={deals} onMove={moveDeal} onEdit={setEditing} onDelete={removeDeal} timeEntries={entries} />
         )}
       </div>
     </div>

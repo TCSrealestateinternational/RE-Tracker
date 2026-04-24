@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Icon } from "@/components/shared/Icon";
-import { DEAL_STAGES, type Deal, type DealStage } from "@/types";
+import { DEAL_STAGES, type Deal, type DealStage, type TimeEntry } from "@/types";
 import { DealCard } from "./DealCard";
 import { t } from "@/styles/theme";
 
@@ -9,9 +9,10 @@ interface AccordionPipelineProps {
   onMove: (id: string, stage: DealStage) => void;
   onEdit: (deal: Deal) => void;
   onDelete?: (id: string) => void;
+  timeEntries?: TimeEntry[];
 }
 
-export function AccordionPipeline({ deals, onMove, onEdit, onDelete }: AccordionPipelineProps) {
+export function AccordionPipeline({ deals, onMove, onEdit, onDelete, timeEntries }: AccordionPipelineProps) {
   const [openStages, setOpenStages] = useState<Set<DealStage>>(new Set(["New Lead", "Active", "Under Contract"]));
 
   function toggleStage(stage: DealStage) {
@@ -76,7 +77,7 @@ export function AccordionPipeline({ deals, onMove, onEdit, onDelete }: Accordion
             {isOpen && (
               <div style={{ padding: "0 16px 16px" }}>
                 {stageDeals.map((deal) => (
-                  <DealCard key={deal.id} deal={deal} stages={DEAL_STAGES} onMove={onMove} onEdit={onEdit} onDelete={onDelete} />
+                  <DealCard key={deal.id} deal={deal} stages={DEAL_STAGES} onMove={onMove} onEdit={onEdit} onDelete={onDelete} timeEntries={timeEntries} />
                 ))}
                 {stageDeals.length === 0 && (
                   <p style={{ ...t.caption, color: t.textTertiary, textAlign: "center", padding: "24px 0" }}>

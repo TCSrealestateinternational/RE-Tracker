@@ -1,6 +1,6 @@
 import { Icon } from "@/components/shared/Icon";
 import { t } from "@/styles/theme";
-import type { Deal, DealStage } from "@/types";
+import type { Deal, DealStage, TimeEntry } from "@/types";
 
 interface DealCardProps {
   deal: Deal;
@@ -8,12 +8,20 @@ interface DealCardProps {
   onMove: (id: string, stage: DealStage) => void;
   onEdit: (deal: Deal) => void;
   onDelete?: (id: string) => void;
+  timeEntries?: TimeEntry[];
 }
 
-export function DealCard({ deal, stages, onMove, onEdit, onDelete }: DealCardProps) {
+export function DealCard({ deal, stages, onMove, onEdit, onDelete, timeEntries }: DealCardProps) {
   const projected = deal.projectedCommission ?? 0;
   const isClosed = deal.stage === "Closed";
   const actual = deal.actualCommission;
+
+  // Per-client hours + $/hr for closed deals
+  const clientEntries = timeEntries?.filter((e) => e.clientId === deal.clientId) ?? [];
+  const totalMs = clientEntries.reduce((sum, e) => sum + e.durationMs, 0);
+  const totalHours = totalMs / 3_600_000;
+  const commission = actual ?? projected;
+  const dollarPerHour = totalHours > 0 ? commission / totalHours : 0;
 
   return (
     <div
@@ -52,6 +60,23 @@ export function DealCard({ deal, stages, onMove, onEdit, onDelete }: DealCardPro
           <div style={{ ...t.caption, color: t.textTertiary }}>
             Projected: ${projected.toLocaleString()}
           </div>
+          {totalHours > 0 && (
+            <div style={{
+              display: "flex", alignItems: "center", gap: "8px",
+              marginTop: "6px", padding: "6px 8px",
+              background: "rgba(79, 108, 75, 0.06)", borderRadius: "6px",
+            }}>
+              <Icon name="schedule" size={12} color={t.teal} />
+              <span style={{ ...t.caption, color: t.textSecondary, fontWeight: 500 }}>
+                {totalHours.toFixed(1)} hrs
+              </span>
+              <span style={{ ...t.caption, color: t.textTertiary }}>|</span>
+              <Icon name="trending_up" size={12} color={t.teal} />
+              <span style={{ ...t.caption, color: t.teal, fontWeight: 600 }}>
+                ${dollarPerHour.toFixed(0)}/hr
+              </span>
+            </div>
+          )}
         </>
       ) : (
         <div style={{

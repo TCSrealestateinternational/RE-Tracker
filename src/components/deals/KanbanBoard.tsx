@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Icon } from "@/components/shared/Icon";
-import { DEAL_STAGES, type Deal, type DealStage } from "@/types";
+import { DEAL_STAGES, type Deal, type DealStage, type TimeEntry } from "@/types";
 import { DealCard } from "./DealCard";
 import { t } from "@/styles/theme";
 
@@ -9,6 +9,7 @@ interface KanbanBoardProps {
   onMove: (id: string, stage: DealStage) => void;
   onEdit: (deal: Deal) => void;
   onDelete?: (id: string) => void;
+  timeEntries?: TimeEntry[];
 }
 
 function useIsMobile(breakpoint = 768) {
@@ -42,7 +43,7 @@ function StageFooter({ stage, stageDeals, total }: { stage: string; stageDeals: 
   );
 }
 
-export function KanbanBoard({ deals, onMove, onEdit, onDelete }: KanbanBoardProps) {
+export function KanbanBoard({ deals, onMove, onEdit, onDelete, timeEntries }: KanbanBoardProps) {
   const isMobile = useIsMobile();
   const [openStage, setOpenStage] = useState<DealStage | null>(null);
 
@@ -100,7 +101,7 @@ export function KanbanBoard({ deals, onMove, onEdit, onDelete }: KanbanBoardProp
               {isOpen && (
                 <div style={{ padding: "0 14px 14px" }}>
                   {stageDeals.map((deal) => (
-                    <DealCard key={deal.id} deal={deal} stages={DEAL_STAGES} onMove={onMove} onEdit={onEdit} onDelete={onDelete} />
+                    <DealCard key={deal.id} deal={deal} stages={DEAL_STAGES} onMove={onMove} onEdit={onEdit} onDelete={onDelete} timeEntries={timeEntries} />
                   ))}
                   {stageDeals.length === 0 && (
                     <p style={{ ...t.caption, color: t.textTertiary, textAlign: "center", padding: "24px 0" }}>
@@ -153,7 +154,7 @@ export function KanbanBoard({ deals, onMove, onEdit, onDelete }: KanbanBoardProp
 
             <div style={{ flex: 1, overflowY: "auto" }}>
               {stageDeals.map((deal) => (
-                <DealCard key={deal.id} deal={deal} stages={DEAL_STAGES} onMove={onMove} onEdit={onEdit} onDelete={onDelete} />
+                <DealCard key={deal.id} deal={deal} stages={DEAL_STAGES} onMove={onMove} onEdit={onEdit} onDelete={onDelete} timeEntries={timeEntries} />
               ))}
               {stageDeals.length === 0 && (
                 <p style={{ ...t.caption, color: t.textTertiary, textAlign: "center", padding: "24px 0" }}>
