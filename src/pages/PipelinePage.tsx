@@ -3,10 +3,13 @@ import { Icon } from "@/components/shared/Icon";
 import { useDeals } from "@/hooks/useDeals";
 import { useClients } from "@/hooks/useClients";
 import { useTimeEntries } from "@/hooks/useTimeEntries";
+import { useChecklists } from "@/hooks/useChecklists";
 import { useTransactionSync } from "@/hooks/useTransactionSync";
+import { useReleaseRelist } from "@/hooks/useReleaseRelist";
 import { KanbanBoard } from "@/components/deals/KanbanBoard";
 import { AccordionPipeline } from "@/components/deals/AccordionPipeline";
 import { DealForm } from "@/components/deals/DealForm";
+import { ReleaseRelistModal } from "@/components/deals/ReleaseRelistModal";
 import { t, btnPrimary } from "@/styles/theme";
 import type { Deal } from "@/types";
 
@@ -16,10 +19,17 @@ export function PipelinePage() {
   const { deals, addDeal, updateDeal, moveDeal, removeDeal } = useDeals();
   const { clients } = useClients();
   const { entries } = useTimeEntries();
+  const { getClientChecklist } = useChecklists();
   const { syncDealToTransaction } = useTransactionSync();
+  const { releaseBuyerDeal, relistSellerDeal } = useReleaseRelist();
   const [showForm, setShowForm] = useState(false);
   const [editing, setEditing] = useState<Deal | null>(null);
+  const [releaseTarget, setReleaseTarget] = useState<Deal | null>(null);
   const [view, setView] = useState<PipelineView>("kanban");
+
+  // Resolve client + checklist for the release modal
+  const releaseClient = releaseTarget ? clients.find((c) => c.id === releaseTarget.clientId) : null;
+  const releaseChecklist = releaseClient ? getClientChecklist(releaseClient.id) : undefined;
 
   if (showForm || editing) {
     return (
@@ -87,11 +97,29 @@ export function PipelinePage() {
       </div>
       <div data-tour="kanban-board">
         {view === "kanban" ? (
-          <KanbanBoard deals={deals} onMove={moveDeal} onEdit={setEditing} onDelete={removeDeal} timeEntries={entries} />
+          <KanbanBoard deals={deals} onMove={moveDeal} onEdit={setEditing} onDelete={removeDeal} onRelease={setReleaseTarget} timeEntries={entries} />
         ) : (
-          <AccordionPipeline deals={deals} onMove={moveDeal} onEdit={setEditing} onDelete={removeDeal} timeEntries={entries} />
+          <AccordionPipeline deals={deals} onMove={moveDeal} onEdit={setEditing} onDelete={removeDeal} onRelease={setReleaseTarget} timeEntries={entries} />
         )}
       </div>
+
+      {/* Release / Relist Modal */}
+      {releaseTarget && releaseClient && (
+        <ReleaseRelistModal
+          deal={releaseTarget}
+          client={releaseClient}
+          checklist={releaseChecklist}
+          onClose={() => setReleaseTarget(null)}
+          onReleaseBuyer={async (deal, client, reason) => {
+            await releaseBuyerDeal(deal, client, reason);
+            setReleaseTarget(null);
+          }}
+          onRelistSeller={async (deal, client, checklist, reason) => {
+            await relistSellerDeal(deal, client, checklist, reason);
+            setReleaseTarget(null);
+          }}
+        />
+      )}
     </div>
   );
 }

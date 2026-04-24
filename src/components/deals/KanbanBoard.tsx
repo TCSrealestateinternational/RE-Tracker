@@ -9,6 +9,7 @@ interface KanbanBoardProps {
   onMove: (id: string, stage: DealStage) => void;
   onEdit: (deal: Deal) => void;
   onDelete?: (id: string) => void;
+  onRelease?: (deal: Deal) => void;
   timeEntries?: TimeEntry[];
 }
 
@@ -43,7 +44,7 @@ function StageFooter({ stage, stageDeals, total }: { stage: string; stageDeals: 
   );
 }
 
-export function KanbanBoard({ deals, onMove, onEdit, onDelete, timeEntries }: KanbanBoardProps) {
+export function KanbanBoard({ deals, onMove, onEdit, onDelete, onRelease, timeEntries }: KanbanBoardProps) {
   const isMobile = useIsMobile();
   const [openStage, setOpenStage] = useState<DealStage | null>(null);
 
@@ -101,7 +102,7 @@ export function KanbanBoard({ deals, onMove, onEdit, onDelete, timeEntries }: Ka
               {isOpen && (
                 <div style={{ padding: "0 14px 14px" }}>
                   {stageDeals.map((deal) => (
-                    <DealCard key={deal.id} deal={deal} stages={DEAL_STAGES} onMove={onMove} onEdit={onEdit} onDelete={onDelete} timeEntries={timeEntries} />
+                    <DealCard key={deal.id} deal={deal} stages={DEAL_STAGES} onMove={onMove} onEdit={onEdit} onDelete={onDelete} onRelease={onRelease} timeEntries={timeEntries} />
                   ))}
                   {stageDeals.length === 0 && (
                     <p style={{ ...t.caption, color: t.textTertiary, textAlign: "center", padding: "24px 0" }}>
@@ -154,7 +155,7 @@ export function KanbanBoard({ deals, onMove, onEdit, onDelete, timeEntries }: Ka
 
             <div style={{ flex: 1, overflowY: "auto" }}>
               {stageDeals.map((deal) => (
-                <DealCard key={deal.id} deal={deal} stages={DEAL_STAGES} onMove={onMove} onEdit={onEdit} onDelete={onDelete} timeEntries={timeEntries} />
+                <DealCard key={deal.id} deal={deal} stages={DEAL_STAGES} onMove={onMove} onEdit={onEdit} onDelete={onDelete} onRelease={onRelease} timeEntries={timeEntries} />
               ))}
               {stageDeals.length === 0 && (
                 <p style={{ ...t.caption, color: t.textTertiary, textAlign: "center", padding: "24px 0" }}>

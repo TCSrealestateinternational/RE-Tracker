@@ -8,6 +8,7 @@ const DEAL_STAGE_TO_STATUS: Record<string, SharedTransactionStatus> = {
   "New Lead": "active",
   "Active": "active",
   "Under Contract": "under-contract",
+  "Released": "withdrawn",
   "Closed": "closed",
   "Lost": "withdrawn",
 };

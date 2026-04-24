@@ -433,6 +433,10 @@ export interface SharedTransaction {
   permissionHistory?: PermissionChangeEntry[];
   syncPausedAt?: number;
   archivedAt?: number;
+  releaseReason?: string;
+  releasedAt?: number;
+  previousTransactionId?: string; // links new tx back to the released one
+  relistCount?: number; // how many times a seller has relisted (starts at 0)
   createdAt: number;
   updatedAt: number;
 }

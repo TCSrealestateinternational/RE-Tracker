@@ -9,10 +9,11 @@ interface AccordionPipelineProps {
   onMove: (id: string, stage: DealStage) => void;
   onEdit: (deal: Deal) => void;
   onDelete?: (id: string) => void;
+  onRelease?: (deal: Deal) => void;
   timeEntries?: TimeEntry[];
 }
 
-export function AccordionPipeline({ deals, onMove, onEdit, onDelete, timeEntries }: AccordionPipelineProps) {
+export function AccordionPipeline({ deals, onMove, onEdit, onDelete, onRelease, timeEntries }: AccordionPipelineProps) {
   const [openStages, setOpenStages] = useState<Set<DealStage>>(new Set(["New Lead", "Active", "Under Contract"]));
 
   function toggleStage(stage: DealStage) {
@@ -77,7 +78,7 @@ export function AccordionPipeline({ deals, onMove, onEdit, onDelete, timeEntries
             {isOpen && (
               <div style={{ padding: "0 16px 16px" }}>
                 {stageDeals.map((deal) => (
-                  <DealCard key={deal.id} deal={deal} stages={DEAL_STAGES} onMove={onMove} onEdit={onEdit} onDelete={onDelete} timeEntries={timeEntries} />
+                  <DealCard key={deal.id} deal={deal} stages={DEAL_STAGES} onMove={onMove} onEdit={onEdit} onDelete={onDelete} onRelease={onRelease} timeEntries={timeEntries} />
                 ))}
                 {stageDeals.length === 0 && (
                   <p style={{ ...t.caption, color: t.textTertiary, textAlign: "center", padding: "24px 0" }}>

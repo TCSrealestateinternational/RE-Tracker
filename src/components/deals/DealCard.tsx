@@ -8,10 +8,11 @@ interface DealCardProps {
   onMove: (id: string, stage: DealStage) => void;
   onEdit: (deal: Deal) => void;
   onDelete?: (id: string) => void;
+  onRelease?: (deal: Deal) => void;
   timeEntries?: TimeEntry[];
 }
 
-export function DealCard({ deal, stages, onMove, onEdit, onDelete, timeEntries }: DealCardProps) {
+export function DealCard({ deal, stages, onMove, onEdit, onDelete, onRelease, timeEntries }: DealCardProps) {
   const projected = deal.projectedCommission ?? 0;
   const isClosed = deal.stage === "Closed";
   const actual = deal.actualCommission;
@@ -98,14 +99,21 @@ export function DealCard({ deal, stages, onMove, onEdit, onDelete, timeEntries }
         {stages.filter((s) => s !== deal.stage).map((s) => (
           <button
             key={s}
-            onClick={(e) => { e.stopPropagation(); onMove(deal.id, s); }}
+            onClick={(e) => {
+              e.stopPropagation();
+              if (s === "Released" && onRelease) {
+                onRelease(deal);
+              } else {
+                onMove(deal.id, s);
+              }
+            }}
             style={{
               padding: "3px 8px",
               fontSize: "11px",
               fontWeight: 500,
               fontFamily: t.font,
-              background: s === "Closed" ? t.successLight : s === "Lost" ? t.rustLight : t.bg,
-              color: s === "Closed" ? t.success : s === "Lost" ? t.rust : t.textSecondary,
+              background: s === "Closed" ? t.successLight : s === "Lost" ? t.rustLight : s === "Released" ? "rgba(174, 64, 37, 0.08)" : t.bg,
+              color: s === "Closed" ? t.success : s === "Lost" ? t.rust : s === "Released" ? t.rust : t.textSecondary,
               border: "none",
               borderRadius: "4px",
               cursor: "pointer",
