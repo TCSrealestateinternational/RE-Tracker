@@ -128,54 +128,68 @@ function StageSection({
         <div style={{ padding: "2px 0 8px 12px" }}>
           {items.map((item) => {
             const checked = checklist.items[item.label] ?? false;
+            const meta = checklist.itemMeta?.[item.label];
             const mapping = getMilestoneMapping(checklist.type, item.label);
             const notifyClient = checklist.notifications?.[item.label] ?? mapping?.defaultNotifyClient ?? false;
 
             return (
-              <label
-                key={item.id}
-                style={{
-                  display: "flex", alignItems: "center", gap: "10px",
-                  padding: "8px 10px", borderRadius: "6px", cursor: "pointer",
-                  transition: "background 0.1s",
-                }}
-                onMouseEnter={(e) => { e.currentTarget.style.background = t.bg; }}
-                onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; }}
-              >
-                <input
-                  type="checkbox"
-                  checked={checked}
-                  onChange={() => onToggle(checklist.id, checklist, item.label, transactionId)}
-                  style={{ accentColor: t.teal, width: "15px", height: "15px", cursor: "pointer" }}
-                />
-                <span style={{
-                  ...t.body, flex: 1, minWidth: 0,
-                  color: checked ? t.textTertiary : t.text,
-                  textDecoration: checked ? "line-through" : "none",
-                  wordBreak: "break-word",
-                }}>
-                  {item.label}
-                </span>
-                {mapping && checked && onToggleNotify && (
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      onToggleNotify(checklist.id, item.label, !notifyClient);
-                    }}
-                    title={notifyClient ? "Client will be notified" : "Client will not be notified"}
-                    style={{
-                      background: "none", border: "none", cursor: "pointer",
-                      padding: "2px", display: "flex", alignItems: "center",
-                      color: notifyClient ? t.teal : t.textTertiary,
-                      opacity: notifyClient ? 1 : 0.4,
-                    }}
-                  >
-                    <Icon name={notifyClient ? "notifications" : "notifications_off"} size={14} />
-                  </button>
+              <div key={item.id}>
+                <label
+                  style={{
+                    display: "flex", alignItems: "center", gap: "10px",
+                    padding: "8px 10px", borderRadius: "6px", cursor: "pointer",
+                    transition: "background 0.1s",
+                  }}
+                  onMouseEnter={(e) => { e.currentTarget.style.background = t.bg; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; }}
+                >
+                  <input
+                    type="checkbox"
+                    checked={checked}
+                    onChange={() => onToggle(checklist.id, checklist, item.label, transactionId)}
+                    style={{ accentColor: t.teal, width: "15px", height: "15px", cursor: "pointer" }}
+                  />
+                  <span style={{
+                    ...t.body, flex: 1, minWidth: 0,
+                    color: checked ? t.textTertiary : t.text,
+                    textDecoration: checked ? "line-through" : "none",
+                    wordBreak: "break-word",
+                  }}>
+                    {item.label}
+                  </span>
+                  {mapping && checked && onToggleNotify && (
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        onToggleNotify(checklist.id, item.label, !notifyClient);
+                      }}
+                      title={notifyClient ? "Client will be notified" : "Client will not be notified"}
+                      style={{
+                        background: "none", border: "none", cursor: "pointer",
+                        padding: "2px", display: "flex", alignItems: "center",
+                        color: notifyClient ? t.teal : t.textTertiary,
+                        opacity: notifyClient ? 1 : 0.4,
+                      }}
+                    >
+                      <Icon name={notifyClient ? "notifications" : "notifications_off"} size={14} />
+                    </button>
+                  )}
+                </label>
+                {checked && meta && (
+                  <div style={{
+                    marginLeft: "35px", marginBottom: "4px",
+                    display: "flex", alignItems: "center", gap: "4px",
+                    ...t.caption, fontSize: "11px", color: t.textTertiary,
+                  }}>
+                    <Icon name="person" size={11} color={t.textTertiary} />
+                    <span>{meta.completedByName}</span>
+                    <span style={{ margin: "0 2px" }}>&middot;</span>
+                    <span>{new Date(meta.completedAt).toLocaleDateString(undefined, { month: "short", day: "numeric" })}</span>
+                  </div>
                 )}
-              </label>
+              </div>
             );
           })}
         </div>

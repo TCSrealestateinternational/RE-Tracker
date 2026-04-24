@@ -897,31 +897,45 @@ function DetailStageSection({
         <div style={{ padding: "2px 0 8px 12px" }}>
           {items.map((item) => {
             const checked = checklist.items[item.label] ?? false;
+            const meta = checklist.itemMeta?.[item.label];
             return (
-              <label
-                key={item.id}
-                style={{
-                  display: "flex", alignItems: "center", gap: "10px",
-                  padding: "8px 10px", borderRadius: "6px", cursor: "pointer",
-                  transition: "background 0.1s",
-                }}
-                onMouseEnter={(e) => { e.currentTarget.style.background = t.bg; }}
-                onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; }}
-              >
-                <input
-                  type="checkbox"
-                  checked={checked}
-                  onChange={() => onToggleItem(checklist.id, checklist, item.label, transactionId)}
-                  style={{ accentColor: t.teal, width: "15px", height: "15px", cursor: "pointer" }}
-                />
-                <span style={{
-                  ...t.body,
-                  color: checked ? t.textTertiary : t.text,
-                  textDecoration: checked ? "line-through" : "none",
-                }}>
-                  {item.label}
-                </span>
-              </label>
+              <div key={item.id}>
+                <label
+                  style={{
+                    display: "flex", alignItems: "center", gap: "10px",
+                    padding: "8px 10px", borderRadius: "6px", cursor: "pointer",
+                    transition: "background 0.1s",
+                  }}
+                  onMouseEnter={(e) => { e.currentTarget.style.background = t.bg; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; }}
+                >
+                  <input
+                    type="checkbox"
+                    checked={checked}
+                    onChange={() => onToggleItem(checklist.id, checklist, item.label, transactionId)}
+                    style={{ accentColor: t.teal, width: "15px", height: "15px", cursor: "pointer" }}
+                  />
+                  <span style={{
+                    ...t.body,
+                    color: checked ? t.textTertiary : t.text,
+                    textDecoration: checked ? "line-through" : "none",
+                  }}>
+                    {item.label}
+                  </span>
+                </label>
+                {checked && meta && (
+                  <div style={{
+                    marginLeft: "35px", marginBottom: "4px",
+                    display: "flex", alignItems: "center", gap: "4px",
+                    ...t.caption, fontSize: "11px", color: t.textTertiary,
+                  }}>
+                    <Icon name="person" size={11} color={t.textTertiary} />
+                    <span>{meta.completedByName}</span>
+                    <span style={{ margin: "0 2px" }}>&middot;</span>
+                    <span>{new Date(meta.completedAt).toLocaleDateString(undefined, { month: "short", day: "numeric" })}</span>
+                  </div>
+                )}
+              </div>
             );
           })}
         </div>

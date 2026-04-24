@@ -220,12 +220,19 @@ import { SELLER_CHECKLIST_TEMPLATE } from "@/constants/checklist-seller";
 export const BUYER_CHECKLIST_ITEMS = BUYER_CHECKLIST_TEMPLATE.map((i) => i.label);
 export const SELLER_CHECKLIST_ITEMS = SELLER_CHECKLIST_TEMPLATE.map((i) => i.label);
 
+export interface ChecklistItemMeta {
+  completedAt: number;
+  completedBy: string; // userId
+  completedByName: string; // display name
+}
+
 export interface TransactionChecklist {
   id: string;
   userId: string;
   clientId: string;
   type: "buyer" | "seller";
   items: Record<string, boolean>;
+  itemMeta?: Record<string, ChecklistItemMeta>; // who checked it + when
   notifications?: Record<string, boolean>; // per-item notify preferences
   createdAt: number;
   updatedAt: number;

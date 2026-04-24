@@ -54,8 +54,19 @@ export function useChecklists() {
   ) {
     const newValue = !checklist.items[key];
     const updated = { ...checklist.items, [key]: newValue };
+    const metaUpdate = { ...(checklist.itemMeta ?? {}) };
+    if (newValue) {
+      metaUpdate[key] = {
+        completedAt: Date.now(),
+        completedBy: user?.uid ?? "",
+        completedByName: user?.displayName ?? user?.email ?? "Agent",
+      };
+    } else {
+      delete metaUpdate[key];
+    }
     await updateDoc(doc(db, "checklists", checklistId), {
       items: updated,
+      itemMeta: metaUpdate,
       updatedAt: Date.now(),
     });
 
