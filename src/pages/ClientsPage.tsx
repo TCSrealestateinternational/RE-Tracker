@@ -30,6 +30,7 @@ export function ClientsPage() {
   const [view, setView] = useState<View>("list");
   const [selected, setSelected] = useState<Client | null>(null);
   const [detailTab, setDetailTab] = useState<DetailTab>("overview");
+  const [scrollToNotes, setScrollToNotes] = useState(false);
   const [hearthPromptClient, setHearthPromptClient] = useState<Client | null>(null);
   const [archiveTarget, setArchiveTarget] = useState<Client | null>(null);
 
@@ -171,8 +172,9 @@ export function ClientsPage() {
           onEdit={() => setView("edit")}
           onArchive={() => setArchiveTarget(selected)}
           onAddToHearth={hasHearthAccess && !selected.hearthUserId ? () => setHearthPromptClient(selected) : undefined}
-          onBack={() => { setSelected(null); setView("list"); setDetailTab("overview"); }}
+          onBack={() => { setSelected(null); setView("list"); setDetailTab("overview"); setScrollToNotes(false); }}
           initialTab={detailTab}
+          scrollToNotes={scrollToNotes}
         />
         {hearthPromptClient && (
           <AddToHearthModal
@@ -210,8 +212,9 @@ export function ClientsPage() {
       <ClientList
         clients={clients}
         transactions={transactions}
-        onSelect={(c) => { setSelected(c); setDetailTab("overview"); setView("detail"); }}
-        onClientView={(c) => { setSelected(c); setDetailTab("client-view"); setView("detail"); }}
+        onSelect={(c) => { setSelected(c); setDetailTab("overview"); setScrollToNotes(false); setView("detail"); }}
+        onClientView={(c) => { setSelected(c); setDetailTab("client-view"); setScrollToNotes(false); setView("detail"); }}
+        onNotes={(c) => { setSelected(c); setDetailTab("overview"); setScrollToNotes(true); setView("detail"); }}
         onAdd={() => setView("add")}
         onDeleteClients={handleDeleteClients}
         onBulkUpdateStage={handleBulkUpdateStage}

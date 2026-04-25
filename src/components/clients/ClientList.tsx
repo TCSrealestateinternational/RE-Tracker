@@ -17,6 +17,7 @@ interface ClientListProps {
   transactions?: SharedTransaction[];
   onSelect: (client: Client) => void;
   onClientView?: (client: Client) => void;
+  onNotes?: (client: Client) => void;
   onAdd: () => void;
   onDeleteClients?: (ids: string[]) => Promise<void>;
   onBulkUpdateStage?: (ids: string[], stage: ClientStage) => Promise<void>;
@@ -39,7 +40,7 @@ function fmtDollars(n: number): string {
 
 type FolderKey = "closed" | "archived";
 
-export function ClientList({ clients, transactions, onSelect, onClientView, onAdd, onDeleteClients, onBulkUpdateStage, onArchiveClient, onUpdateClient }: ClientListProps) {
+export function ClientList({ clients, transactions, onSelect, onClientView, onNotes, onAdd, onDeleteClients, onBulkUpdateStage, onArchiveClient, onUpdateClient }: ClientListProps) {
   const today = todayStr();
 
   // Hearth access status filter
@@ -193,6 +194,7 @@ export function ClientList({ clients, transactions, onSelect, onClientView, onAd
                   isSelected={selectedIds.has(c.id)}
                   onSelect={onSelect}
                   onClientView={onClientView}
+                  onNotes={onNotes}
                   onToggleSelect={toggleSelect}
                   onLongPress={openContextMenu}
                   onUpdateClient={onUpdateClient}
@@ -207,6 +209,7 @@ export function ClientList({ clients, transactions, onSelect, onClientView, onAd
                   isSelected={selectedIds.has(c.id)}
                   onSelect={onSelect}
                   onClientView={onClientView}
+                  onNotes={onNotes}
                   onToggleSelect={toggleSelect}
                   onLongPress={openContextMenu}
                 />
@@ -365,6 +368,7 @@ export function ClientList({ clients, transactions, onSelect, onClientView, onAd
             isSelected={selectedIds.has(c.id)}
             onSelect={onSelect}
             onClientView={onClientView}
+            onNotes={onNotes}
             onToggleSelect={toggleSelect}
             onLongPress={openContextMenu}
             transaction={getClientTransaction(c)}
@@ -536,12 +540,13 @@ interface ClientRowProps {
   isSelected: boolean;
   onSelect: (c: Client) => void;
   onClientView?: (c: Client) => void;
+  onNotes?: (c: Client) => void;
   onToggleSelect: (id: string) => void;
   onLongPress: (clientId: string, coords: { x: number; y: number }) => void;
   transaction?: SharedTransaction;
 }
 
-function ClientRow({ client: c, today, showCheckbox, bulkMode, isSelected, onSelect, onClientView, onToggleSelect, onLongPress, transaction }: ClientRowProps) {
+function ClientRow({ client: c, today, showCheckbox, bulkMode, isSelected, onSelect, onClientView, onNotes, onToggleSelect, onLongPress, transaction }: ClientRowProps) {
   const followUpDue = c.followUpDate != null && c.followUpDate <= today;
   const projected = getProjectedCommission(c);
 
@@ -662,6 +667,28 @@ function ClientRow({ client: c, today, showCheckbox, bulkMode, isSelected, onSel
           </div>
         </div>
       </button>
+      {onNotes && !bulkMode && (
+        <button
+          title="Notes"
+          aria-label={`View notes for ${c.name}`}
+          onClick={(e) => { e.stopPropagation(); onNotes(c); }}
+          style={{
+            display: "flex", alignItems: "center", justifyContent: "center",
+            gap: "4px", minWidth: "32px", height: "32px", borderRadius: "6px", flexShrink: 0,
+            background: "transparent", border: `1px solid ${t.border}`,
+            cursor: "pointer", transition: "background 0.12s, border-color 0.12s",
+            padding: "0 8px", fontSize: "11px", fontFamily: t.font, fontWeight: 600,
+            color: t.textTertiary,
+          }}
+          onMouseEnter={(e) => { e.currentTarget.style.background = t.tealLight; e.currentTarget.style.borderColor = t.teal; e.currentTarget.style.color = t.teal; }}
+          onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; e.currentTarget.style.borderColor = t.border; e.currentTarget.style.color = t.textTertiary; }}
+        >
+          <Icon name="sticky_note_2" size={14} />
+          {(c.noteEntries?.length ?? 0) > 0 && (
+            <span>{c.noteEntries!.length}</span>
+          )}
+        </button>
+      )}
       {onClientView && !bulkMode && (
         <button
           title="Client View"
@@ -692,12 +719,13 @@ interface ArchivedRowProps {
   isSelected: boolean;
   onSelect: (c: Client) => void;
   onClientView?: (c: Client) => void;
+  onNotes?: (c: Client) => void;
   onToggleSelect: (id: string) => void;
   onLongPress: (clientId: string, coords: { x: number; y: number }) => void;
   onUpdateClient?: (id: string, patch: Partial<Client>) => Promise<void>;
 }
 
-function ArchivedRow({ client, today, bulkMode, isSelected, onSelect, onClientView, onToggleSelect, onLongPress, onUpdateClient }: ArchivedRowProps) {
+function ArchivedRow({ client, today, bulkMode, isSelected, onSelect, onClientView, onNotes, onToggleSelect, onLongPress, onUpdateClient }: ArchivedRowProps) {
   const hasReminder = Boolean(client.oneYearReminderDate);
   const handled = Boolean(client.oneYearReminderHandledAt);
 
@@ -726,6 +754,7 @@ function ArchivedRow({ client, today, bulkMode, isSelected, onSelect, onClientVi
         isSelected={isSelected}
         onSelect={onSelect}
         onClientView={onClientView}
+        onNotes={onNotes}
         onToggleSelect={onToggleSelect}
         onLongPress={onLongPress}
       />

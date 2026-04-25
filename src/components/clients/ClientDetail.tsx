@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { sendPasswordResetEmail } from "firebase/auth";
 import { Icon } from "@/components/shared/Icon";
 import type { ChecklistTemplateItem } from "@/constants/checklist-buyer";
@@ -36,6 +36,7 @@ interface ClientDetailProps {
   onAddToHearth?: () => void;
   onBack: () => void;
   initialTab?: DetailTab;
+  scrollToNotes?: boolean;
 }
 
 function getProjectedCommission(client: Client): number {
@@ -51,7 +52,7 @@ function fmtDollars(n: number): string {
   return "$" + n.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 });
 }
 
-export function ClientDetail({ client, entries, checklist, deal, transaction, onToggleItem, onUpdateClient, onEdit, onArchive, onAddToHearth, onBack, initialTab = "overview" }: ClientDetailProps) {
+export function ClientDetail({ client, entries, checklist, deal, transaction, onToggleItem, onUpdateClient, onEdit, onArchive, onAddToHearth, onBack, initialTab = "overview", scrollToNotes }: ClientDetailProps) {
   const [activeTab, setActiveTab] = useState<DetailTab>(initialTab);
   const { hasHearthPortal } = useSubscription();
   const { syncDealToTransaction, activateHearthPortal } = useTransactionSync();
@@ -62,6 +63,21 @@ export function ClientDetail({ client, entries, checklist, deal, transaction, on
   const [resending, setResending] = useState(false);
   const [resendStatus, setResendStatus] = useState<"" | "sent" | "failed">("");
   const transactionId = deal?.transactionId;
+  const notesRef = useRef<HTMLDivElement>(null);
+
+  function scrollToNotesSection() {
+    setActiveTab("overview");
+    setTimeout(() => {
+      notesRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 50);
+  }
+
+  useEffect(() => {
+    if (scrollToNotes) {
+      scrollToNotesSection();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   async function handleResendInvite() {
     if (!client.email || resending) return;
@@ -277,6 +293,23 @@ export function ClientDetail({ client, entries, checklist, deal, transaction, on
                 Hearth Active
               </span>
             )}
+            <button onClick={scrollToNotesSection} style={{
+              display: "flex", alignItems: "center", gap: "6px",
+              padding: "8px 14px", background: "transparent", border: `1px solid ${t.border}`,
+              borderRadius: "8px", cursor: "pointer", fontSize: "13px", fontFamily: t.font,
+              color: t.textSecondary,
+            }}>
+              <Icon name="sticky_note_2" size={14} />
+              Notes
+              {(client.noteEntries?.length ?? 0) > 0 && (
+                <span style={{
+                  padding: "0 6px", borderRadius: "10px", fontSize: "11px", fontWeight: 600,
+                  background: t.tealLight, color: t.teal, lineHeight: "18px",
+                }}>
+                  {client.noteEntries!.length}
+                </span>
+              )}
+            </button>
             <button onClick={() => exportClientPDF(client)} style={{
               display: "flex", alignItems: "center", gap: "6px",
               padding: "8px 14px", background: "transparent", border: `1px solid ${t.border}`,
@@ -525,7 +558,9 @@ export function ClientDetail({ client, entries, checklist, deal, transaction, on
           </div>
 
           {/* ── Timestamped Notes Log ── */}
-          <ClientNotesLog client={client} onUpdateClient={onUpdateClient} />
+          <div ref={notesRef}>
+            <ClientNotesLog client={client} onUpdateClient={onUpdateClient} />
+          </div>
 
           {/* ── Client Dashboard Message ── */}
           <ClientDashboardMessageCard client={client} onUpdateClient={onUpdateClient} />
@@ -855,6 +890,9 @@ function ClientNotesLog({
   const { profile } = useAuth();
   const [text, setText] = useState("");
   const [saving, setSaving] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editText, setEditText] = useState("");
+  const editRef = useRef<HTMLTextAreaElement>(null);
   const entries = client.noteEntries ?? [];
 
   async function handleAdd() {
@@ -876,10 +914,35 @@ function ClientNotesLog({
     setSaving(false);
   }
 
+  function startEdit(entry: ClientNote) {
+    setEditingId(entry.id);
+    setEditText(entry.text);
+    setTimeout(() => editRef.current?.focus(), 0);
+  }
+
+  async function saveEdit() {
+    if (!editingId) return;
+    const trimmed = editText.trim();
+    if (!trimmed) return;
+    await onUpdateClient(client.id, {
+      noteEntries: entries.map((n) =>
+        n.id === editingId ? { ...n, text: trimmed } : n,
+      ),
+    });
+    setEditingId(null);
+    setEditText("");
+  }
+
+  function cancelEdit() {
+    setEditingId(null);
+    setEditText("");
+  }
+
   async function handleDelete(noteId: string) {
     await onUpdateClient(client.id, {
       noteEntries: entries.filter((n) => n.id !== noteId),
     });
+    if (editingId === noteId) cancelEdit();
   }
 
   function formatTimestamp(ts: number) {
@@ -960,63 +1023,131 @@ function ClientNotesLog({
       {/* Notes list */}
       {entries.length > 0 && (
         <div style={{ display: "grid", gap: "2px" }}>
-          {entries.map((entry) => (
-            <div
-              key={entry.id}
-              style={{
-                display: "flex",
-                gap: "12px",
-                padding: "12px",
-                borderRadius: "8px",
-                background: t.bg,
-                transition: "background 0.1s",
-              }}
-            >
-              <div style={{
-                width: "6px",
-                minHeight: "100%",
-                borderRadius: "3px",
-                background: t.teal,
-                opacity: 0.3,
-                flexShrink: 0,
-              }} />
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <p style={{ ...t.body, color: t.text, whiteSpace: "pre-wrap", wordBreak: "break-word", marginBottom: "6px" }}>
-                  {entry.text}
-                </p>
-                <div style={{ display: "flex", alignItems: "center", gap: "6px", flexWrap: "wrap" }}>
-                  <Icon name="schedule" size={11} color={t.textTertiary} />
-                  <span style={{ ...t.caption, fontSize: "11px", color: t.textTertiary }}>
-                    {formatTimestamp(entry.createdAt)}
-                  </span>
-                  <span style={{ ...t.caption, fontSize: "11px", color: t.textTertiary }}>&middot;</span>
-                  <span style={{ ...t.caption, fontSize: "11px", color: t.textTertiary }}>
-                    {entry.authorName}
-                  </span>
-                </div>
-              </div>
-              <button
-                onClick={() => handleDelete(entry.id)}
-                aria-label="Delete note"
+          {entries.map((entry) => {
+            const isEditing = editingId === entry.id;
+            return (
+              <div
+                key={entry.id}
                 style={{
-                  background: "none",
-                  border: "none",
-                  cursor: "pointer",
-                  padding: "4px",
                   display: "flex",
-                  alignSelf: "flex-start",
-                  color: t.textTertiary,
-                  opacity: 0.5,
-                  transition: "opacity 0.12s",
+                  gap: "12px",
+                  padding: "12px",
+                  borderRadius: "8px",
+                  background: isEditing ? t.surface : t.bg,
+                  border: isEditing ? `1px solid ${t.teal}` : "1px solid transparent",
+                  cursor: isEditing ? "default" : "pointer",
+                  transition: "background 0.1s, border-color 0.15s",
                 }}
-                onMouseEnter={(e) => { e.currentTarget.style.opacity = "1"; }}
-                onMouseLeave={(e) => { e.currentTarget.style.opacity = "0.5"; }}
-                title="Delete note"
+                onClick={() => { if (!isEditing) startEdit(entry); }}
               >
-                <Icon name="close" size={14} />
-              </button>
-            </div>
-          ))}
+                <div style={{
+                  width: "6px",
+                  minHeight: "100%",
+                  borderRadius: "3px",
+                  background: t.teal,
+                  opacity: isEditing ? 0.6 : 0.3,
+                  flexShrink: 0,
+                }} />
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  {isEditing ? (
+                    <>
+                      <textarea
+                        ref={editRef}
+                        value={editText}
+                        onChange={(e) => setEditText(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) saveEdit();
+                          if (e.key === "Escape") cancelEdit();
+                        }}
+                        rows={3}
+                        style={{
+                          width: "100%",
+                          padding: "8px 10px",
+                          borderRadius: "6px",
+                          border: `1px solid ${t.borderMedium}`,
+                          fontSize: "14px",
+                          fontFamily: t.font,
+                          color: t.text,
+                          background: t.bg,
+                          outline: "none",
+                          boxSizing: "border-box" as const,
+                          resize: "vertical",
+                          marginBottom: "8px",
+                        }}
+                      />
+                      <div style={{ display: "flex", gap: "6px", alignItems: "center" }}>
+                        <button
+                          onClick={(e) => { e.stopPropagation(); saveEdit(); }}
+                          style={{
+                            padding: "4px 12px", borderRadius: "6px", fontSize: "12px",
+                            fontWeight: 600, fontFamily: t.font, cursor: "pointer",
+                            background: t.teal, color: t.textInverse, border: "none",
+                          }}
+                        >
+                          Save
+                        </button>
+                        <button
+                          onClick={(e) => { e.stopPropagation(); cancelEdit(); }}
+                          style={{
+                            padding: "4px 12px", borderRadius: "6px", fontSize: "12px",
+                            fontWeight: 500, fontFamily: t.font, cursor: "pointer",
+                            background: "transparent", color: t.textSecondary,
+                            border: `1px solid ${t.border}`,
+                          }}
+                        >
+                          Cancel
+                        </button>
+                        <span style={{ ...t.caption, fontSize: "11px", color: t.textTertiary, marginLeft: "auto" }}>
+                          Ctrl+Enter to save &middot; Esc to cancel
+                        </span>
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <p style={{ ...t.body, color: t.text, whiteSpace: "pre-wrap", wordBreak: "break-word", marginBottom: "6px" }}>
+                        {entry.text}
+                      </p>
+                      <div style={{ display: "flex", alignItems: "center", gap: "6px", flexWrap: "wrap" }}>
+                        <Icon name="schedule" size={11} color={t.textTertiary} />
+                        <span style={{ ...t.caption, fontSize: "11px", color: t.textTertiary }}>
+                          {formatTimestamp(entry.createdAt)}
+                        </span>
+                        <span style={{ ...t.caption, fontSize: "11px", color: t.textTertiary }}>&middot;</span>
+                        <span style={{ ...t.caption, fontSize: "11px", color: t.textTertiary }}>
+                          {entry.authorName}
+                        </span>
+                        <span style={{ ...t.caption, fontSize: "11px", color: t.textTertiary, marginLeft: "auto" }}>
+                          <Icon name="edit" size={10} color={t.textTertiary} /> click to edit
+                        </span>
+                      </div>
+                    </>
+                  )}
+                </div>
+                {!isEditing && (
+                  <button
+                    onClick={(e) => { e.stopPropagation(); handleDelete(entry.id); }}
+                    aria-label="Delete note"
+                    style={{
+                      background: "none",
+                      border: "none",
+                      cursor: "pointer",
+                      padding: "4px",
+                      display: "flex",
+                      alignSelf: "flex-start",
+                      color: t.textTertiary,
+                      opacity: 0.5,
+                      transition: "opacity 0.12s",
+                    }}
+                    onMouseEnter={(e) => { e.currentTarget.style.opacity = "1"; }}
+                    onMouseLeave={(e) => { e.currentTarget.style.opacity = "0.5"; }}
+                    title="Delete note"
+                  >
+                    <Icon name="close" size={14} />
+                  </button>
+                )}
+              </div>
+            );
+          })}
         </div>
       )}
     </div>
