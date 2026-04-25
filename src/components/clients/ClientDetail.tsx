@@ -7,7 +7,7 @@ import { formatHours } from "@/utils/dates";
 import { exportClientPDF } from "@/utils/export";
 import { auth } from "@/lib/firebase";
 import { getAccessStatus, ACCESS_STATUS_CONFIG } from "@/utils/clientAccess";
-import type { Client, TimeEntry, TransactionChecklist, Deal, SharedTransaction } from "@/types";
+import type { Client, ClientNote, TimeEntry, TransactionChecklist, Deal, SharedTransaction } from "@/types";
 import { BUYER_CHECKLIST_TEMPLATE, BUYER_STAGES } from "@/constants/checklist-buyer";
 import { SELLER_CHECKLIST_TEMPLATE, SELLER_STAGES } from "@/constants/checklist-seller";
 import { ClientViewPanel } from "./ClientViewPanel";
@@ -494,13 +494,6 @@ export function ClientDetail({ client, entries, checklist, deal, transaction, on
               </div>
             )}
 
-            {client.notes && (
-              <div style={{ marginBottom: "16px" }}>
-                <span style={{ ...t.label, color: t.textSecondary, display: "block", marginBottom: "4px" }}>Notes</span>
-                <p style={{ ...t.body, color: t.text }}>{client.notes}</p>
-              </div>
-            )}
-
             {/* ── Google Drive Links ── */}
             {client.driveLinks?.length > 0 && (
               <div>
@@ -530,6 +523,9 @@ export function ClientDetail({ client, entries, checklist, deal, transaction, on
               </div>
             )}
           </div>
+
+          {/* ── Timestamped Notes Log ── */}
+          <ClientNotesLog client={client} onUpdateClient={onUpdateClient} />
 
           {/* ── Client Dashboard Message ── */}
           <ClientDashboardMessageCard client={client} onUpdateClient={onUpdateClient} />
@@ -845,6 +841,184 @@ function ClientDashboardMessageCard({
           </button>
         </div>
       </div>
+    </div>
+  );
+}
+
+function ClientNotesLog({
+  client,
+  onUpdateClient,
+}: {
+  client: Client;
+  onUpdateClient: (id: string, data: Partial<Client>) => Promise<void>;
+}) {
+  const { profile } = useAuth();
+  const [text, setText] = useState("");
+  const [saving, setSaving] = useState(false);
+  const entries = client.noteEntries ?? [];
+
+  async function handleAdd() {
+    const trimmed = text.trim();
+    if (!trimmed || !profile) return;
+    setSaving(true);
+
+    const entry: ClientNote = {
+      id: crypto.randomUUID(),
+      text: trimmed,
+      createdAt: Date.now(),
+      authorName: profile.displayName || profile.email || "Agent",
+    };
+
+    await onUpdateClient(client.id, {
+      noteEntries: [entry, ...entries],
+    });
+    setText("");
+    setSaving(false);
+  }
+
+  async function handleDelete(noteId: string) {
+    await onUpdateClient(client.id, {
+      noteEntries: entries.filter((n) => n.id !== noteId),
+    });
+  }
+
+  function formatTimestamp(ts: number) {
+    const d = new Date(ts);
+    return d.toLocaleDateString(undefined, {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    }) + " at " + d.toLocaleTimeString(undefined, {
+      hour: "numeric",
+      minute: "2-digit",
+    });
+  }
+
+  return (
+    <div style={card}>
+      <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "14px" }}>
+        <Icon name="sticky_note_2" size={16} color={t.teal} />
+        <h3 style={{ ...t.sectionHeader, color: t.text }}>Notes</h3>
+        {entries.length > 0 && (
+          <span style={{ ...t.caption, color: t.textTertiary }}>
+            ({entries.length})
+          </span>
+        )}
+      </div>
+
+      {/* Add new note */}
+      <div style={{ display: "flex", gap: "8px", marginBottom: entries.length > 0 ? "16px" : "0" }}>
+        <textarea
+          value={text}
+          onChange={(e) => setText(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) handleAdd();
+          }}
+          placeholder="Add a note..."
+          rows={2}
+          style={{
+            flex: 1,
+            padding: "10px 12px",
+            borderRadius: "8px",
+            border: `1px solid ${t.borderMedium}`,
+            fontSize: "14px",
+            fontFamily: t.font,
+            color: t.text,
+            background: t.surface,
+            outline: "none",
+            boxSizing: "border-box" as const,
+            resize: "vertical",
+            transition: "border-color 0.15s",
+          }}
+        />
+        <button
+          onClick={handleAdd}
+          disabled={!text.trim() || saving}
+          style={{
+            alignSelf: "flex-end",
+            display: "flex",
+            alignItems: "center",
+            gap: "4px",
+            padding: "10px 14px",
+            background: text.trim() ? t.teal : t.bg,
+            color: text.trim() ? t.textInverse : t.textTertiary,
+            border: "none",
+            borderRadius: "8px",
+            fontSize: "13px",
+            fontWeight: 600,
+            fontFamily: t.font,
+            cursor: text.trim() ? "pointer" : "default",
+            opacity: saving ? 0.6 : 1,
+            transition: "background 0.15s",
+          }}
+        >
+          <Icon name="add" size={14} />
+          Add
+        </button>
+      </div>
+
+      {/* Notes list */}
+      {entries.length > 0 && (
+        <div style={{ display: "grid", gap: "2px" }}>
+          {entries.map((entry) => (
+            <div
+              key={entry.id}
+              style={{
+                display: "flex",
+                gap: "12px",
+                padding: "12px",
+                borderRadius: "8px",
+                background: t.bg,
+                transition: "background 0.1s",
+              }}
+            >
+              <div style={{
+                width: "6px",
+                minHeight: "100%",
+                borderRadius: "3px",
+                background: t.teal,
+                opacity: 0.3,
+                flexShrink: 0,
+              }} />
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <p style={{ ...t.body, color: t.text, whiteSpace: "pre-wrap", wordBreak: "break-word", marginBottom: "6px" }}>
+                  {entry.text}
+                </p>
+                <div style={{ display: "flex", alignItems: "center", gap: "6px", flexWrap: "wrap" }}>
+                  <Icon name="schedule" size={11} color={t.textTertiary} />
+                  <span style={{ ...t.caption, fontSize: "11px", color: t.textTertiary }}>
+                    {formatTimestamp(entry.createdAt)}
+                  </span>
+                  <span style={{ ...t.caption, fontSize: "11px", color: t.textTertiary }}>&middot;</span>
+                  <span style={{ ...t.caption, fontSize: "11px", color: t.textTertiary }}>
+                    {entry.authorName}
+                  </span>
+                </div>
+              </div>
+              <button
+                onClick={() => handleDelete(entry.id)}
+                aria-label="Delete note"
+                style={{
+                  background: "none",
+                  border: "none",
+                  cursor: "pointer",
+                  padding: "4px",
+                  display: "flex",
+                  alignSelf: "flex-start",
+                  color: t.textTertiary,
+                  opacity: 0.5,
+                  transition: "opacity 0.12s",
+                }}
+                onMouseEnter={(e) => { e.currentTarget.style.opacity = "1"; }}
+                onMouseLeave={(e) => { e.currentTarget.style.opacity = "0.5"; }}
+                title="Delete note"
+              >
+                <Icon name="close" size={14} />
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

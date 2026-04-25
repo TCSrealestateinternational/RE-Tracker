@@ -290,26 +290,39 @@ export function AddToHearthModal({ client, onClose, onLinked }: AddToHearthModal
     setLoading(true);
 
     try {
-      // If we already have the UID (from a partial attempt), skip Auth creation
       let clientUid = savedUid || client.hearthUserId;
 
-      if (!clientUid) {
+      // Always attempt to create the Auth account, even if we have a
+      // hearthUserId from a previous invite. This handles the case where the
+      // old Auth user was deleted (cleanup) but the client record still has
+      // the stale UID — without this, sendPasswordResetEmail silently fails
+      // because Firebase's email-enumeration protection swallows the
+      // "user-not-found" error and no email is ever sent.
+      try {
         const placeholder = crypto.randomUUID() + "!Aa1";
         const cred = await createUserWithEmailAndPassword(
           secondaryAuth,
           client.email,
           placeholder
         );
+        // Success — Auth account was missing (deleted or first time).
         clientUid = cred.user.uid;
-
         await updateProfile(cred.user, { displayName: client.name });
         await signOut(secondaryAuth);
 
-        // Persist the UID immediately so retries can recover — even if the
-        // modal is closed or Firestore doc creation fails, we can still
-        // link this client on the next attempt.
         setSavedUid(clientUid);
         await setDoc(doc(db, "clients", client.id), { hearthUserId: clientUid }, { merge: true });
+      } catch (createErr: unknown) {
+        const msg = createErr instanceof Error ? createErr.message : "";
+        if (msg.includes("email-already-in-use")) {
+          // Auth account still exists — that's fine, continue with existing UID.
+          if (!clientUid) {
+            // No saved UID — need to look up the existing account.
+            throw createErr; // Falls through to outer catch → handleExistingAccount
+          }
+        } else {
+          throw createErr; // Unexpected error — bubble up
+        }
       }
 
       // Create/update Firestore user doc & transaction (idempotent)

@@ -106,6 +106,13 @@ export interface DriveLink {
   url: string;
 }
 
+export interface ClientNote {
+  id: string;
+  text: string;
+  createdAt: number; // Date.now() timestamp
+  authorName: string;
+}
+
 export interface Client {
   id: string;
   userId: string;
@@ -148,6 +155,9 @@ export interface Client {
   // Agent-editable client status (shown on client dashboard)
   statusMessage?: string;
   actionItems?: string[];
+
+  // Timestamped notes log
+  noteEntries?: ClientNote[];
 
   // Archive lifecycle
   archivedAt?: number;                 // set when archived; cleared when un-archived
