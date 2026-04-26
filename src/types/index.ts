@@ -442,6 +442,7 @@ export interface SharedTransaction {
   syncPermissions?: SyncPermissions;
   permissionHistory?: PermissionChangeEntry[];
   syncPausedAt?: number;
+  clientFirstLoginAt?: number;
   archivedAt?: number;
   releaseReason?: string;
   releasedAt?: number;

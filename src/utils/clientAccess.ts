@@ -9,6 +9,8 @@ export function getAccessStatus(
   if (!client.hearthUserId) return "no-access";
   if (!transaction || !transaction.hearthPortalActive) return "invite-pending";
   if (transaction.syncPausedAt) return "sync-paused";
+  // Show "Invite Pending" until the client has actually logged in
+  if (!transaction.clientFirstLoginAt) return "invite-pending";
   return "active-sync";
 }
 
