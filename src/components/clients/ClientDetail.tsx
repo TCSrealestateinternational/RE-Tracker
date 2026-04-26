@@ -1,11 +1,9 @@
 import { useState, useRef, useEffect } from "react";
-import { sendPasswordResetEmail } from "firebase/auth";
 import { Icon } from "@/components/shared/Icon";
 import type { ChecklistTemplateItem } from "@/constants/checklist-buyer";
 import { t, card, btnPrimary } from "@/styles/theme";
 import { formatHours } from "@/utils/dates";
 import { exportClientPDF } from "@/utils/export";
-import { auth } from "@/lib/firebase";
 import { getAccessStatus, ACCESS_STATUS_CONFIG } from "@/utils/clientAccess";
 import type { Client, ClientNote, TimeEntry, TransactionChecklist, Deal, SharedTransaction } from "@/types";
 import { BUYER_CHECKLIST_TEMPLATE, BUYER_STAGES } from "@/constants/checklist-buyer";
@@ -84,10 +82,20 @@ export function ClientDetail({ client, entries, checklist, deal, transaction, on
     setResending(true);
     setResendStatus("");
     try {
-      await sendPasswordResetEmail(auth, client.email, {
-        url: "https://hearthapp.vercel.app/login",
-        handleCodeInApp: false,
+      const res = await fetch("https://hearthapp.vercel.app/api/send-invite", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: client.email,
+          clientName: client.name,
+          agentName: "",
+          brokerageName: "Life Built in Kentucky",
+        }),
       });
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        throw new Error(body.error || "Email send failed");
+      }
       setResendStatus("sent");
     } catch (err) {
       console.error("Resend invite failed:", err);

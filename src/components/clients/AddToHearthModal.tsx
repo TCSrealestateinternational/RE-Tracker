@@ -1,13 +1,12 @@
 import { useState } from "react";
 import {
   createUserWithEmailAndPassword,
-  sendPasswordResetEmail,
   updateProfile,
   signOut,
 } from "firebase/auth";
 import { doc, setDoc, serverTimestamp, addDoc, collection, query, where, getDocs, writeBatch } from "firebase/firestore";
 import { secondaryAuth } from "@/lib/firebase-secondary";
-import { auth, db } from "@/lib/firebase";
+import { db } from "@/lib/firebase";
 import { useAuth } from "@/context/AuthContext";
 import { t, btnPrimary, btnSecondary, card } from "@/styles/theme";
 import { useFocusTrap } from "@/hooks/useFocusTrap";
@@ -52,15 +51,22 @@ export function AddToHearthModal({ client, onClose, onLinked }: AddToHearthModal
     setPermissions((prev) => ({ ...prev, [key]: !prev[key] }));
   }
 
-  const actionCodeSettings = {
-    url: "https://hearthapp.vercel.app/login",
-    handleCodeInApp: false,
-  };
-
   async function sendInviteEmail(email: string) {
-    // Both RE Tracker and Hearth share the same Firebase project, so the
-    // client SDK can send password reset emails directly — no Admin SDK needed.
-    await sendPasswordResetEmail(auth, email, actionCodeSettings);
+    // Send branded invite email via Hearth API (Gmail SMTP)
+    const res = await fetch("https://hearthapp.vercel.app/api/send-invite", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        email,
+        clientName: client.name,
+        agentName: profile?.displayName || "",
+        brokerageName: "Life Built in Kentucky",
+      }),
+    });
+    if (!res.ok) {
+      const body = await res.json().catch(() => ({}));
+      throw new Error(body.error || "Email send failed");
+    }
   }
 
   async function handleResend() {
