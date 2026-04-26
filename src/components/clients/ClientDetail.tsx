@@ -84,27 +84,10 @@ export function ClientDetail({ client, entries, checklist, deal, transaction, on
     setResending(true);
     setResendStatus("");
     try {
-      // Try Hearth API (Resend) first, fall back to Firebase
-      let sent = false;
-      try {
-        const res = await fetch("https://hearthapp.vercel.app/api/send-invite", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            email: client.email,
-            clientName: client.name,
-            agentName: profile?.displayName || "",
-            brokerageName: "Life Built in Kentucky",
-          }),
-        });
-        if (res.ok) sent = true;
-      } catch { /* fall through */ }
-      if (!sent) {
-        await sendPasswordResetEmail(auth, client.email, {
-          url: "https://hearthapp.vercel.app/login",
-          handleCodeInApp: false,
-        });
-      }
+      await sendPasswordResetEmail(auth, client.email, {
+        url: "https://hearthapp.vercel.app/login",
+        handleCodeInApp: false,
+      });
       setResendStatus("sent");
     } catch (err) {
       console.error("Resend invite failed:", err);
