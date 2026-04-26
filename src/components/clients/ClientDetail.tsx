@@ -56,7 +56,7 @@ export function ClientDetail({ client, entries, checklist, deal, transaction, on
   const [activeTab, setActiveTab] = useState<DetailTab>(initialTab);
   const { hasHearthPortal } = useSubscription();
   const { syncDealToTransaction, activateHearthPortal } = useTransactionSync();
-  const { user, profile } = useAuth();
+  const { user } = useAuth();
   const [portalActivating, setPortalActivating] = useState(false);
   const [portalError, setPortalError] = useState("");
   const [showPermissionsModal, setShowPermissionsModal] = useState(false);
