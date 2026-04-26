@@ -58,25 +58,8 @@ export function AddToHearthModal({ client, onClose, onLinked }: AddToHearthModal
   };
 
   async function sendInviteEmail(email: string) {
-    // Try the Hearth API first (Resend — reliable delivery)
-    try {
-      const res = await fetch("https://hearthapp.vercel.app/api/send-invite", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          email,
-          clientName: client.name,
-          agentName: profile?.displayName || "",
-          brokerageName: "Life Built in Kentucky",
-        }),
-      });
-      if (res.ok) return; // Success
-      const body = await res.json().catch(() => ({}));
-      console.warn("Hearth API invite failed, falling back to Firebase:", body);
-    } catch (fetchErr) {
-      console.warn("Hearth API unreachable, falling back to Firebase:", fetchErr);
-    }
-    // Fallback: Firebase password reset email
+    // Both RE Tracker and Hearth share the same Firebase project, so the
+    // client SDK can send password reset emails directly — no Admin SDK needed.
     await sendPasswordResetEmail(auth, email, actionCodeSettings);
   }
 
