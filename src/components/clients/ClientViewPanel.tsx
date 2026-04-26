@@ -381,23 +381,38 @@ export function ClientViewPanel({ client, checklist, onToggleItem, transactionId
                       const statusColor =
                         offer.status === "accepted" ? t.success
                           : offer.status === "rejected" ? t.rust
-                            : t.gold;
+                            : offer.status === "withdrawn" ? t.textTertiary
+                              : t.gold;
+                      const statusBg =
+                        offer.status === "accepted" ? t.successLight
+                          : offer.status === "rejected" ? t.rustLight
+                            : offer.status === "withdrawn" ? t.bg
+                              : t.goldLight;
                       return (
                         <div key={i} style={{
-                          display: "grid", gridTemplateColumns: "1fr auto",
                           padding: "8px 12px", borderTop: `1px solid ${t.border}`,
-                          ...t.body,
                         }}>
-                          <span style={{ color: t.text }}>{fmtDollars(offer.amount)}</span>
-                          <span style={{
-                            padding: "2px 8px", borderRadius: "4px", fontSize: "11px", fontWeight: 600,
-                            textTransform: "uppercase",
-                            background: offer.status === "accepted" ? t.successLight
-                              : offer.status === "rejected" ? t.rustLight : t.goldLight,
-                            color: statusColor,
-                          }}>
-                            {offer.status}
-                          </span>
+                          <div style={{ display: "grid", gridTemplateColumns: "1fr auto", ...t.body }}>
+                            <span style={{ color: t.text }}>{fmtDollars(offer.amount)}</span>
+                            <span style={{
+                              padding: "2px 8px", borderRadius: "4px", fontSize: "11px", fontWeight: 600,
+                              textTransform: "uppercase",
+                              background: statusBg,
+                              color: statusColor,
+                            }}>
+                              {offer.status}
+                            </span>
+                          </div>
+                          {offer.status === "rejected" && offer.rejectedAt && (
+                            <div style={{ ...t.caption, color: t.rust, marginTop: "4px" }}>
+                              Rejected: {offer.rejectedAt}
+                            </div>
+                          )}
+                          {offer.status === "withdrawn" && offer.withdrawnAt && (
+                            <div style={{ ...t.caption, color: t.textTertiary, marginTop: "4px" }}>
+                              Withdrawn: {offer.withdrawnAt}
+                            </div>
+                          )}
                         </div>
                       );
                     })}

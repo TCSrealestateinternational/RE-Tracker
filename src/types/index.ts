@@ -94,11 +94,13 @@ export interface ContactPerson {
   phone: string;
 }
 
-export type OfferStatus = "accepted" | "countered" | "rejected";
+export type OfferStatus = "accepted" | "countered" | "rejected" | "withdrawn";
 
 export interface Offer {
   amount: number;
   status: OfferStatus;
+  rejectedAt?: string;
+  withdrawnAt?: string;
 }
 
 export interface DriveLink {

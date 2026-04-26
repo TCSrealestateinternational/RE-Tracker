@@ -134,6 +134,15 @@ export function ClientsPage() {
                   : data.expectedCloseDate ?? "",
             };
 
+            // If seller has no accepted offers left, move deal back to Active
+            if (
+              data.status === "seller" &&
+              deal.stage === "Under Contract" &&
+              !(data.offers ?? []).some((o) => o.status === "accepted")
+            ) {
+              patch.stage = "Active" as typeof deal.stage;
+            }
+
             await updateDeal(deal.id, patch);
 
             if (deal.transactionId) {

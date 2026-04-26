@@ -374,34 +374,73 @@ export function ClientForm({ initial, onSubmit, onCancel }: ClientFormProps) {
               </button>
             </div>
             {offers.map((offer, i) => (
-              <div key={i} style={{ display: "flex", gap: "8px", alignItems: "center", marginBottom: "6px" }}>
-                <input
-                  value={offer.amount || ""}
-                  onChange={(e) => {
-                    const v = e.target.value;
-                    if (v === "" || /^-?\d*\.?\d*$/.test(v)) {
-                      updateOffer(i, "amount", v === "" ? 0 : parseFloat(sanitizeNumStr(v)) || 0);
-                    }
-                  }}
-                  placeholder="Amount"
-                  style={{ ...inputBase, flex: 1 }}
-                  inputMode="decimal"
-                />
-                <select
-                  value={offer.status}
-                  onChange={(e) => updateOffer(i, "status", e.target.value as OfferStatus)}
-                  style={{ ...inputBase, flex: 0, width: "140px" }}
-                >
-                  <option value="countered">Countered</option>
-                  <option value="accepted">Accepted</option>
-                  <option value="rejected">Rejected</option>
-                </select>
-                <button type="button" onClick={() => removeOffer(i)} aria-label={`Remove offer ${i + 1}`} style={{
-                  background: "none", border: "none", cursor: "pointer",
-                  color: t.textTertiary, padding: "4px", display: "flex", alignItems: "center",
-                }}>
-                  <Icon name="close" size={14} />
-                </button>
+              <div key={i} style={{ marginBottom: "10px" }}>
+                <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
+                  <input
+                    value={offer.amount || ""}
+                    onChange={(e) => {
+                      const v = e.target.value;
+                      if (v === "" || /^-?\d*\.?\d*$/.test(v)) {
+                        updateOffer(i, "amount", v === "" ? 0 : parseFloat(sanitizeNumStr(v)) || 0);
+                      }
+                    }}
+                    placeholder="Amount"
+                    style={{ ...inputBase, flex: 1 }}
+                    inputMode="decimal"
+                  />
+                  <select
+                    value={offer.status}
+                    onChange={(e) => {
+                      const newStatus = e.target.value as OfferStatus;
+                      updateOffer(i, "status", newStatus);
+                      // Clear date fields when switching away from rejected/withdrawn
+                      if (newStatus !== "rejected" && offer.rejectedAt) {
+                        setOffers((prev) => prev.map((o, idx) => idx === i ? { ...o, rejectedAt: undefined } : o));
+                      }
+                      if (newStatus !== "withdrawn" && offer.withdrawnAt) {
+                        setOffers((prev) => prev.map((o, idx) => idx === i ? { ...o, withdrawnAt: undefined } : o));
+                      }
+                    }}
+                    style={{ ...inputBase, flex: 0, width: "140px" }}
+                  >
+                    <option value="countered">Countered</option>
+                    <option value="accepted">Accepted</option>
+                    <option value="rejected">Rejected</option>
+                    <option value="withdrawn">Withdrawn</option>
+                  </select>
+                  <button type="button" onClick={() => removeOffer(i)} aria-label={`Remove offer ${i + 1}`} style={{
+                    background: "none", border: "none", cursor: "pointer",
+                    color: t.textTertiary, padding: "4px", display: "flex", alignItems: "center",
+                  }}>
+                    <Icon name="close" size={14} />
+                  </button>
+                </div>
+                {offer.status === "rejected" && (
+                  <div style={{ marginTop: "6px", paddingLeft: "4px" }}>
+                    <label style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                      <span style={{ ...t.caption, color: t.rust, whiteSpace: "nowrap" }}>Rejected Date</span>
+                      <input
+                        type="date"
+                        value={offer.rejectedAt ?? ""}
+                        onChange={(e) => setOffers((prev) => prev.map((o, idx) => idx === i ? { ...o, rejectedAt: e.target.value || undefined } : o))}
+                        style={{ ...inputBase, flex: 1 }}
+                      />
+                    </label>
+                  </div>
+                )}
+                {offer.status === "withdrawn" && (
+                  <div style={{ marginTop: "6px", paddingLeft: "4px" }}>
+                    <label style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                      <span style={{ ...t.caption, color: t.textTertiary, whiteSpace: "nowrap" }}>Withdrawn Date</span>
+                      <input
+                        type="date"
+                        value={offer.withdrawnAt ?? ""}
+                        onChange={(e) => setOffers((prev) => prev.map((o, idx) => idx === i ? { ...o, withdrawnAt: e.target.value || undefined } : o))}
+                        style={{ ...inputBase, flex: 1 }}
+                      />
+                    </label>
+                  </div>
+                )}
               </div>
             ))}
           </div>
