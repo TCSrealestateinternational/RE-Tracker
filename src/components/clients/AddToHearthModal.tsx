@@ -57,11 +57,34 @@ export function AddToHearthModal({ client, onClose, onLinked }: AddToHearthModal
     handleCodeInApp: false,
   };
 
+  async function sendInviteEmail(email: string) {
+    // Try the Hearth API first (Resend — reliable delivery)
+    try {
+      const res = await fetch("https://hearthapp.vercel.app/api/send-invite", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email,
+          clientName: client.name,
+          agentName: profile?.displayName || "",
+          brokerageName: "Life Built in Kentucky",
+        }),
+      });
+      if (res.ok) return; // Success
+      const body = await res.json().catch(() => ({}));
+      console.warn("Hearth API invite failed, falling back to Firebase:", body);
+    } catch (fetchErr) {
+      console.warn("Hearth API unreachable, falling back to Firebase:", fetchErr);
+    }
+    // Fallback: Firebase password reset email
+    await sendPasswordResetEmail(auth, email, actionCodeSettings);
+  }
+
   async function handleResend() {
     if (!client.email) return;
     setResending(true);
     try {
-      await sendPasswordResetEmail(auth, client.email, actionCodeSettings);
+      await sendInviteEmail(client.email);
       setResent(true);
     } catch (err) {
       console.error("Resend failed:", err);
@@ -167,7 +190,7 @@ export function AddToHearthModal({ client, onClose, onLinked }: AddToHearthModal
       onLinked(client.hearthUserId);
 
       try {
-        await sendPasswordResetEmail(auth, client.email, actionCodeSettings);
+        await sendInviteEmail(client.email);
       } catch {
         // Non-blocking
       }
@@ -215,7 +238,7 @@ export function AddToHearthModal({ client, onClose, onLinked }: AddToHearthModal
       onLinked(existingUserId);
 
       try {
-        await sendPasswordResetEmail(auth, client.email, actionCodeSettings);
+        await sendInviteEmail(client.email);
       } catch {
         // Non-blocking
       }
@@ -228,7 +251,7 @@ export function AddToHearthModal({ client, onClose, onLinked }: AddToHearthModal
     // This is an orphaned Auth account from a previous failed invite attempt.
     // Send a password reset email so the account is recoverable.
     try {
-      await sendPasswordResetEmail(auth, client.email, actionCodeSettings);
+      await sendInviteEmail(client.email);
     } catch {
       // Non-blocking
     }
@@ -255,7 +278,7 @@ export function AddToHearthModal({ client, onClose, onLinked }: AddToHearthModal
       if (knownUid) {
         await ensureFirestoreDocs(knownUid, client.id);
         onLinked(knownUid);
-        try { await sendPasswordResetEmail(auth, client.email, actionCodeSettings); } catch { /* non-blocking */ }
+        try { await sendInviteEmail(client.email); } catch { /* non-blocking */ }
         setSuccess(true);
         return;
       }
@@ -331,7 +354,7 @@ export function AddToHearthModal({ client, onClose, onLinked }: AddToHearthModal
       onLinked(clientUid);
 
       try {
-        await sendPasswordResetEmail(auth, client.email, actionCodeSettings);
+        await sendInviteEmail(client.email);
       } catch (emailErr) {
         console.error("Invite email failed:", emailErr);
         setEmailFailed(true);
