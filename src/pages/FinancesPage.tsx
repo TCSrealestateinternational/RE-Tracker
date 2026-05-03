@@ -80,6 +80,12 @@ export function FinancesPage() {
 
   return (
     <div>
+      <div style={{ marginBottom: "20px" }}>
+        <span style={{ ...t.eyebrow, color: t.gold, display: "block", marginBottom: "8px" }}>
+          FINANCIAL MANAGEMENT
+        </span>
+        <h1 style={{ ...t.pageTitle, color: t.text }}>Finances</h1>
+      </div>
       {/* Tab Bar */}
       <div style={{
         display: "flex", gap: "4px", marginBottom: "24px",

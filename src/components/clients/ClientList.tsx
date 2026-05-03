@@ -1,5 +1,6 @@
 import { useState, useCallback } from "react";
 import { Icon } from "@/components/shared/Icon";
+import { useFocusTrap } from "@/hooks/useFocusTrap";
 import { deleteField } from "firebase/firestore";
 import { t, card, btnPrimary, btnSecondary, inputBase } from "@/styles/theme";
 import { todayStr } from "@/utils/dates";
@@ -167,6 +168,7 @@ export function ClientList({ clients, transactions, onSelect, onClientView, onNo
       <div style={{ marginBottom: "8px" }}>
         <button
           onClick={() => toggleFolder(key)}
+          aria-expanded={isOpen}
           style={{
             display: "flex", alignItems: "center", gap: "8px",
             background: "none", border: "none", cursor: "pointer",
@@ -228,7 +230,7 @@ export function ClientList({ clients, transactions, onSelect, onClientView, onNo
           PORTFOLIO MANAGEMENT
         </span>
         <div className="page-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
-          <h2 style={{ ...t.pageTitle, color: t.text }}>Your Client Ledger</h2>
+          <h1 style={{ ...t.pageTitle, color: t.text }}>Your Client Ledger</h1>
           <div style={{ display: "flex", gap: "8px" }}>
             <button onClick={() => { setBulkMode(!bulkMode); if (bulkMode) { setSelectedIds(new Set()); } }} style={{
               ...btnSecondary, display: "flex", alignItems: "center", gap: "6px",
@@ -398,24 +400,11 @@ export function ClientList({ clients, transactions, onSelect, onClientView, onNo
 
       {/* Single-client delete modal (from context menu) */}
       {singleDeleteClient && (
-        <div style={{
-          position: "fixed", inset: 0, zIndex: 100,
-          display: "flex", alignItems: "center", justifyContent: "center",
-          background: "rgba(0,0,0,0.4)",
-        }}
-          onClick={() => { setSingleDeleteClient(null); setSingleDeleteText(""); }}
-          onKeyDown={(e) => { if (e.key === "Escape") { setSingleDeleteClient(null); setSingleDeleteText(""); } }}
+        <FocusTrapModal
+          titleId="single-delete-title"
+          onClose={() => { setSingleDeleteClient(null); setSingleDeleteText(""); }}
+          maxWidth="420px"
         >
-          <div
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="single-delete-title"
-            style={{
-              ...card, maxWidth: "420px", width: "90%",
-              boxShadow: "0 8px 32px rgba(0,0,0,0.2)",
-            }}
-            onClick={(e) => e.stopPropagation()}
-          >
             <h3 id="single-delete-title" style={{ ...t.sectionHeader, color: t.rust, marginBottom: "12px" }}>
               Delete {singleDeleteClient.name}?
             </h3>
@@ -468,30 +457,16 @@ export function ClientList({ clients, transactions, onSelect, onClientView, onNo
                 {singleDeleting ? "Deleting…" : "Delete Forever"}
               </button>
             </div>
-          </div>
-        </div>
+        </FocusTrapModal>
       )}
 
       {/* Bulk delete confirmation modal */}
       {showDeleteModal && (
-        <div style={{
-          position: "fixed", inset: 0, zIndex: 100,
-          display: "flex", alignItems: "center", justifyContent: "center",
-          background: "rgba(0,0,0,0.4)",
-        }}
-          onClick={() => { setShowDeleteModal(false); setDeleteConfirmText(""); }}
-          onKeyDown={(e) => { if (e.key === "Escape") { setShowDeleteModal(false); setDeleteConfirmText(""); } }}
+        <FocusTrapModal
+          titleId="bulk-delete-title"
+          onClose={() => { setShowDeleteModal(false); setDeleteConfirmText(""); }}
+          maxWidth="400px"
         >
-          <div
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="bulk-delete-title"
-            style={{
-              ...card, maxWidth: "400px", width: "90%",
-              boxShadow: "0 8px 32px rgba(0,0,0,0.2)",
-            }}
-            onClick={(e) => e.stopPropagation()}
-          >
             <h3 id="bulk-delete-title" style={{ ...t.sectionHeader, color: t.rust, marginBottom: "12px" }}>
               Delete {selectedCount} Client{selectedCount > 1 ? "s" : ""}?
             </h3>
@@ -524,8 +499,7 @@ export function ClientList({ clients, transactions, onSelect, onClientView, onNo
                 {deleting ? "Deleting…" : "Delete"}
               </button>
             </div>
-          </div>
-        </div>
+        </FocusTrapModal>
       )}
     </div>
   );
@@ -789,7 +763,7 @@ function ArchivedRow({ client, today, bulkMode, isSelected, onSelect, onClientVi
               Reminder: {client.oneYearReminderDate}
               <button
                 onClick={handleClearReminder}
-                title="Clear reminder"
+                aria-label="Clear reminder"
                 style={{
                   display: "inline-flex", alignItems: "center", justifyContent: "center",
                   background: "none", border: "none", cursor: "pointer",
@@ -811,6 +785,40 @@ function ArchivedRow({ client, today, bulkMode, isSelected, onSelect, onClientVi
           )}
         </div>
       )}
+    </div>
+  );
+}
+
+// ── Focus-trapped modal wrapper for delete confirmations ──
+function FocusTrapModal({ titleId, onClose, maxWidth, children }: {
+  titleId: string;
+  onClose: () => void;
+  maxWidth: string;
+  children: React.ReactNode;
+}) {
+  const trapRef = useFocusTrap({ onEscape: onClose, active: true });
+  return (
+    <div
+      style={{
+        position: "fixed", inset: 0, zIndex: 100,
+        display: "flex", alignItems: "center", justifyContent: "center",
+        background: "rgba(0,0,0,0.4)",
+      }}
+      onClick={onClose}
+    >
+      <div
+        ref={trapRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={titleId}
+        style={{
+          ...card, maxWidth, width: "90%",
+          boxShadow: "0 8px 32px rgba(0,0,0,0.2)",
+        }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        {children}
+      </div>
     </div>
   );
 }

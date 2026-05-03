@@ -1,4 +1,5 @@
 import { useEffect, useState, useCallback } from "react";
+import { useFocusTrap } from "@/hooks/useFocusTrap";
 import { t } from "@/styles/theme";
 import type { TourStep } from "@/constants/tour-steps";
 
@@ -107,6 +108,7 @@ export function TourOverlay({
 }: TourOverlayProps) {
   const [rect, setRect] = useState<Rect | null>(null);
   const tw = getTooltipWidth();
+  const trapRef = useFocusTrap({ onEscape: onSkip, active: true });
 
   // Resolve target element position
   useEffect(() => {
@@ -153,15 +155,6 @@ export function TourOverlay({
     };
   }, [updateRect]);
 
-  // Escape key to dismiss
-  useEffect(() => {
-    const handler = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onSkip();
-    };
-    window.addEventListener("keydown", handler);
-    return () => window.removeEventListener("keydown", handler);
-  }, [onSkip]);
-
   // Tooltip position
   const fallbackPos = {
     top: window.innerHeight / 2 - 80,
@@ -188,6 +181,7 @@ export function TourOverlay({
         height="100%"
         style={{ position: "absolute", inset: 0, cursor: "pointer" }}
         onClick={onSkip}
+        aria-hidden="true"
       >
         <defs>
           <mask id="tour-mask">
@@ -214,6 +208,10 @@ export function TourOverlay({
 
       {/* Tooltip card */}
       <div
+        ref={trapRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="tour-step-title"
         onClick={(e) => e.stopPropagation()}
         style={{
           position: "fixed",
@@ -258,17 +256,19 @@ export function TourOverlay({
 
         {/* Step counter */}
         <div
+          aria-live="polite"
           style={{
             fontSize: "12px",
             color: t.textTertiary,
             marginBottom: "8px",
           }}
         >
-          {stepIndex + 1} of {totalSteps}
+          Step {stepIndex + 1} of {totalSteps}
         </div>
 
         {/* Title */}
         <div
+          id="tour-step-title"
           style={{
             fontSize: "15px",
             fontWeight: 600,

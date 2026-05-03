@@ -45,10 +45,17 @@ export function ChecklistView({ checklist, clientName, transactionId, onToggle, 
         </span>
       </div>
 
-      <div style={{
-        height: "4px", background: t.tealLight, borderRadius: "2px",
-        overflow: "hidden", marginBottom: "20px",
-      }}>
+      <div
+        role="progressbar"
+        aria-valuenow={pct}
+        aria-valuemin={0}
+        aria-valuemax={100}
+        aria-label={`Checklist progress: ${pct}%`}
+        style={{
+          height: "4px", background: t.tealLight, borderRadius: "2px",
+          overflow: "hidden", marginBottom: "20px",
+        }}
+      >
         <div style={{
           height: "100%", width: `${pct}%`,
           background: pct === 100 ? t.success : t.goldGradient,
@@ -102,6 +109,7 @@ function StageSection({
     <div style={{ borderRadius: "8px", overflow: "hidden" }}>
       <button
         onClick={() => setOpen(!open)}
+        aria-expanded={open}
         style={{
           display: "flex", alignItems: "center", gap: "8px", width: "100%",
           background: t.bg, border: "none", cursor: "pointer",
@@ -165,7 +173,7 @@ function StageSection({
                         e.stopPropagation();
                         onToggleNotify(checklist.id, item.label, !notifyClient);
                       }}
-                      title={notifyClient ? "Client will be notified" : "Client will not be notified"}
+                      aria-label={notifyClient ? "Client will be notified — click to disable" : "Client will not be notified — click to enable"}
                       style={{
                         background: "none", border: "none", cursor: "pointer",
                         padding: "2px", display: "flex", alignItems: "center",

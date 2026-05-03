@@ -2,6 +2,7 @@ import { useState, useRef } from "react";
 import { doc, setDoc, updateDoc, collection, query, where, getDocs, limit } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useAuth } from "@/context/AuthContext";
+import { useFocusTrap } from "@/hooks/useFocusTrap";
 import { slugify } from "@/lib/slugify";
 import { uploadBrokerageLogo } from "@/lib/storage";
 import { defaultBrandTokens } from "@/types";
@@ -24,6 +25,7 @@ export function BrokerageSetupModal({ onComplete }: BrokerageSetupModalProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const trapRef = useFocusTrap({ active: true });
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -104,8 +106,8 @@ export function BrokerageSetupModal({ onComplete }: BrokerageSetupModalProps) {
   }
 
   return (
-    <div style={styles.overlay}>
-      <div style={styles.modal}>
+    <div style={styles.overlay} aria-hidden="true">
+      <div ref={trapRef} role="dialog" aria-modal="true" aria-labelledby="brokerage-setup-title" style={styles.modal}>
         <div style={{ textAlign: "center" as const, marginBottom: "24px" }}>
           <div style={{
             width: "48px", height: "48px", borderRadius: "50%",
@@ -115,7 +117,7 @@ export function BrokerageSetupModal({ onComplete }: BrokerageSetupModalProps) {
           }}>
             &#x1F3E2;
           </div>
-          <h2 style={{ ...t.sectionHeader, color: t.text, marginBottom: "4px" }}>
+          <h2 id="brokerage-setup-title" style={{ ...t.sectionHeader, color: t.text, marginBottom: "4px" }}>
             Set Up Your Brokerage
           </h2>
           <p style={{ ...t.body, color: t.textSecondary }}>
@@ -247,7 +249,7 @@ export function BrokerageSetupModal({ onComplete }: BrokerageSetupModalProps) {
               padding: "10px 12px",
               marginBottom: "16px",
             }}>
-              <p style={{ ...t.caption, color: t.rust }}>{error}</p>
+              <p role="alert" style={{ ...t.caption, color: t.rust }}>{error}</p>
             </div>
           )}
 

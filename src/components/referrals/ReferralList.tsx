@@ -121,7 +121,7 @@ export function ReferralList({ referrals, onSelect, onAdd }: ReferralListProps) 
         PROFESSIONAL NETWORK
       </span>
       <div className="page-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
-        <h2 style={{ ...t.pageTitle, color: t.text }}>Agent Referrals</h2>
+        <h1 style={{ ...t.pageTitle, color: t.text }}>Agent Referrals</h1>
         <button data-tour="add-referral" onClick={onAdd} style={{ ...btnPrimary, display: "flex", alignItems: "center", gap: "8px" }}>
           <Icon name="handshake" size={16} />
           Add Referral

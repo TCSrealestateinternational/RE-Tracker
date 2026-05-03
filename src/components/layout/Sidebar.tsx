@@ -45,7 +45,7 @@ export function Sidebar({ activePath, onNavigate, open, onToggle, unreadMessages
 
   return (
     <>
-      <button className="hamburger" onClick={onToggle} aria-label="Toggle menu">
+      <button className="hamburger" onClick={onToggle} aria-label="Toggle menu" aria-expanded={open}>
         <span /><span /><span />
       </button>
 

@@ -68,6 +68,7 @@ export function KanbanBoard({ deals, onMove, onEdit, onDelete, onRelease, timeEn
               <button
                 type="button"
                 onClick={() => setOpenStage(isOpen ? null : stage)}
+                aria-expanded={isOpen}
                 style={{
                   width: "100%", display: "flex", justifyContent: "space-between", alignItems: "center",
                   padding: "14px 16px", background: "none", border: "none", cursor: "pointer",
